@@ -1,23 +1,45 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
-    // For now just a placeholder, add real auth logic later
+    setLoading(true);
+
+    // Validation
     if (!email || !password) {
       setError('Please enter email and password');
+      setLoading(false);
       return;
     }
-    alert(`Logging in with email: ${email}`);
-    // Later: real login → navigate('/dashboard') or similar
+
+    if (!email.includes('@')) {
+      setError('Please enter a valid email address');
+      setLoading(false);
+      return;
+    }
+
+    // Attempt login
+    const result = await login(email, password);
+    
+    if (result.success) {
+      // Login successful - redirect to dashboard
+      navigate('/dashboard');
+    } else {
+      // Login failed - show error
+      setError(result.error || 'Login failed. Please check your credentials and try again.');
+      setLoading(false);
+    }
   };
 
   return (
@@ -77,9 +99,10 @@ export default function Login() {
             
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-200"
+              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading}
             >
-              Sign In
+              {loading ? 'Signing In...' : 'Sign In'}
             </button>
             
             <div className="relative my-6">
