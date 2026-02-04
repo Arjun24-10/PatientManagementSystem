@@ -1,9 +1,13 @@
 package com.securehealth.backend.controller;
 
 import com.securehealth.backend.dto.LoginRequest;
+import com.securehealth.backend.dto.LoginResponse;
 import com.securehealth.backend.dto.RegistrationRequest;
 import com.securehealth.backend.model.Login;
 import com.securehealth.backend.service.AuthService;
+import jakarta.servlet.http.Cookie;            
+import jakarta.servlet.http.HttpServletRequest;  
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -56,26 +60,68 @@ public class AuthController {
             resp.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resp);
         }
+
     }
 
     /**
-     * Login existing user.
+     * Authenticates user and sets Secure HttpOnly Cookie.
      * Endpoint: POST /api/auth/login
      */
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> loginUser(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request,
+                                   HttpServletResponse response,
+                                   HttpServletRequest httpRequest) {
         try {
-            Login user = authService.authenticateUser(request.getEmail(), request.getPassword());
-            Map<String, Object> resp = new HashMap<>();
-            resp.put("message", "Login successful");
-            resp.put("email", user.getEmail());
-            resp.put("role", user.getRole());
-            return ResponseEntity.ok(resp);
+            // 1. Call Service (Now returns LoginResponse DTO, not User entity)
+            LoginResponse loginData = authService.login(
+                request.getEmail(), 
+                request.getPassword(),
+                httpRequest.getRemoteAddr(),       // Get User's IP
+                httpRequest.getHeader("User-Agent") // Get Browser info
+            );
+
+            // 2. [NEW] Create the Secure Cookie
+            // This is how we hide the refresh token from JavaScript
+            Cookie refreshCookie = new Cookie("refreshToken", loginData.getRefreshToken());
+            refreshCookie.setHttpOnly(true);  // Critical: JS cannot read this
+            refreshCookie.setSecure(false);   // False for Localhost, True for Production
+            refreshCookie.setPath("/api/auth"); // Cookie only sent to Auth endpoints
+            refreshCookie.setMaxAge(7 * 24 * 60 * 60); // 7 Days in seconds
+
+            // 3. Add Cookie to Response
+            response.addCookie(refreshCookie);
+
+            // 4. Sanitize Response Body
+            // We set refreshToken to null here so it is NOT sent in the JSON body
+            loginData.setRefreshToken(null); 
+
+            // 5. Return Access Token & Role
+            return ResponseEntity.ok(loginData);
 
         } catch (RuntimeException e) {
             Map<String, Object> resp = new HashMap<>();
             resp.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(resp);
         }
+    }
+    
+    // --- LOGOUT (NEW - TASK #12515) ---
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@CookieValue(name = "refreshToken", required = false) String refreshToken,
+                                    HttpServletResponse response) {
+        
+        // 1. Invalidate in DB
+        if(refreshToken != null) authService.logout(refreshToken);
+
+        // 2. Kill the Cookie
+        Cookie cookie = new Cookie("refreshToken", null);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setPath("/api/auth");
+        cookie.setMaxAge(0); // Expires immediately
+        
+        response.addCookie(cookie);
+        
+        return ResponseEntity.ok("Logged out successfully");
     }
 }
