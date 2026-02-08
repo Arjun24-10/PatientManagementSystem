@@ -1,5 +1,15 @@
 # Frontend Project Structure
 
+## 🚀 Premium Enterprise Transformation
+
+The frontend has undergone a complete transformation into a **premium, enterprise-grade healthcare SaaS platform**. The new design system features:
+
+- **Glassmorphism**: Modern frosted glass effects for cards, navigation sidebars, and headers (`.glass-card`).
+- **Gradient System**: Sophisticated color gradients for buttons, text, icons, and backgrounds.
+- **Micro-interactions**: Smooth hover effects (`.hover-lift`), staggered fade-in animations, and interactive elements.
+- **Premium Typography**: Integrated **Plus Jakarta Sans** for a clean, modern, and readable font.
+- **High-End Components**: Fully custom-styled Buttons, Cards, and Badges with multiple premium variants.
+
 This document outlines the file structure of the `frontend/app` directory, explaining the purpose of key files and directories in the Patient Management System.
 
 ## Directory Structure
@@ -9,7 +19,7 @@ frontend/app/
 ├── public/                     # Static assets (images, icons)
 ├── src/                        # Source code
 │   ├── components/             # Reusable UI components
-│   │   ├── common/             # Generic atomic components (Buttons, Inputs, Modals)
+│   │   ├── common/             # Premium atomic components (Buttons, Cards, Badges)
 │   │   ├── AppointmentCalendar.jsx # Full-month interactive calendar view
 │   │   ├── AppointmentList.jsx     # List view component for appointments
 │   │   ├── AppointmentSidePanel.jsx # Appointment details side panel
@@ -65,7 +75,7 @@ frontend/app/
 │   │
 │   ├── App.jsx                 # Main application component & Router configuration
 │   ├── App.css                 # Component-level styles for App
-│   ├── index.css               # Global styles & Tailwind directives
+│   ├── index.css               # Design system variables, gradients, & animations
 │   ├── index.js                # Application entry point (ReactDOM render)
 │   ├── test-utils.jsx          # Testing utilities (custom render with providers)
 │   └── setupTests.js           # Jest configuration
@@ -79,13 +89,77 @@ frontend/app/
 ## Testing
 
 ### Test Coverage
-The project has **comprehensive test coverage** with **34 test suites** and **67 tests**, all passing ✅
+The project has **comprehensive test coverage** with tests for all major components, pages, services, and contexts.
 
-### Test Files
-Every component and page has a corresponding `.test.jsx` file:
-- **Components**: `Button.test.jsx`, `Card.test.jsx`, `Modal.test.jsx`, `Alert.test.jsx`, etc.
-- **Pages**: All dashboard, appointment, and profile pages have tests
-- **Utilities**: `test-utils.jsx` provides custom render with Router and Auth providers
+### Test Files Organization
+
+#### Component Tests
+**Common Components** (`src/components/common/`)
+- `Alert.test.jsx` - Alert component with different types
+- `Badge.test.jsx` - Badge component with color variants
+- `Button.test.jsx` - Button component with variants
+- `Card.test.jsx` - Card wrapper component
+- `Input.test.jsx` - Input field component
+- `Modal.test.jsx` - Modal dialog component
+- `RestrictedSection.test.jsx` - Role-based access control
+
+**Shared Components** (`src/components/`)
+- `AppointmentCalendar.test.jsx` - Full calendar view
+- `AppointmentList.test.jsx` - Appointment list view
+- `AppointmentSidePanel.test.jsx` - Appointment details panel
+- `MiniCalendar.test.jsx` - Compact calendar widget
+- `SchedulerView.test.jsx` - Time slot scheduler
+- `VitalsChart.test.jsx` - Vital signs chart
+
+**Doctor Components** (`src/components/doctor/`)
+- `LabResultsList.test.jsx` - Lab results display
+- `MedicalHistoryList.test.jsx` - Medical history timeline
+- `TreatmentModal.test.jsx` - Treatment plan modal
+
+**Doctor Page Components** (`src/pages/doctor/components/`)
+- `NotificationsPanel.test.jsx` - Notifications widget
+- `PatientSearch.test.jsx` - Patient search component
+- `TreatmentModal.test.jsx` - Treatment modal
+- `VitalsChart.test.jsx` - Vitals visualization
+
+#### Page Tests
+**Doctor Pages** (`src/pages/doctor/`)
+- `Appointments.test.jsx` - Appointment management
+- `Dashboard.test.jsx` - Doctor dashboard
+- `LabResults.test.jsx` - Lab results page
+- `Messages.test.jsx` - Messaging interface
+- `PatientDetail.test.jsx` - Patient detail view
+- `Patients.test.jsx` - Patient directory
+- `Prescriptions.test.jsx` - Prescription management
+- `Profile.test.jsx` - Doctor profile
+- `Reports.test.jsx` - Reports and analytics
+
+**Patient Pages** (`src/pages/patient/`)
+- `Appointments.test.jsx` - Patient appointments
+- `Dashboard.test.jsx` - Patient dashboard
+- `LabResults.test.jsx` - Lab results view
+- `MedicalHistory.test.jsx` - Medical history
+- `Prescriptions.test.jsx` - Active medications
+
+**Other Role Pages**
+- `src/pages/admin/Dashboard.test.jsx` - Admin dashboard
+- `src/pages/lab/Dashboard.test.jsx` - Lab dashboard
+- `src/pages/nurse/Dashboard.test.jsx` - Nurse dashboard
+
+**Authentication Pages**
+- `src/pages/login.test.jsx` - Login page
+- `src/pages/createAccount.test.jsx` - Registration page
+
+#### Context & Service Tests
+- `src/contexts/AuthContext.test.jsx` - Authentication context
+- `src/services/api.test.js` - API service layer
+- `src/services/supabaseAuth.test.js` - Auth service
+
+#### Layout Tests
+- `src/layouts/DashboardLayout.test.jsx` - Main dashboard layout
+
+#### Core Tests
+- `src/App.test.js` - Main app component and routing
 
 ### Running Tests
 ```bash
@@ -100,13 +174,17 @@ npm test ComponentName.test.jsx
 
 # Run with coverage
 npm test -- --coverage
+
+# Run tests for a specific directory
+npm test src/pages/doctor
 ```
 
 ### Testing Infrastructure
 - **Framework**: Jest + React Testing Library
-- **Router**: Fixed `react-router-dom` v7.12.0 (native fix, no mocks)
+- **Router**: `react-router-dom` v7.12.0 with `MemoryRouter` for tests
 - **Providers**: Auto-wrapped with `MemoryRouter` and `AuthContext.Provider` via `test-utils.jsx`
-- **Auth Service**: Real `supabaseAuth.js` service integrated with backend API
+- **Mocking Strategy**: Component-level mocks for dependencies, service-level mocks for API calls
+- **Auth Service**: Backend API integration tested with mocked fetch calls
 
 ## Key Features
 
@@ -119,10 +197,13 @@ npm test -- --coverage
 - React Context for authentication (`AuthContext`)
 - Local state management with hooks
 
-### Styling
-- Tailwind CSS for utility-first styling
-- Custom theme configuration in `tailwind.config.js`
-- Responsive design with mobile-first approach
+### Styling & Design System
+- **Tailwind CSS**: Utility-first framework heavily customized for the premium look.
+- **Glassmorphism**: Backdrop blur and transparency utilities (`.glass-card`, `.glass-card-dark`).
+- **Animations**: Custom keyframe animations for fade-ins, floating elements, pulses, and hover lifts.
+- **Gradients**: A comprehensive system of primary, secondary, and accent gradients defined in `:root`.
+- **Typography**: Complete integration of **Plus Jakarta Sans** via Google Fonts.
+- **Responsive Design**: Mobile-first approach ensuring perfect rendering on all devices.
 
 ### Mock Data
 - Development-ready mock data for patients, appointments, and medical records

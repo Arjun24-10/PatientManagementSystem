@@ -8,12 +8,17 @@ export const mockAppointments = [
         patientId: 'P001',
         patientName: 'Emily Blunt',
         doctorName: 'Dr. Smith',
+        doctorId: 'DOC006',
+        department: 'General Medicine',
         date: format(today, 'yyyy-MM-dd'),
         time: '09:00 AM',
         duration: 30,
         type: 'Check-up',
         status: 'Confirmed',
-        room: 'Room 302'
+        room: 'Room 302',
+        location: 'Main Building, 3rd Floor',
+        reason: 'Regular health checkup',
+        cancellationReason: null,
     },
     {
         id: 'A002',

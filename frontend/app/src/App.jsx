@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import { AuthProvider } from './contexts/AuthContext';
 import Login from './pages/login.jsx';
@@ -18,12 +18,17 @@ import NurseDashboard from './pages/nurse/Dashboard.jsx';
 import LabDashboard from './pages/lab/Dashboard.jsx';
 import AdminDashboard from './pages/admin/Dashboard.jsx';
 import PatientDashboard from './pages/patient/Dashboard.jsx';
+import PatientAppointments from './pages/patient/Appointments.jsx';
+import PatientMedicalHistory from './pages/patient/MedicalHistory.jsx';
+import PatientLabResults from './pages/patient/LabResults.jsx';
+import PatientMedications from './pages/patient/Medications.jsx';
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/create" element={<CreateAccount />} />
 
@@ -42,6 +47,10 @@ function App() {
 
           <Route path="/dashboard/patient/*" element={<DashboardLayout role="patient" userName="John Doe" />}>
             <Route path="" element={<PatientDashboard />} />
+            <Route path="appointments" element={<PatientAppointments />} />
+            <Route path="history" element={<PatientMedicalHistory />} />
+            <Route path="labs" element={<PatientLabResults />} />
+            <Route path="prescriptions" element={<PatientMedications />} />
           </Route>
 
           <Route path="/dashboard/nurse/*" element={<DashboardLayout role="nurse" userName="Nurse Joy" />}>
