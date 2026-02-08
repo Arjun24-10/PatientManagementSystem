@@ -49,6 +49,7 @@ const LabResultsList = ({ labs }) => {
                                     )}
                                 </div>
                                 <div className="mt-2 flex items-center gap-2">
+                                    {getStatusIcon(lab.status)}
                                     <Badge type={lab.status === 'Normal' ? 'green' : lab.status === 'Pending' ? 'yellow' : 'red'}>
                                         {lab.status}
                                     </Badge>

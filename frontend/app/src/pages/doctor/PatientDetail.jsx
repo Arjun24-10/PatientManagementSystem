@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-    ArrowLeft, FileText, Clock, Activity, Pill, Plus
+    ArrowLeft, Clock, Activity, Pill, Plus
 } from 'lucide-react';
 
 import Card from '../../components/common/Card';

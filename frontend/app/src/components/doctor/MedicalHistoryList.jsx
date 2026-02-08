@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, FileText, AlertCircle } from 'lucide-react';
+import { Clock, FileText } from 'lucide-react';
 import Card from '../common/Card';
 import Badge from '../common/Badge';
 
