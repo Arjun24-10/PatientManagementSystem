@@ -10,8 +10,12 @@ import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
 import Input from '../../components/common/Input';
 
+import TreatmentModal from '../../components/doctor/TreatmentModal';
+import MedicalHistoryList from '../../components/doctor/MedicalHistoryList';
+import LabResultsList from '../../components/doctor/LabResultsList';
+
 import { getPatientById } from '../../mocks/patients';
-import { mockMedicalHistory, mockPrescriptions, mockTreatments } from '../../mocks/records';
+import { mockMedicalHistory, mockPrescriptions, mockTreatments, mockLabs } from '../../mocks/records';
 
 const PatientDetail = () => {
     const { id } = useParams();
@@ -20,7 +24,9 @@ const PatientDetail = () => {
 
     const [activeTab, setActiveTab] = useState('overview');
     const [prescriptions, setPrescriptions] = useState(mockPrescriptions);
+    const [treatments, setTreatments] = useState(mockTreatments);
     const [isRxModalOpen, setIsRxModalOpen] = useState(false);
+    const [isTreatmentModalOpen, setIsTreatmentModalOpen] = useState(false);
     const [newRx, setNewRx] = useState({ name: '', dosage: '', frequency: '', duration: '', instructions: '' });
 
     if (!patient) return <div className="p-6">Patient not found</div>;
@@ -55,6 +61,15 @@ const PatientDetail = () => {
         if (window.confirm('Are you sure you want to delete this prescription?')) {
             setPrescriptions(prescriptions.filter(rx => rx.id !== rxId));
         }
+    };
+
+    const handleAddTreatment = (treatment) => {
+        const newTreatment = {
+            id: Date.now(),
+            ...treatment,
+            active: true
+        };
+        setTreatments([newTreatment, ...treatments]);
     };
 
     const activePrescriptions = prescriptions.filter(rx => rx.active);
@@ -228,11 +243,11 @@ const PatientDetail = () => {
                     <div className="space-y-4">
                         <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
                             <h3 className="font-bold text-gray-700">Active Treatments</h3>
-                            <Button onClick={() => alert('Add Treatment Modal Feature')} className="flex items-center text-sm">
+                            <Button onClick={() => setIsTreatmentModalOpen(true)} className="flex items-center text-sm">
                                 <Plus className="w-4 h-4 mr-1" /> Add Treatment
                             </Button>
                         </div>
-                        {mockTreatments.map(item => (
+                        {treatments.map(item => (
                             <Card key={item.id} className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center">
                                 <div>
                                     <h4 className="font-bold text-gray-800">{item.name}</h4>
@@ -247,13 +262,8 @@ const PatientDetail = () => {
                     </div>
                 )}
 
-                {/* Placeholder for other tabs */}
-                {(activeTab === 'history' || activeTab === 'labs') && (
-                    <Card className="p-8 text-center text-gray-500">
-                        <FileText className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                        <p>{activeTab === 'labs' ? 'Lab Results' : 'Medical History'} content coming soon...</p>
-                    </Card>
-                )}
+                {activeTab === 'history' && <MedicalHistoryList history={mockMedicalHistory} />}
+                {activeTab === 'labs' && <LabResultsList labs={mockLabs} />}
             </div>
 
             {/* Add Prescription Modal */}
@@ -309,6 +319,12 @@ const PatientDetail = () => {
                     </div>
                 </form>
             </Modal>
+
+            <TreatmentModal
+                isOpen={isTreatmentModalOpen}
+                onClose={() => setIsTreatmentModalOpen(false)}
+                onAdd={handleAddTreatment}
+            />
         </div>
     );
 };

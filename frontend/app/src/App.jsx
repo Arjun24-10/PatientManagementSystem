@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
+import { AuthProvider } from './contexts/AuthContext';
 import Login from './pages/login.jsx';
 import CreateAccount from './pages/createAccount.jsx';
 
@@ -17,35 +18,37 @@ import PatientDashboard from './pages/patient/Dashboard.jsx';
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/create" element={<CreateAccount />} />
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/create" element={<CreateAccount />} />
 
-        {/* Dashboards */}
-        <Route path="/dashboard/doctor/*" element={<DashboardLayout role="doctor" userName="Dr. Smith" />}>
-          <Route path="" element={<DoctorDashboard />} />
-          <Route path="patients" element={<Patients />} />
-          <Route path="patient/:id" element={<PatientDetail />} />
-          <Route path="appointments" element={<Appointments />} />
-          <Route path="profile" element={<Profile />} />
-        </Route>
+          {/* Dashboards */}
+          <Route path="/dashboard/doctor/*" element={<DashboardLayout role="doctor" userName="Dr. Smith" />}>
+            <Route path="" element={<DoctorDashboard />} />
+            <Route path="patients" element={<Patients />} />
+            <Route path="patient/:id" element={<PatientDetail />} />
+            <Route path="appointments" element={<Appointments />} />
+            <Route path="profile" element={<Profile />} />
+          </Route>
 
-        <Route path="/dashboard/patient/*" element={<DashboardLayout role="patient" userName="John Doe" />}>
-          <Route path="" element={<PatientDashboard />} />
-        </Route>
+          <Route path="/dashboard/patient/*" element={<DashboardLayout role="patient" userName="John Doe" />}>
+            <Route path="" element={<PatientDashboard />} />
+          </Route>
 
-        <Route path="/dashboard/nurse/*" element={<DashboardLayout role="nurse" userName="Nurse Joy" />}>
-          <Route path="" element={<NurseDashboard />} />
-        </Route>
+          <Route path="/dashboard/nurse/*" element={<DashboardLayout role="nurse" userName="Nurse Joy" />}>
+            <Route path="" element={<NurseDashboard />} />
+          </Route>
 
-        <Route path="/dashboard/lab/*" element={<DashboardLayout role="lab" userName="Tech Mike" />}>
-          <Route path="" element={<LabDashboard />} />
-        </Route>
+          <Route path="/dashboard/lab/*" element={<DashboardLayout role="lab" userName="Tech Mike" />}>
+            <Route path="" element={<LabDashboard />} />
+          </Route>
 
-        <Route path="/dashboard/admin/*" element={<DashboardLayout role="admin" userName="Admin User" />}>
-          <Route path="" element={<AdminDashboard />} />
-        </Route>
-      </Routes>
+          <Route path="/dashboard/admin/*" element={<DashboardLayout role="admin" userName="Admin User" />}>
+            <Route path="" element={<AdminDashboard />} />
+          </Route>
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 }
