@@ -20,6 +20,7 @@ import PatientMedicalHistory from './pages/patient/MedicalHistory.jsx';
 import PatientMedications from './pages/patient/Medications.jsx';
 import PatientPrescriptions from './pages/patient/Prescriptions.jsx';
 import NurseDashboard from './pages/nurse/Dashboard.jsx';
+import NurseVitals from './pages/nurse/Vitals.jsx';
 import LabDashboard from './pages/lab/Dashboard.jsx';
 import AdminDashboard from './pages/admin/Dashboard.jsx';
 
@@ -57,6 +58,7 @@ function App() {
         {/* Nurse Dashboard */}
         <Route path="/dashboard/nurse/*" element={<DashboardLayout role="nurse" userName="Nurse Joy" />}>
           <Route path="" element={<NurseDashboard />} />
+          <Route path="vitals" element={<NurseVitals />} />
         </Route>
 
         {/* Lab Dashboard */}
