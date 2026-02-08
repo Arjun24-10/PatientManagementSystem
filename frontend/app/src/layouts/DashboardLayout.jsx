@@ -8,6 +8,9 @@ import {
 
 const DashboardLayout = ({ role, userName = "User" }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    // State for header dropdowns
+    const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -173,19 +176,79 @@ const DashboardLayout = ({ role, userName = "User" }) => {
 
                     {/* Right Side Icons */}
                     <div className="flex items-center space-x-4">
-                        <button className="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors">
-                            <Bell className="w-5 h-5" />
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-                        </button>
+                        {/* Notifications Dropdown */}
+                        <div className="relative">
+                            <button
+                                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                                className="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors"
+                            >
+                                <Bell className="w-5 h-5" />
+                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                            </button>
 
-                        <div className="hidden lg:flex items-center pl-4 border-l">
-                            <div className="flex items-center cursor-pointer hover:opacity-80 transition-opacity">
+                            {isNotificationsOpen && (
+                                <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
+                                    <div className="px-4 py-2 border-b border-gray-50 flex justify-between items-center">
+                                        <h3 className="font-bold text-gray-800 text-sm">Notifications</h3>
+                                        <button className="text-xs text-blue-600 hover:underline">Mark all read</button>
+                                    </div>
+                                    <div className="max-h-64 overflow-y-auto">
+                                        {[
+                                            { id: 1, text: 'New lab results for Sarah Johnson', time: '5m ago', unread: true },
+                                            { id: 2, text: 'Appointment with Mike Ross cancelled', time: '1h ago', unread: true },
+                                            { id: 3, text: 'System maintenance scheduled', time: '1d ago', unread: false },
+                                        ].map(notif => (
+                                            <div key={notif.id} className={`px-4 py-3 hover:bg-gray-50 cursor-pointer ${notif.unread ? 'bg-blue-50/50' : ''}`}>
+                                                <p className="text-sm text-gray-700">{notif.text}</p>
+                                                <p className="text-xs text-gray-400 mt-1">{notif.time}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="px-4 py-2 border-t border-gray-50 text-center">
+                                        <button className="text-xs text-gray-500 hover:text-gray-700">View all notifications</button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Profile Dropdown */}
+                        <div className="hidden lg:flex items-center pl-4 border-l relative">
+                            <div
+                                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                                className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+                            >
                                 <div className="w-8 h-8 rounded-full bg-brand-light flex items-center justify-center text-brand-deep font-bold border border-brand-medium/20">
                                     {userName.charAt(0)}
                                 </div>
                                 <span className="ml-2 text-sm font-medium text-gray-700">{userName}</span>
                                 <ChevronDown className="w-4 h-4 ml-1 text-gray-400" />
                             </div>
+
+                            {isProfileOpen && (
+                                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
+                                    <div className="px-4 py-3 border-b border-gray-50">
+                                        <p className="text-sm font-bold text-gray-800">{userName}</p>
+                                        <p className="text-xs text-gray-500 capitalize">{role}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => navigate(`/dashboard/${role}/profile`)}
+                                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
+                                    >
+                                        <Users className="w-4 h-4 mr-2" /> Profile
+                                    </button>
+                                    <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center">
+                                        <Shield className="w-4 h-4 mr-2" /> Settings
+                                    </button>
+                                    <div className="border-t border-gray-50 mt-1">
+                                        <button
+                                            onClick={handleLogout}
+                                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center"
+                                        >
+                                            <LogOut className="w-4 h-4 mr-2" /> Sign Out
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </header>

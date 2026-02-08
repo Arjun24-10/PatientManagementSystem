@@ -9,6 +9,10 @@ import DoctorDashboard from './pages/doctor/Dashboard.jsx';
 import PatientDetail from './pages/doctor/PatientDetail.jsx';
 import Patients from './pages/doctor/Patients.jsx';
 import Appointments from './pages/doctor/Appointments.jsx';
+import LabResults from './pages/doctor/LabResults.jsx';
+import Prescriptions from './pages/doctor/Prescriptions.jsx';
+import Reports from './pages/doctor/Reports.jsx';
+import Messages from './pages/doctor/Messages.jsx';
 import Profile from './pages/doctor/Profile.jsx';
 import NurseDashboard from './pages/nurse/Dashboard.jsx';
 import LabDashboard from './pages/lab/Dashboard.jsx';
@@ -20,7 +24,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/create" element={<CreateAccount />} />
 
           {/* Dashboards */}
@@ -29,6 +33,10 @@ function App() {
             <Route path="patients" element={<Patients />} />
             <Route path="patient/:id" element={<PatientDetail />} />
             <Route path="appointments" element={<Appointments />} />
+            <Route path="labs" element={<LabResults />} />
+            <Route path="prescriptions" element={<Prescriptions />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="messages" element={<Messages />} />
             <Route path="profile" element={<Profile />} />
           </Route>
 
