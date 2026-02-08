@@ -6,6 +6,7 @@ import { Heart, Shield, Clock, Users } from 'lucide-react';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -34,8 +35,19 @@ export default function Login() {
     const result = await login(email, password);
 
     if (result.success) {
-      // Login successful - redirect to dashboard
-      navigate('/dashboard');
+      // Store remember me preference
+      if (rememberMe) {
+        localStorage.setItem('rememberMe', 'true');
+        localStorage.setItem('rememberedEmail', email);
+      } else {
+        localStorage.removeItem('rememberMe');
+        localStorage.removeItem('rememberedEmail');
+      }
+
+      // Determine role-based redirect
+      const userRole = result.user?.user_metadata?.role || 'patient';
+      const dashboardPath = `/dashboard/${userRole}`;
+      navigate(dashboardPath);
     } else {
       // Login failed - show error
       setError(result.error || 'Login failed. Please check your credentials and try again.');
@@ -52,11 +64,12 @@ export default function Login() {
         <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-cyan-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float" style={{ animationDelay: '4s' }}></div>
       </div>
 
-      <div className="relative flex min-h-screen items-center justify-center p-4">
-        <div className="w-full max-w-6xl grid md:grid-cols-2 gap-8 items-center">
+      <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
+        <div className="w-full max-w-4xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
 
           {/* Left Panel - Branding */}
-          <div className="hidden md:block space-y-8 animate-fade-in">
+          <div className="hidden lg:block space-y-8 animate-fade-in">
             <div className="space-y-4">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/50 backdrop-blur-sm rounded-full border border-white/20">
                 <Heart className="w-5 h-5 text-blue-600" />
@@ -121,14 +134,14 @@ export default function Login() {
           </div>
 
           {/* Right Panel - Login Form */}
-          <div className="glass-card p-8 md:p-10 rounded-3xl animate-fade-in-delay-1">
-            <div className="space-y-6">
+          <div className="glass-card p-8 md:p-10 rounded-3xl animate-fade-in-delay-1 relative z-20">
+            <div className="space-y-6 relative z-20">
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold text-gray-900">Welcome Back</h2>
                 <p className="text-gray-600">Sign in to access your healthcare dashboard</p>
               </div>
 
-              <form onSubmit={handleLogin} className="space-y-5">
+              <form onSubmit={handleLogin} className="space-y-5 relative z-20">
                 <div className="space-y-2">
                   <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
                     Email Address
@@ -136,7 +149,7 @@ export default function Login() {
                   <input
                     type="email"
                     id="email"
-                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500 transition-all bg-white"
+                    className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all bg-white text-gray-900 placeholder-gray-500"
                     placeholder="you@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -156,12 +169,25 @@ export default function Login() {
                   <input
                     type="password"
                     id="password"
-                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500 transition-all bg-white"
+                    className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all bg-white text-gray-900 placeholder-gray-500"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
+                </div>
+
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="rememberMe"
+                    className="w-4 h-4 text-blue-600 border-2 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                  />
+                  <label htmlFor="rememberMe" className="ml-2 text-sm font-medium text-gray-700 cursor-pointer">
+                    Remember me
+                  </label>
                 </div>
 
                 {error && (
@@ -213,6 +239,7 @@ export default function Login() {
                 <button className="text-blue-600 hover:text-blue-700 font-medium">Privacy Policy</button>
               </p>
             </div>
+          </div>
           </div>
         </div>
       </div>
