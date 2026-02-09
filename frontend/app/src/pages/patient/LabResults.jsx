@@ -1,0 +1,562 @@
+import React, { useState } from 'react';
+import {
+   FileText,
+   Download,
+   AlertCircle,
+   Calendar,
+   TrendingUp,
+   Search,
+   Filter,
+   ChevronDown,
+   ChevronUp,
+   CheckCircle,
+   AlertTriangle,
+   XCircle,
+   User,
+   Clock,
+   X
+} from 'lucide-react';
+import Card from '../../components/common/Card';
+import Button from '../../components/common/Button';
+import Badge from '../../components/common/Badge';
+import { mockLabResults, mockLabStats, mockTrendData } from '../../mocks/labResults';
+
+const LabResults = () => {
+   const [searchTerm, setSearchTerm] = useState('');
+   const [expandedResults, setExpandedResults] = useState({});
+   const [showTrendModal, setShowTrendModal] = useState(false);
+   const [selectedTrendData, setSelectedTrendData] = useState(null);
+   const [filterStatus, setFilterStatus] = useState('all');
+   const [sortBy, setSortBy] = useState('recent');
+
+   const toggleExpand = (id) => {
+      setExpandedResults(prev => ({
+         ...prev,
+         [id]: !prev[id]
+      }));
+   };
+
+   // Filter and sort results
+   const filteredResults = mockLabResults
+      .filter(result => {
+         const matchesSearch = result.testName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            result.orderingPhysician.toLowerCase().includes(searchTerm.toLowerCase());
+         const matchesFilter = filterStatus === 'all' ||
+            (filterStatus === 'normal' && result.overallStatus === 'normal') ||
+            (filterStatus === 'abnormal' && (result.overallStatus === 'abnormal' || result.overallStatus === 'borderline')) ||
+            (filterStatus === 'pending' && result.status === 'pending');
+         return matchesSearch && matchesFilter;
+      })
+      .sort((a, b) => {
+         if (sortBy === 'recent') {
+            return new Date(b.testDate) - new Date(a.testDate);
+         } else if (sortBy === 'name') {
+            return a.testName.localeCompare(b.testName);
+         } else if (sortBy === 'abnormal') {
+            const order = { 'abnormal': 0, 'borderline': 1, 'normal': 2, 'pending': 3 };
+            return order[a.overallStatus] - order[b.overallStatus];
+         }
+         return 0;
+      });
+
+   // Get overall status icon and color
+   const getStatusDisplay = (status) => {
+      switch (status) {
+         case 'normal':
+            return {
+               icon: <CheckCircle className="w-5 h-5" />,
+               text: 'All Normal',
+               color: 'text-green-600 bg-green-50 border-green-200'
+            };
+         case 'abnormal':
+            return {
+               icon: <AlertCircle className="w-5 h-5" />,
+               text: 'Abnormal Values',
+               color: 'text-red-600 bg-red-50 border-red-200'
+            };
+         case 'borderline':
+            return {
+               icon: <AlertTriangle className="w-5 h-5" />,
+               text: 'Some Borderline',
+               color: 'text-orange-600 bg-orange-50 border-orange-200'
+            };
+         case 'pending':
+            return {
+               icon: <Clock className="w-5 h-5" />,
+               text: 'Pending',
+               color: 'text-blue-600 bg-blue-50 border-blue-200'
+            };
+         default:
+            return {
+               icon: <FileText className="w-5 h-5" />,
+               text: 'Unknown',
+               color: 'text-gray-600 bg-gray-50 border-gray-200'
+            };
+      }
+   };
+
+   // Get parameter status badge
+   const getParameterBadge = (status, flag) => {
+      if (status === 'normal') {
+         return <Badge type="green">Normal</Badge>;
+      } else if (status === 'high' || flag === 'abnormal') {
+         return <Badge type="red">High</Badge>;
+      } else if (status === 'low') {
+         return <Badge type="red">Low</Badge>;
+      } else if (flag === 'borderline') {
+         return <Badge type="yellow">Borderline</Badge>;
+      }
+      return <Badge type="gray">-</Badge>;
+   };
+
+   // Download handler
+   const handleDownload = (result) => {
+      // TODO: Implement actual download
+      alert(`Downloading ${result.testName} results...`);
+   };
+
+   // Trend handler
+   const handleViewTrend = (result) => {
+      // Determine which trend data to show based on test name
+      let trendKey = null;
+      if (result.testName.includes('CBC') || result.testName.includes('Blood Count')) {
+         trendKey = 'wbc';
+      } else if (result.testName.includes('Lipid') || result.testName.includes('Cholesterol')) {
+         trendKey = 'cholesterol';
+      } else if (result.testName.includes('HbA1c') || result.testName.includes('Diabetes')) {
+         trendKey = 'hba1c';
+      } else if (result.testName.includes('Vitamin D')) {
+         trendKey = 'vitaminD';
+      }
+
+      if (trendKey && mockTrendData[trendKey]) {
+         setSelectedTrendData({
+            testName: result.testName,
+            data: mockTrendData[trendKey],
+            parameter: trendKey
+         });
+         setShowTrendModal(true);
+      } else {
+         alert('Trend data not available for this test');
+      }
+   };
+
+   return (
+      <div className="space-y-6">
+         {/* Header */}
+         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+               <h2 className="text-2xl font-bold text-gray-800">Lab Results</h2>
+               <p className="text-gray-500">View and download your laboratory test results</p>
+            </div>
+            <Button variant="outline" className="whitespace-nowrap">
+               <Download className="w-4 h-4 mr-2" />
+               Download All
+            </Button>
+         </div>
+
+         {/* Summary Stats */}
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="p-6 hover:shadow-md transition-shadow">
+               <div className="flex items-center justify-between">
+                  <div>
+                     <p className="text-sm text-gray-500 mb-1">Total Tests</p>
+                     <p className="text-3xl font-bold text-gray-800">{mockLabStats.totalTests}</p>
+                  </div>
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                     <FileText className="w-6 h-6 text-blue-600" />
+                  </div>
+               </div>
+            </Card>
+
+            <Card className="p-6 hover:shadow-md transition-shadow">
+               <div className="flex items-center justify-between">
+                  <div>
+                     <p className="text-sm text-gray-500 mb-1">Pending Results</p>
+                     <p className="text-3xl font-bold text-gray-800">{mockLabStats.pendingResults}</p>
+                  </div>
+                  <div className="p-3 bg-yellow-50 rounded-lg">
+                     <Clock className="w-6 h-6 text-yellow-600" />
+                  </div>
+               </div>
+            </Card>
+
+            <Card className="p-6 hover:shadow-md transition-shadow">
+               <div className="flex items-center justify-between">
+                  <div>
+                     <p className="text-sm text-gray-500 mb-1">Recent Abnormal</p>
+                     <p className="text-3xl font-bold text-gray-800">{mockLabStats.recentAbnormal}</p>
+                  </div>
+                  <div className="p-3 bg-red-50 rounded-lg">
+                     <AlertCircle className="w-6 h-6 text-red-600" />
+                  </div>
+               </div>
+            </Card>
+         </div>
+
+         {/* Search and Filter Bar */}
+         <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+               <input
+                  type="text"
+                  placeholder="Search lab results..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+               />
+            </div>
+            <select
+               value={filterStatus}
+               onChange={(e) => setFilterStatus(e.target.value)}
+               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+               <option value="all">All Results</option>
+               <option value="normal">Normal Only</option>
+               <option value="abnormal">Abnormal Only</option>
+               <option value="pending">Pending</option>
+            </select>
+            <select
+               value={sortBy}
+               onChange={(e) => setSortBy(e.target.value)}
+               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+               <option value="recent">Most Recent</option>
+               <option value="name">Test Name A-Z</option>
+               <option value="abnormal">Abnormal First</option>
+            </select>
+         </div>
+
+         {/* Results List */}
+         <div className="space-y-4">
+            {filteredResults.length > 0 ? (
+               filteredResults.map((result) => {
+                  const statusDisplay = getStatusDisplay(result.overallStatus);
+                  const isExpanded = expandedResults[result.id];
+
+                  return (
+                     <Card key={result.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                        {/* Collapsed View */}
+                        <div className="p-6">
+                           <div className="flex flex-col md:flex-row justify-between md:items-start gap-4">
+                              <div className="flex-1">
+                                 <div className="flex items-start gap-4">
+                                    <div className="p-3 bg-blue-50 rounded-lg text-blue-600">
+                                       <FileText className="w-6 h-6" />
+                                    </div>
+                                    <div className="flex-1">
+                                       <h3 className="font-bold text-gray-800 text-lg mb-1">{result.testName}</h3>
+                                       <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-2">
+                                          <span className="flex items-center">
+                                             <Calendar className="w-4 h-4 mr-1" />
+                                             {new Date(result.testDate).toLocaleDateString('en-US', {
+                                                year: 'numeric',
+                                                month: 'long',
+                                                day: 'numeric'
+                                             })}
+                                          </span>
+                                          <span className="flex items-center">
+                                             <User className="w-4 h-4 mr-1" />
+                                             {result.orderingPhysician}
+                                          </span>
+                                       </div>
+                                       <div className="flex items-center gap-2">
+                                          <Badge type={result.status === 'completed' ? 'green' : 'yellow'}>
+                                             {result.status === 'completed' ? 'Results Ready' : 'Pending'}
+                                          </Badge>
+                                          <div className={`flex items-center gap-2 px-3 py-1 rounded-full border ${statusDisplay.color}`}>
+                                             {statusDisplay.icon}
+                                             <span className="text-sm font-medium">{statusDisplay.text}</span>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+
+                              {/* Action Buttons */}
+                              <div className="flex gap-2">
+                                 {result.status === 'completed' && (
+                                    <>
+                                       <button
+                                          onClick={() => toggleExpand(result.id)}
+                                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium inline-flex items-center whitespace-nowrap"
+                                       >
+                                          {isExpanded ? (
+                                             <>
+                                                <ChevronUp className="w-4 h-4 mr-1" />
+                                                Hide Results
+                                             </>
+                                          ) : (
+                                             <>
+                                                <ChevronDown className="w-4 h-4 mr-1" />
+                                                View Results
+                                             </>
+                                          )}
+                                       </button>
+                                       <button
+                                          onClick={() => handleDownload(result)}
+                                          className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition text-sm font-medium inline-flex items-center whitespace-nowrap"
+                                       >
+                                          <Download className="w-4 h-4 mr-1" />
+                                          PDF
+                                       </button>
+                                       {result.canCompare && (
+                                          <button
+                                             onClick={() => handleViewTrend(result)}
+                                             className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition text-sm font-medium inline-flex items-center whitespace-nowrap"
+                                          >
+                                             <TrendingUp className="w-4 h-4 mr-1" />
+                                             Trend
+                                          </button>
+                                       )}
+                                    </>
+                                 )}
+                              </div>
+                           </div>
+
+                           {/* Expanded View */}
+                           {isExpanded && result.results && (
+                              <div className="mt-6 pt-6 border-t border-gray-200">
+                                 <h4 className="font-semibold text-gray-700 mb-4">Test Results</h4>
+                                 <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                       <thead>
+                                          <tr className="bg-gray-50">
+                                             <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                Parameter
+                                             </th>
+                                             <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                Your Result
+                                             </th>
+                                             <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                Normal Range
+                                             </th>
+                                             <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                                Status
+                                             </th>
+                                          </tr>
+                                       </thead>
+                                       <tbody className="divide-y divide-gray-200">
+                                          {result.results.map((param, idx) => (
+                                             <tr key={idx} className={param.flag ? 'bg-red-50/30' : ''}>
+                                                <td className="px-4 py-3 text-sm font-medium text-gray-800">
+                                                   {param.parameter}
+                                                </td>
+                                                <td className={`px-4 py-3 text-sm font-bold ${param.flag ? 'text-red-600' : 'text-gray-800'
+                                                   }`}>
+                                                   {param.value} {param.unit}
+                                                </td>
+                                                <td className="px-4 py-3 text-sm text-gray-600">
+                                                   {param.normalRange} {param.unit}
+                                                </td>
+                                                <td className="px-4 py-3 text-sm">
+                                                   {getParameterBadge(param.status, param.flag)}
+                                                </td>
+                                             </tr>
+                                          ))}
+                                       </tbody>
+                                    </table>
+                                 </div>
+
+                                 {/* Notes */}
+                                 {result.notes && (
+                                    <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                       <div className="flex items-start gap-2">
+                                          <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                                          <div>
+                                             <h5 className="font-semibold text-blue-900 mb-1">Clinical Notes</h5>
+                                             <p className="text-sm text-blue-800">{result.notes}</p>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 )}
+
+                                 {/* Download Full Report */}
+                                 <div className="mt-4 flex gap-2">
+                                    <Button variant="outline" onClick={() => handleDownload(result)}>
+                                       <Download className="w-4 h-4 mr-2" />
+                                       Download Full Report
+                                    </Button>
+                                    {result.canCompare && (
+                                       <Button variant="outline" onClick={() => handleViewTrend(result)}>
+                                          <TrendingUp className="w-4 h-4 mr-2" />
+                                          View Trend Analysis
+                                       </Button>
+                                    )}
+                                 </div>
+                              </div>
+                           )}
+                        </div>
+                     </Card>
+                  );
+               })
+            ) : (
+               <div className="p-12 text-center text-gray-400">
+                  <Filter className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>No lab results found matching your search.</p>
+               </div>
+            )}
+         </div>
+
+         {/* Trend Analysis Modal */}
+         {showTrendModal && selectedTrendData && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+               <Card className="max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                  <div className="p-6">
+                     {/* Modal Header */}
+                     <div className="flex justify-between items-start mb-6">
+                        <div>
+                           <h3 className="text-xl font-bold text-gray-800 mb-1">Trend Analysis</h3>
+                           <p className="text-gray-600">{selectedTrendData.testName}</p>
+                        </div>
+                        <button
+                           onClick={() => setShowTrendModal(false)}
+                           className="p-2 hover:bg-gray-100 rounded-lg transition"
+                        >
+                           <X className="w-5 h-5 text-gray-500" />
+                        </button>
+                     </div>
+
+                     {/* Chart Visualization */}
+                     <div className="mb-6">
+                        <h4 className="font-semibold text-gray-700 mb-4">Value Trend Over Time</h4>
+
+                        {/* Simple Line Chart using SVG */}
+                        <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                           <div className="relative" style={{ height: '300px' }}>
+                              <svg className="w-full h-full" viewBox="0 0 800 300" preserveAspectRatio="none">
+                                 {/* Grid lines */}
+                                 <line x1="50" y1="0" x2="50" y2="250" stroke="#e5e7eb" strokeWidth="2" />
+                                 <line x1="50" y1="250" x2="800" y2="250" stroke="#e5e7eb" strokeWidth="2" />
+
+                                 {/* Normal range shading (if applicable) */}
+                                 <rect x="50" y="100" width="750" height="100" fill="#dcfce7" opacity="0.3" />
+
+                                 {/* Plot line */}
+                                 {selectedTrendData.data.length > 1 && (
+                                    <polyline
+                                       points={selectedTrendData.data.map((point, idx) => {
+                                          const x = 50 + (idx / (selectedTrendData.data.length - 1)) * 750;
+                                          const maxValue = Math.max(...selectedTrendData.data.map(d => d.value));
+                                          const minValue = Math.min(...selectedTrendData.data.map(d => d.value));
+                                          const range = maxValue - minValue || 1;
+                                          const y = 250 - ((point.value - minValue) / range) * 200;
+                                          return `${x},${y}`;
+                                       }).join(' ')}
+                                       fill="none"
+                                       stroke="#3b82f6"
+                                       strokeWidth="3"
+                                    />
+                                 )}
+
+                                 {/* Plot points */}
+                                 {selectedTrendData.data.map((point, idx) => {
+                                    const x = 50 + (idx / (selectedTrendData.data.length - 1)) * 750;
+                                    const maxValue = Math.max(...selectedTrendData.data.map(d => d.value));
+                                    const minValue = Math.min(...selectedTrendData.data.map(d => d.value));
+                                    const range = maxValue - minValue || 1;
+                                    const y = 250 - ((point.value - minValue) / range) * 200;
+
+                                    return (
+                                       <g key={idx}>
+                                          <circle
+                                             cx={x}
+                                             cy={y}
+                                             r="6"
+                                             fill={point.normal ? '#22c55e' : '#ef4444'}
+                                             stroke="white"
+                                             strokeWidth="2"
+                                          />
+                                       </g>
+                                    );
+                                 })}
+                              </svg>
+
+                              {/* Legend */}
+                              <div className="absolute top-2 right-2 bg-white p-2 rounded shadow-sm border border-gray-200 text-xs">
+                                 <div className="flex items-center gap-2 mb-1">
+                                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                                    <span>Normal</span>
+                                 </div>
+                                 <div className="flex items-center gap-2">
+                                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                                    <span>Abnormal</span>
+                                 </div>
+                              </div>
+                           </div>
+
+                           {/* X-axis labels */}
+                           <div className="flex justify-between mt-2 px-12 text-xs text-gray-600">
+                              {selectedTrendData.data.map((point, idx) => (
+                                 <span key={idx}>
+                                    {new Date(point.date).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })}
+                                 </span>
+                              ))}
+                           </div>
+                        </div>
+                     </div>
+
+                     {/* Data Table */}
+                     <div>
+                        <h4 className="font-semibold text-gray-700 mb-4">Historical Values</h4>
+                        <div className="overflow-x-auto">
+                           <table className="w-full">
+                              <thead>
+                                 <tr className="bg-gray-50">
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Date</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Value</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Trend</th>
+                                 </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-200">
+                                 {selectedTrendData.data.map((point, idx) => {
+                                    const prevValue = idx > 0 ? selectedTrendData.data[idx - 1].value : null;
+                                    const trend = prevValue ? (point.value > prevValue ? '↑' : point.value < prevValue ? '↓' : '→') : '-';
+                                    const trendColor = prevValue ? (point.value > prevValue ? 'text-red-600' : point.value < prevValue ? 'text-green-600' : 'text-gray-600') : 'text-gray-600';
+
+                                    return (
+                                       <tr key={idx} className={!point.normal ? 'bg-red-50/30' : ''}>
+                                          <td className="px-4 py-3 text-sm text-gray-800">
+                                             {new Date(point.date).toLocaleDateString('en-US', {
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: 'numeric'
+                                             })}
+                                          </td>
+                                          <td className={`px-4 py-3 text-sm font-bold ${!point.normal ? 'text-red-600' : 'text-gray-800'}`}>
+                                             {point.value}
+                                          </td>
+                                          <td className="px-4 py-3 text-sm">
+                                             {point.normal ? (
+                                                <Badge type="green">Normal</Badge>
+                                             ) : (
+                                                <Badge type="red">Abnormal</Badge>
+                                             )}
+                                          </td>
+                                          <td className={`px-4 py-3 text-lg font-bold ${trendColor}`}>
+                                             {trend}
+                                          </td>
+                                       </tr>
+                                    );
+                                 })}
+                              </tbody>
+                           </table>
+                        </div>
+                     </div>
+
+                     {/* Close Button */}
+                     <div className="mt-6 flex justify-end">
+                        <Button onClick={() => setShowTrendModal(false)}>
+                           Close
+                        </Button>
+                     </div>
+                  </div>
+               </Card>
+            </div>
+         )}
+      </div>
+   );
+};
+
+export default LabResults;

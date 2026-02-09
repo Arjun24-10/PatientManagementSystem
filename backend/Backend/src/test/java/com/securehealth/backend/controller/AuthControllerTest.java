@@ -1,11 +1,14 @@
 package com.securehealth.backend.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.securehealth.backend.dto.ForgotPasswordRequest;
 import com.securehealth.backend.dto.LoginRequest;
 import com.securehealth.backend.dto.LoginResponse;
 import com.securehealth.backend.dto.RegistrationRequest;
+import com.securehealth.backend.dto.ResetPasswordRequest;
 import com.securehealth.backend.model.Role;
 import com.securehealth.backend.service.AuthService;
 import org.junit.jupiter.api.Test;
@@ -19,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -67,7 +71,7 @@ public class AuthControllerTest {
         // Arrange
         LoginRequest request = new LoginRequest("test@example.com", "password1234");
         
-        LoginResponse mockResponse = new LoginResponse("access-token-123", "refresh-token-456", "PATIENT");
+        LoginResponse mockResponse = new LoginResponse("access-token-123", "refresh-token-456", "PATIENT", "LOGIN_SUCCESS");
         
         // [FIX] Use any() for the last two arguments to handle nulls
         when(authService.login(anyString(), anyString(), any(), any())) 
@@ -154,5 +158,154 @@ public class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string("Logged out successfully"))
                 .andExpect(cookie().maxAge("refreshToken", 0)); // Verify cookie is killed
+    }
+
+    // ==================== PASSWORD RECOVERY TESTS ====================
+
+    @Test
+    public void testForgotPassword_Success() throws Exception {
+        // Arrange
+        ForgotPasswordRequest request = new ForgotPasswordRequest("test@example.com");
+        
+        doNothing().when(authService).initiatePasswordReset(anyString());
+
+        // Act & Assert
+        mockMvc.perform(post("/api/auth/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("If an account exists with this email, a password reset link has been sent."));
+    }
+
+    @Test
+    public void testForgotPassword_InvalidEmail() throws Exception {
+        // Arrange - Invalid email format
+        ForgotPasswordRequest request = new ForgotPasswordRequest("invalid-email");
+
+        // Act & Assert - Validation should fail
+        mockMvc.perform(post("/api/auth/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testValidateResetToken_Valid() throws Exception {
+        // Arrange
+        String token = "validToken123";
+        when(authService.validateResetToken(token)).thenReturn(true);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/auth/validate-reset-token")
+                        .param("token", token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.valid").value(true))
+                .andExpect(jsonPath("$.message").value("Token is valid"));
+    }
+
+    @Test
+    public void testValidateResetToken_Invalid() throws Exception {
+        // Arrange
+        String token = "invalidToken";
+        when(authService.validateResetToken(token)).thenReturn(false);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/auth/validate-reset-token")
+                        .param("token", token))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.valid").value(false))
+                .andExpect(jsonPath("$.message").value("Token is invalid or expired"));
+    }
+
+    @Test
+    public void testResetPassword_Success() throws Exception {
+        // Arrange
+        ResetPasswordRequest request = new ResetPasswordRequest(
+            "validToken123",
+            "NewSecurePass123!",
+            "NewSecurePass123!"
+        );
+        
+        doNothing().when(authService).resetPassword(anyString(), anyString());
+
+        // Act & Assert
+        mockMvc.perform(post("/api/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Password has been reset successfully. Please login with your new password."));
+    }
+
+    @Test
+    public void testResetPassword_PasswordMismatch() throws Exception {
+        // Arrange - Passwords don't match
+        ResetPasswordRequest request = new ResetPasswordRequest(
+            "validToken123",
+            "NewSecurePass123!",
+            "DifferentPass123!"
+        );
+
+        // Act & Assert
+        mockMvc.perform(post("/api/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Passwords do not match"));
+    }
+
+    @Test
+    public void testResetPassword_InvalidToken() throws Exception {
+        // Arrange
+        ResetPasswordRequest request = new ResetPasswordRequest(
+            "invalidToken",
+            "NewSecurePass123!",
+            "NewSecurePass123!"
+        );
+        
+        doThrow(new RuntimeException("Invalid or expired reset token"))
+            .when(authService).resetPassword(anyString(), anyString());
+
+        // Act & Assert
+        mockMvc.perform(post("/api/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Invalid or expired reset token"));
+    }
+
+    @Test
+    public void testResetPassword_PasswordReused() throws Exception {
+        // Arrange
+        ResetPasswordRequest request = new ResetPasswordRequest(
+            "validToken123",
+            "OldPassword123!",
+            "OldPassword123!"
+        );
+        
+        doThrow(new RuntimeException("Cannot reuse a recent password. Please choose a different password."))
+            .when(authService).resetPassword(anyString(), anyString());
+
+        // Act & Assert
+        mockMvc.perform(post("/api/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Cannot reuse a recent password. Please choose a different password."));
+    }
+
+    @Test
+    public void testResetPassword_ShortPassword() throws Exception {
+        // Arrange - Password too short (validation should fail before service layer)
+        ResetPasswordRequest request = new ResetPasswordRequest(
+            "validToken123",
+            "Short1!",
+            "Short1!"
+        );
+
+        // Act & Assert - DTO validation should catch this
+        mockMvc.perform(post("/api/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
     }
 }

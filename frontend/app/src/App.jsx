@@ -2,17 +2,84 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import Login from './pages/login.jsx';
 import CreateAccount from './pages/createAccount.jsx';
+import TwoFactorAuth from './pages/TwoFactorAuth.jsx';
+
+import DashboardLayout from './layouts/DashboardLayout.jsx';
+import DoctorDashboard from './pages/doctor/Dashboard.jsx';
+import PatientDetail from './pages/doctor/PatientDetail.jsx';
+import Patients from './pages/doctor/Patients.jsx';
+import DoctorAppointments from './pages/doctor/Appointments.jsx';
+import Profile from './pages/doctor/Profile.jsx';
+import DoctorMessages from './pages/doctor/Messages.jsx';
+import DoctorLabResults from './pages/doctor/LabResults.jsx';
+import DoctorPrescriptions from './pages/doctor/Prescriptions.jsx';
+import DoctorReports from './pages/doctor/Reports.jsx';
+import PatientDashboard from './pages/patient/Dashboard.jsx';
+import PatientAppointments from './pages/patient/Appointments.jsx';
+import PatientLabResults from './pages/patient/LabResults.jsx';
+import PatientMedicalHistory from './pages/patient/MedicalHistory.jsx';
+import PatientMedications from './pages/patient/Medications.jsx';
+import PatientPrescriptions from './pages/patient/Prescriptions.jsx';
+import NurseDashboard from './pages/nurse/Dashboard.jsx';
+import NurseVitals from './pages/nurse/Vitals.jsx';
+import LabDashboard from './pages/lab/Dashboard.jsx';
+import LabOrders from './pages/lab/Orders.jsx';
+import LabOrderDetail from './pages/lab/OrderDetail.jsx';
+import UploadResults from './pages/lab/UploadResults.jsx';
+import LabHistory from './pages/lab/History.jsx';
+import AdminDashboard from './pages/admin/Dashboard.jsx';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/create" element={<CreateAccount />} />
-        
-        {/* Future pages can be added here like this: */}
-        {/* <Route path="/dashboard" element={<Dashboard />} /> */}
-        {/* <Route path="/forgot-password" element={<ForgotPassword />} /> */}
+        <Route path="/verify-2fa" element={<TwoFactorAuth />} />
+
+        {/* Doctor Dashboard */}
+        <Route path="/dashboard/doctor/*" element={<DashboardLayout role="doctor" userName="Dr. Smith" />}>
+          <Route path="" element={<DoctorDashboard />} />
+          <Route path="patients" element={<Patients />} />
+          <Route path="patient/:id" element={<PatientDetail />} />
+          <Route path="appointments" element={<DoctorAppointments />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="messages" element={<DoctorMessages />} />
+          <Route path="labs" element={<DoctorLabResults />} />
+          <Route path="prescriptions" element={<DoctorPrescriptions />} />
+          <Route path="reports" element={<DoctorReports />} />
+        </Route>
+
+        {/* Patient Dashboard */}
+        <Route path="/dashboard/patient/*" element={<DashboardLayout role="patient" userName="John Doe" />}>
+          <Route path="" element={<PatientDashboard />} />
+          <Route path="appointments" element={<PatientAppointments />} />
+          <Route path="labs" element={<PatientLabResults />} />
+          <Route path="history" element={<PatientMedicalHistory />} />
+          <Route path="medications" element={<PatientMedications />} />
+          <Route path="prescriptions" element={<PatientPrescriptions />} />
+        </Route>
+
+        {/* Nurse Dashboard */}
+        <Route path="/dashboard/nurse/*" element={<DashboardLayout role="nurse" userName="Nurse Joy" />}>
+          <Route path="" element={<NurseDashboard />} />
+          <Route path="vitals" element={<NurseVitals />} />
+        </Route>
+
+        {/* Lab Dashboard */}
+        <Route path="/dashboard/lab/*" element={<DashboardLayout role="lab" userName="Tech Mike" />}>
+          <Route path="" element={<LabDashboard />} />
+          <Route path="orders" element={<LabOrders />} />
+          <Route path="orders/:id" element={<LabOrderDetail />} />
+          <Route path="upload" element={<UploadResults />} />
+          <Route path="history" element={<LabHistory />} />
+        </Route>
+
+        {/* Admin Dashboard */}
+        <Route path="/dashboard/admin/*" element={<DashboardLayout role="admin" userName="Admin User" />}>
+          <Route path="" element={<AdminDashboard />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );

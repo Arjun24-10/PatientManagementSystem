@@ -1,150 +1,147 @@
-import { createClient } from '@supabase/supabase-js';
+// Authentication service for backend API
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+const AUTH_URL = `${API_BASE_URL}/auth`;
+const STORAGE_KEY = 'secure_health_user';
 
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+// Auth state change listeners
+let authStateListeners = [];
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-/**
- * Sign up a new user with email and password
- * @param {string} email - User email
- * @param {string} password - User password
- * @param {object} userMetadata - Additional user metadata (name, phone, etc.)
- * @returns {Promise} - Supabase auth response
- */
-export const signUp = async (email, password, userMetadata = {}) => {
-  try {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: userMetadata,
-      },
-    });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    return { success: true, user: data.user, session: data.session };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
+const saveSession = (user) => {
+   localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+   notifyAuthStateChange({ user });
 };
 
-/**
- * Sign in an existing user with email and password
- * @param {string} email - User email
- * @param {string} password - User password
- * @returns {Promise} - Supabase auth response
- */
+const clearSession = () => {
+   localStorage.removeItem(STORAGE_KEY);
+   notifyAuthStateChange(null);
+};
+
+const getSession = () => {
+   const data = localStorage.getItem(STORAGE_KEY);
+   return data ? JSON.parse(data) : null;
+};
+
+export const signup = async (email, password, role = 'PATIENT') => {
+   try {
+      const response = await fetch(`${AUTH_URL}/register`, {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ email, password, role }),
+      });
+
+      if (!response.ok) {
+         const error = await response.json().catch(() => ({}));
+         throw new Error(error.message || 'Registration failed');
+      }
+
+      // Backend returns success message but no user object for register
+      // We auto-login or ask user to login. Here we'll simulate auto-login for UX
+      const user = { email, role };
+      // Note: In a real app we might require login after register, 
+      // but for "integration" we'll set session
+      saveSession(user);
+
+      return { message: 'User registered successfully', user };
+   } catch (error) {
+      throw error;
+   }
+};
+
+export const signUp = async (email, password, userData) => {
+   try {
+      const role = userData?.role || 'PATIENT';
+      const result = await signup(email, password, role);
+      // Construct session object matching what AuthContext expects
+      const session = { user: result.user };
+      return { success: true, user: result.user, session };
+   } catch (error) {
+      return { success: false, error: error.message };
+   }
+};
+
+export const login = async (email, password) => {
+   try {
+      const response = await fetch(`${AUTH_URL}/login`, {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+         const error = await response.json().catch(() => ({}));
+         throw new Error(error.message || 'Login failed');
+      }
+
+      let data = await response.json();
+      // Expecting data to contain { message, email, role } based on backend
+      const user = {
+         email: data.email || email,
+         role: data.role || 'PATIENT'
+      };
+
+      saveSession(user);
+      return { user, ...data };
+   } catch (error) {
+      throw error;
+   }
+};
+
 export const signIn = async (email, password) => {
-  try {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    return { success: true, user: data.user, session: data.session };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
+   try {
+      const result = await login(email, password);
+      // Construct session object matching what AuthContext expects
+      const session = { user: result.user };
+      return { success: true, user: result.user, session };
+   } catch (error) {
+      return { success: false, error: error.message };
+   }
 };
 
-/**
- * Sign out the current user
- * @returns {Promise} - Supabase response
- */
+export const logout = async () => {
+   // Client-side logout only since backend has no logout endpoint
+   clearSession();
+   return { message: 'Logged out successfully' };
+};
+
 export const signOut = async () => {
-  try {
-    const { error } = await supabase.auth.signOut();
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
+   try {
+      await logout();
+      return { success: true };
+   } catch (error) {
+      return { success: false, error: error.message };
+   }
 };
 
-/**
- * Get the current session
- * @returns {Promise} - Current session or null
- */
-export const getCurrentSession = async () => {
-  try {
-    const { data, error } = await supabase.auth.getSession();
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    return data.session;
-  } catch (error) {
-    console.error('Error getting session:', error);
-    return null;
-  }
-};
-
-/**
- * Get the current authenticated user
- * @returns {Promise} - Current user or null
- */
 export const getCurrentUser = async () => {
-  try {
-    const { data, error } = await supabase.auth.getUser();
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    return data.user;
-  } catch (error) {
-    console.error('Error getting user:', error);
-    return null;
-  }
+   // Return local session instead of calling API
+   return getSession();
 };
 
-/**
- * Listen to authentication state changes
- * @param {function} callback - Callback function when auth state changes
- * @returns {function} - Unsubscribe function
- */
+export const getCurrentSession = async () => {
+   const user = getSession();
+   return user ? { user } : null;
+};
+
+// Auth state change listener
 export const onAuthStateChange = (callback) => {
-  const { data: authListener } = supabase.auth.onAuthStateChange(
-    (event, session) => {
-      callback(session);
-    }
-  );
+   authStateListeners.push(callback);
 
-  return authListener?.subscription?.unsubscribe || (() => {});
+   // Initialize with current state
+   const currentSession = getSession();
+   if (currentSession) {
+      // callback({ user: currentSession }); 
+      // Don't fire immediately to avoid render loops, 
+      // AuthContext calls getCurrentSession on mount anyway.
+   }
+
+   // Return unsubscribe function
+   return () => {
+      authStateListeners = authStateListeners.filter(listener => listener !== callback);
+   };
 };
 
-/**
- * Update user metadata (profile info)
- * @param {object} metadata - User metadata to update
- * @returns {Promise} - Updated user
- */
-export const updateUserMetadata = async (metadata) => {
-  try {
-    const { data, error } = await supabase.auth.updateUser({
-      data: metadata,
-    });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    return { success: true, user: data.user };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
+// Notify all listeners of auth state change
+const notifyAuthStateChange = (session) => {
+   authStateListeners.forEach(listener => listener(session));
 };
 
-export default supabase;
