@@ -3,7 +3,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
     Menu, X, Home, Users, FileText, LogOut,
     Activity, Calendar, Shield, Upload, Search, Bell, ChevronDown,
-    Pill, LayoutDashboard, MessageSquare, Heart
+    Pill, LayoutDashboard, MessageSquare, Heart, Clock
 } from 'lucide-react';
 
 const DashboardLayout = ({ role, userName = "User" }) => {
@@ -55,6 +55,7 @@ const DashboardLayout = ({ role, userName = "User" }) => {
                     ...common,
                     { label: 'Upload Results', icon: Upload, path: `/dashboard/${role}/upload` },
                     { label: 'Orders', icon: FileText, path: `/dashboard/${role}/orders` },
+                    { label: 'History', icon: Clock, path: `/dashboard/${role}/history` },
                 ];
             case 'admin':
                 return [
@@ -113,8 +114,8 @@ const DashboardLayout = ({ role, userName = "User" }) => {
                                     key={item.path}
                                     onClick={() => navigate(item.path)}
                                     className={`flex items-center w-full px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 group relative ${isActive
-                                            ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/30'
-                                            : 'text-gray-700 hover:bg-white/60 hover:shadow-md'
+                                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/30'
+                                        : 'text-gray-700 hover:bg-white/60 hover:shadow-md'
                                         }`}
                                 >
                                     {isActive && (

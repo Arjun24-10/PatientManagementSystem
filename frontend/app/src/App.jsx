@@ -23,6 +23,10 @@ import PatientPrescriptions from './pages/patient/Prescriptions.jsx';
 import NurseDashboard from './pages/nurse/Dashboard.jsx';
 import NurseVitals from './pages/nurse/Vitals.jsx';
 import LabDashboard from './pages/lab/Dashboard.jsx';
+import LabOrders from './pages/lab/Orders.jsx';
+import LabOrderDetail from './pages/lab/OrderDetail.jsx';
+import UploadResults from './pages/lab/UploadResults.jsx';
+import LabHistory from './pages/lab/History.jsx';
 import AdminDashboard from './pages/admin/Dashboard.jsx';
 
 function App() {
@@ -66,6 +70,10 @@ function App() {
         {/* Lab Dashboard */}
         <Route path="/dashboard/lab/*" element={<DashboardLayout role="lab" userName="Tech Mike" />}>
           <Route path="" element={<LabDashboard />} />
+          <Route path="orders" element={<LabOrders />} />
+          <Route path="orders/:id" element={<LabOrderDetail />} />
+          <Route path="upload" element={<UploadResults />} />
+          <Route path="history" element={<LabHistory />} />
         </Route>
 
         {/* Admin Dashboard */}
