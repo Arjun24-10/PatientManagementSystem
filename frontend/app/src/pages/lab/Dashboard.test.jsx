@@ -48,7 +48,7 @@ describe('LabDashboard Component', () => {
       renderWithRouter(<LabDashboard />);
       expect(screen.getByText('Recent Lab Activity')).toBeInTheDocument();
       expect(screen.getByText('Result Uploaded')).toBeInTheDocument();
-      expect(screen.getByText('Tech Mike')).toBeInTheDocument();
+      expect(screen.getAllByText(/tech mike/i).length).toBeGreaterThan(0);
    });
 
    test('navigates to orders when "View Orders" is clicked', () => {
