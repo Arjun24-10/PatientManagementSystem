@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Login from './pages/login.jsx';
 import CreateAccount from './pages/createAccount.jsx';
 import TwoFactorAuth from './pages/TwoFactorAuth.jsx';
+import ForgotPassword from './pages/ForgotPassword.jsx';
+import ResetPassword from './pages/ResetPassword.jsx';
 
 import DashboardLayout from './layouts/DashboardLayout.jsx';
 import DoctorDashboard from './pages/doctor/Dashboard.jsx';
@@ -37,6 +39,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/create" element={<CreateAccount />} />
         <Route path="/verify-2fa" element={<TwoFactorAuth />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* Doctor Dashboard */}
         <Route path="/dashboard/doctor/*" element={<DashboardLayout role="doctor" userName="Dr. Smith" />}>
