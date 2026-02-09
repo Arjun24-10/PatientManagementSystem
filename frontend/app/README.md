@@ -74,3 +74,79 @@ src/
 
 ## 🧪 Mock Data
 The application uses local mock data located in `src/mocks/`. You can edit these files to test different data scenarios without a backend.
+
+## 📡 API Reference
+
+The following APIs are defined in the frontend services (`src/services/api.js`).
+
+### Authentication
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/auth/register` | Register a new user |
+| `POST` | `/api/auth/login` | Login user |
+| `POST` | `/api/auth/logout` | Logout user |
+| `GET` | `/api/auth/me` | Get current user |
+
+### Patients
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/patients` | Get all patients |
+| `GET` | `/api/patients/:id` | Get patient by ID |
+| `POST` | `/api/patients` | Create new patient |
+| `PUT` | `/api/patients/:id` | Update patient |
+| `DELETE` | `/api/patients/:id` | Delete patient |
+
+### Appointments
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/appointments` | Get all appointments |
+| `GET` | `/api/appointments/:id` | Get appointment by ID |
+| `GET` | `/api/appointments/patient/:patientId` | Get appointments by patient |
+| `GET` | `/api/appointments/doctor/:doctorId` | Get appointments by doctor |
+| `POST` | `/api/appointments` | Create new appointment |
+| `PUT` | `/api/appointments/:id` | Update appointment |
+| `PUT` | `/api/appointments/:id/cancel` | Cancel appointment |
+| `DELETE` | `/api/appointments/:id` | Delete appointment |
+
+### Medical Records
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/medical-records/:id` | Get medical record by ID |
+| `GET` | `/api/medical-records/patient/:patientId` | Get records by patient |
+| `POST` | `/api/medical-records` | Create new record |
+| `PUT` | `/api/medical-records/:id` | Update record |
+| `DELETE` | `/api/medical-records/:id` | Delete record |
+
+### Prescriptions
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/prescriptions/:id` | Get prescription by ID |
+| `GET` | `/api/prescriptions/patient/:patientId` | Get prescriptions by patient |
+| `POST` | `/api/prescriptions` | Create new prescription |
+| `PUT` | `/api/prescriptions/:id` | Update prescription |
+| `DELETE` | `/api/prescriptions/:id` | Delete prescription |
+
+### Lab Results
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/lab-results/:id` | Get lab result by ID |
+| `GET` | `/api/lab-results/patient/:patientId` | Get results by patient |
+| `POST` | `/api/lab-results` | Create new lab result |
+| `PUT` | `/api/lab-results/:id` | Update lab result |
+| `DELETE` | `/api/lab-results/:id` | Delete lab result |
+
+### Doctors
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/doctors` | Get all doctors |
+| `GET` | `/api/doctors/:id` | Get doctor by ID |
+| `GET` | `/api/doctors/specialty/:specialty` | Get doctors by specialty |
+| `PUT` | `/api/doctors/:id` | Update doctor profile |
+
+### Vital Signs
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/vital-signs/patient/:patientId` | Get all vital signs for patient |
+| `GET` | `/api/vital-signs/patient/:patientId/latest` | Get latest vital signs |
+| `POST` | `/api/vital-signs` | Create vital signs record |
+| `PUT` | `/api/vital-signs/:id` | Update vital signs |

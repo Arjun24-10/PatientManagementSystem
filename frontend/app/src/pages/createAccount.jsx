@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function CreateAccount() {
   const [name, setName] = useState('');
@@ -9,10 +10,12 @@ export default function CreateAccount() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  const { signup } = useAuth();
 
-  const handleSignUp = (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -28,8 +31,8 @@ export default function CreateAccount() {
       return;
     }
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters long');
+    if (password.length < 12) {
+      setError('Password must be at least 12 characters long');
       return;
     }
 
@@ -40,12 +43,24 @@ export default function CreateAccount() {
       return;
     }
 
-    // TODO: Later → send to backend API
-
-    setSuccess('Account created successfully! Redirecting to sign in...');
-    setTimeout(() => {
-      navigate('/');
-    }, 2200);
+    // Call backend API to register user
+    setLoading(true);
+    try {
+      const result = await signup(email, password, { role: 'PATIENT', name, phone });
+      
+      if (result.success) {
+        setSuccess('Account created successfully! Redirecting to sign in...');
+        setTimeout(() => {
+          navigate('/');
+        }, 2200);
+      } else {
+        setError(result.error || 'Registration failed. Please try again.');
+      }
+    } catch (err) {
+      setError(err.message || 'An error occurred during registration.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -77,7 +92,7 @@ export default function CreateAccount() {
 
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
             <p className="text-sm opacity-90 italic">
-              “Your medical data belongs to you. We only facilitate secure, consented access.”
+              "Your medical data belongs to you. We only facilitate secure, consented access."
             </p>
             <p className="text-xs mt-3 opacity-70">— Our Privacy Promise</p>
           </div>
@@ -157,7 +172,7 @@ export default function CreateAccount() {
                 autoComplete="new-password"
                 required
                 className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
-                placeholder="At least 8 characters"
+                placeholder="At least 12 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -193,9 +208,10 @@ export default function CreateAccount() {
 
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-3.5 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 shadow-sm"
+              disabled={loading}
+              className="w-full bg-blue-600 text-white py-3.5 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Create Account
+              {loading ? 'Creating Account...' : 'Create Account'}
             </button>
 
             <div className="text-center text-sm text-gray-500 mt-6">

@@ -7,6 +7,7 @@ import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
+import api from '../../services/api';
 import { mockAppointments } from '../../mocks/appointments';
 
 const Appointments = () => {
@@ -22,6 +23,21 @@ const Appointments = () => {
     // Cancel Modal State
     const [cancelModalOpen, setCancelModalOpen] = useState(false);
     const [apptToCancel, setApptToCancel] = useState(null);
+
+    // Fetch Appointments
+    React.useEffect(() => {
+        const fetchAppointments = async () => {
+            try {
+                const data = await api.appointments.getAll();
+                if (Array.isArray(data)) {
+                    setAppointments(data);
+                }
+            } catch (error) {
+                console.warn('Failed to fetch appointments, using mock data', error);
+            }
+        };
+        fetchAppointments();
+    }, []);
 
     const filteredAppointments = appointments.filter(appt => {
         if (activeTab === 'upcoming') return appt.status !== 'Cancelled' && appt.status !== 'Completed';

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import Login from './pages/login.jsx';
 import CreateAccount from './pages/createAccount.jsx';
+import TwoFactorAuth from './pages/TwoFactorAuth.jsx';
 
 import DashboardLayout from './layouts/DashboardLayout.jsx';
 import DoctorDashboard from './pages/doctor/Dashboard.jsx';
@@ -35,6 +36,7 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/create" element={<CreateAccount />} />
+        <Route path="/verify-2fa" element={<TwoFactorAuth />} />
 
         {/* Doctor Dashboard */}
         <Route path="/dashboard/doctor/*" element={<DashboardLayout role="doctor" userName="Dr. Smith" />}>

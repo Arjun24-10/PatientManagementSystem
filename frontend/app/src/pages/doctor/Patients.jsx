@@ -5,14 +5,31 @@ import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
 import PatientSearch from './components/PatientSearch';
+import api from '../../services/api';
 import { mockPatients } from '../../mocks/patients';
 
 const Patients = () => {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
+    const [patients, setPatients] = useState(mockPatients);
+
+    // Fetch Patients
+    React.useEffect(() => {
+        const fetchPatients = async () => {
+            try {
+                const data = await api.patients.getAll();
+                if (Array.isArray(data)) {
+                    setPatients(data);
+                }
+            } catch (error) {
+                console.warn('Failed to fetch patients, using mock data', error);
+            }
+        };
+        fetchPatients();
+    }, []);
 
     // Basic filtering
-    const filteredPatients = mockPatients.filter(p =>
+    const filteredPatients = patients.filter(p =>
         p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.id.toLowerCase().includes(searchTerm.toLowerCase())
     );

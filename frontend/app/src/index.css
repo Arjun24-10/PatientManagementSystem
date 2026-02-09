@@ -228,6 +228,23 @@ code {
     animation: pulse-glow 2s ease-in-out infinite;
   }
 
+  /* Shake Animation for Errors */
+  @keyframes shake {
+    0%, 100% {
+      transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+      transform: translateX(-4px);
+    }
+    20%, 40%, 60%, 80% {
+      transform: translateX(4px);
+    }
+  }
+
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
+  }
+
   /* Gradient Border */
   .gradient-border {
     border: 2px solid transparent;
@@ -282,21 +299,25 @@ code {
 
   /* Stagger delays for multiple elements */
   .animate-fade-in-delay-1 {
+    animation: fadeIn 0.5s ease-out forwards;
     animation-delay: 0.1s;
     opacity: 0;
   }
 
   .animate-fade-in-delay-2 {
+    animation: fadeIn 0.5s ease-out forwards;
     animation-delay: 0.2s;
     opacity: 0;
   }
 
   .animate-fade-in-delay-3 {
+    animation: fadeIn 0.5s ease-out forwards;
     animation-delay: 0.3s;
     opacity: 0;
   }
 
   .animate-fade-in-delay-4 {
+    animation: fadeIn 0.5s ease-out forwards;
     animation-delay: 0.4s;
     opacity: 0;
   }
