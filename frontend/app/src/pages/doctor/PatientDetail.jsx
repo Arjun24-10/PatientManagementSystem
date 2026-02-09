@@ -14,21 +14,76 @@ import TreatmentModal from '../../components/doctor/TreatmentModal';
 import MedicalHistoryList from '../../components/doctor/MedicalHistoryList';
 import LabResultsList from '../../components/doctor/LabResultsList';
 
+import api from '../../services/api';
 import { getPatientById } from '../../mocks/patients';
 import { mockMedicalHistory, mockPrescriptions, mockTreatments, mockLabs } from '../../mocks/records';
 
 const PatientDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const patient = getPatientById(id);
 
+    // State
+    const [patient, setPatient] = useState(null);
     const [activeTab, setActiveTab] = useState('overview');
+
+    // Data States
     const [prescriptions, setPrescriptions] = useState(mockPrescriptions);
     const [treatments, setTreatments] = useState(mockTreatments);
+    const [medicalHistory, setMedicalHistory] = useState(mockMedicalHistory);
+    const [labs, setLabs] = useState(mockLabs);
+    const [isLoading, setIsLoading] = useState(true);
     const [isRxModalOpen, setIsRxModalOpen] = useState(false);
     const [isTreatmentModalOpen, setIsTreatmentModalOpen] = useState(false);
     const [newRx, setNewRx] = useState({ name: '', dosage: '', frequency: '', duration: '', instructions: '' });
 
+    // Fetch Data
+    React.useEffect(() => {
+        const fetchData = async () => {
+            setIsLoading(true);
+            try {
+                // 1. Patient Details
+                try {
+                    const patientData = await api.patients.getById(id);
+                    if (patientData && patientData.id) {
+                        setPatient(patientData);
+                    } else {
+                        // Fallback to mock if API returns nothing or fails
+                        setPatient(getPatientById(id));
+                    }
+                } catch (e) {
+                    console.warn('Failed to fetch patient from API, using mock', e);
+                    setPatient(getPatientById(id));
+                }
+
+                // 2. Prescriptions
+                try {
+                    const rxData = await api.prescriptions.getByPatient(id);
+                    if (Array.isArray(rxData)) setPrescriptions(rxData);
+                } catch (e) { console.warn('Using mock prescriptions'); }
+
+                // 3. Medical History
+                try {
+                    const historyData = await api.medicalRecords.getByPatient(id);
+                    if (Array.isArray(historyData)) setMedicalHistory(historyData);
+                } catch (e) { console.warn('Using mock history'); }
+
+                // 4. Lab Results
+                try {
+                    const labData = await api.labResults.getByPatient(id);
+                    if (Array.isArray(labData)) setLabs(labData);
+                } catch (e) { console.warn('Using mock labs'); }
+
+            } catch (error) {
+                console.error('Error loading patient details:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        if (id) fetchData();
+    }, [id]);
+
+    if (isLoading && !patient) return <div className="p-6">Loading patient details...</div>;
     if (!patient) return <div className="p-6">Patient not found</div>;
 
     const handleAddRx = (e) => {

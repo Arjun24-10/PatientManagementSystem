@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Activity, Calendar, FileText, Pill, AlertCircle, ArrowRight, Clock, MapPin, Stethoscope, Thermometer, Heart, Wind, Scale, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../components/common/Card';
@@ -8,23 +8,70 @@ import { mockAppointments } from '../../mocks/appointments';
 import { mockPrescriptions, mockLabs, mockDiagnoses, mockVitalsHistory } from '../../mocks/records';
 import { getPatientById } from '../../mocks/patients';
 
+import api from '../../services/api';
+
 const PatientDashboard = () => {
    const navigate = useNavigate();
    const patientId = 'P001';
-   const patient = getPatientById(patientId);
+
+   // State with Mock Fallbacks
+   const [patient, setPatient] = useState(getPatientById(patientId));
+   const [appointments, setAppointments] = useState(mockAppointments);
+   const [prescriptions, setPrescriptions] = useState(mockPrescriptions);
+   const [labs, setLabs] = useState(mockLabs);
+   const [diagnoses, setDiagnoses] = useState(mockDiagnoses);
+   const [vitals, setVitals] = useState(mockVitalsHistory);
+
+   // Fetch API Data
+   React.useEffect(() => {
+      const fetchData = async () => {
+         try {
+            const pData = await api.patients.getById(patientId);
+            if (pData && pData.id) setPatient(pData);
+         } catch (e) { console.log('Using mock patient data'); }
+
+         try {
+            const aData = await api.appointments.getByPatient(patientId);
+            if (Array.isArray(aData)) setAppointments(aData);
+         } catch (e) { console.log('Using mock appointment data'); }
+
+         try {
+            const rData = await api.prescriptions.getByPatient(patientId);
+            if (Array.isArray(rData)) setPrescriptions(rData);
+         } catch (e) { console.log('Using mock prescription data'); }
+
+         try {
+            const lData = await api.labResults.getByPatient(patientId);
+            if (Array.isArray(lData)) setLabs(lData);
+         } catch (e) { console.log('Using mock lab data'); }
+
+         try {
+            const mData = await api.medicalRecords.getByPatient(patientId);
+            if (Array.isArray(mData)) setDiagnoses(mData);
+         } catch (e) { console.log('Using mock diagnoses data'); }
+
+         try {
+            // Vitals might be a single record or list. API says getByPatient returns list.
+            const vData = await api.vitalSigns.getByPatient(patientId);
+            if (Array.isArray(vData)) setVitals(vData);
+         } catch (e) { console.log('Using mock vitals data'); }
+      };
+
+      fetchData();
+   }, [patientId]);
 
    if (!patient) return <div className="p-8 text-center text-gray-500">Loading patient data...</div>;
 
    // --- Data Preparation ---
-   const upcomingAppointments = mockAppointments
+   const upcomingAppointments = appointments
       .filter(a => a.patientId === patientId && a.status !== 'Completed' && a.status !== 'Cancelled')
       .sort((a, b) => new Date(a.date) - new Date(b.date))
       .slice(0, 3);
 
-   const pendingLabs = mockLabs.filter(l => l.status === 'Pending' || l.type === 'Pending');
-   const activeMedications = mockPrescriptions.filter(p => p.active);
-   const recentDiagnoses = mockDiagnoses.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
-   const latestVitals = mockVitalsHistory[0] || {};
+   const pendingLabs = labs.filter(l => l.status === 'Pending' || l.type === 'Pending');
+   const activeMedications = prescriptions.filter(p => p.active);
+   const recentDiagnoses = diagnoses.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+   const latestVitals = vitals[0] || {};
 
    // Helper for Vital Cards (Doctor Style)
    const VitalCard = ({ label, value, unit, icon: Icon, colorClass, bgClass }) => (

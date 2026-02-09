@@ -8,7 +8,7 @@ describe('supabaseAuth Service', () => {
 
    test('signIn calls login and returns formatted result', async () => {
       const mockUser = { id: 1, email: 'test@example.com' };
-      const mockResponse = { user: mockUser, token: '123' };
+      const mockResponse = { user: mockUser, message: 'Login successful', email: 'test@example.com', role: 'PATIENT' };
 
       global.fetch.mockResolvedValueOnce({
          ok: true,
@@ -25,10 +25,11 @@ describe('supabaseAuth Service', () => {
          })
       );
 
+      // signIn returns session with user object only (no token from this backend)
       expect(result).toEqual({
          success: true,
-         user: mockUser,
-         session: mockResponse,
+         user: expect.objectContaining({ email: 'test@example.com' }),
+         session: { user: expect.objectContaining({ email: 'test@example.com' }) },
       });
    });
 
@@ -47,17 +48,8 @@ describe('supabaseAuth Service', () => {
    });
 
    test('signOut calls logout', async () => {
-      global.fetch.mockResolvedValueOnce({
-         ok: true,
-         json: async () => ({ message: 'Logged out' }),
-      });
-
+      // signOut clears local session (no backend call - backend has no logout endpoint)
       const result = await authService.signOut();
-
-      expect(global.fetch).toHaveBeenCalledWith(
-         expect.stringContaining('/auth/logout'),
-         expect.objectContaining({ method: 'POST' })
-      );
 
       expect(result).toEqual({ success: true });
    });

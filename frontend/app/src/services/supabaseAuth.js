@@ -1,26 +1,47 @@
 // Authentication service for backend API
-const API_BASE_URL = 'http://localhost:8081/api/auth';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+const AUTH_URL = `${API_BASE_URL}/auth`;
+const STORAGE_KEY = 'secure_health_user';
 
 // Auth state change listeners
 let authStateListeners = [];
 
+const saveSession = (user) => {
+   localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+   notifyAuthStateChange({ user });
+};
+
+const clearSession = () => {
+   localStorage.removeItem(STORAGE_KEY);
+   notifyAuthStateChange(null);
+};
+
+const getSession = () => {
+   const data = localStorage.getItem(STORAGE_KEY);
+   return data ? JSON.parse(data) : null;
+};
+
 export const signup = async (email, password, role = 'PATIENT') => {
    try {
-      const response = await fetch(`${API_BASE_URL}/register`, {
+      const response = await fetch(`${AUTH_URL}/register`, {
          method: 'POST',
          headers: { 'Content-Type': 'application/json' },
-         credentials: 'include',
          body: JSON.stringify({ email, password, role }),
       });
 
       if (!response.ok) {
-         const error = await response.json();
+         const error = await response.json().catch(() => ({}));
          throw new Error(error.message || 'Registration failed');
       }
 
-      const data = await response.json();
-      notifyAuthStateChange(data);
-      return data;
+      // Backend returns success message but no user object for register
+      // We auto-login or ask user to login. Here we'll simulate auto-login for UX
+      const user = { email, role };
+      // Note: In a real app we might require login after register, 
+      // but for "integration" we'll set session
+      saveSession(user);
+
+      return { message: 'User registered successfully', user };
    } catch (error) {
       throw error;
    }
@@ -30,7 +51,9 @@ export const signUp = async (email, password, userData) => {
    try {
       const role = userData?.role || 'PATIENT';
       const result = await signup(email, password, role);
-      return { success: true, user: result.user, session: result };
+      // Construct session object matching what AuthContext expects
+      const session = { user: result.user };
+      return { success: true, user: result.user, session };
    } catch (error) {
       return { success: false, error: error.message };
    }
@@ -38,21 +61,26 @@ export const signUp = async (email, password, userData) => {
 
 export const login = async (email, password) => {
    try {
-      const response = await fetch(`${API_BASE_URL}/login`, {
+      const response = await fetch(`${AUTH_URL}/login`, {
          method: 'POST',
          headers: { 'Content-Type': 'application/json' },
-         credentials: 'include',
          body: JSON.stringify({ email, password }),
       });
 
       if (!response.ok) {
-         const error = await response.json();
+         const error = await response.json().catch(() => ({}));
          throw new Error(error.message || 'Login failed');
       }
 
-      const data = await response.json();
-      notifyAuthStateChange(data);
-      return data;
+      let data = await response.json();
+      // Expecting data to contain { message, email, role } based on backend
+      const user = {
+         email: data.email || email,
+         role: data.role || 'PATIENT'
+      };
+
+      saveSession(user);
+      return { user, ...data };
    } catch (error) {
       throw error;
    }
@@ -61,29 +89,18 @@ export const login = async (email, password) => {
 export const signIn = async (email, password) => {
    try {
       const result = await login(email, password);
-      return { success: true, user: result.user, session: result };
+      // Construct session object matching what AuthContext expects
+      const session = { user: result.user };
+      return { success: true, user: result.user, session };
    } catch (error) {
       return { success: false, error: error.message };
    }
 };
 
 export const logout = async () => {
-   try {
-      const response = await fetch(`${API_BASE_URL}/logout`, {
-         method: 'POST',
-         credentials: 'include',
-      });
-
-      if (!response.ok) {
-         throw new Error('Logout failed');
-      }
-
-      const data = await response.json();
-      notifyAuthStateChange(null);
-      return data;
-   } catch (error) {
-      throw error;
-   }
+   // Client-side logout only since backend has no logout endpoint
+   clearSession();
+   return { message: 'Logged out successfully' };
 };
 
 export const signOut = async () => {
@@ -96,34 +113,26 @@ export const signOut = async () => {
 };
 
 export const getCurrentUser = async () => {
-   try {
-      const response = await fetch(`${API_BASE_URL}/me`, {
-         method: 'GET',
-         credentials: 'include',
-      });
-
-      if (!response.ok) {
-         return null;
-      }
-
-      return await response.json();
-   } catch (error) {
-      return null;
-   }
+   // Return local session instead of calling API
+   return getSession();
 };
 
 export const getCurrentSession = async () => {
-   try {
-      const user = await getCurrentUser();
-      return user ? { user } : null;
-   } catch (error) {
-      return null;
-   }
+   const user = getSession();
+   return user ? { user } : null;
 };
 
 // Auth state change listener
 export const onAuthStateChange = (callback) => {
    authStateListeners.push(callback);
+
+   // Initialize with current state
+   const currentSession = getSession();
+   if (currentSession) {
+      // callback({ user: currentSession }); 
+      // Don't fire immediately to avoid render loops, 
+      // AuthContext calls getCurrentSession on mount anyway.
+   }
 
    // Return unsubscribe function
    return () => {
@@ -135,3 +144,4 @@ export const onAuthStateChange = (callback) => {
 const notifyAuthStateChange = (session) => {
    authStateListeners.forEach(listener => listener(session));
 };
+

@@ -1,56 +1,145 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Heart, Shield, Clock, Users } from 'lucide-react';
+import { Heart, Shield, Clock, Users, Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle, X } from 'lucide-react';
+import { mockLogin } from '../mocks/auth';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({ email: '', password: '' });
 
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  // Load remembered email on mount
+  useEffect(() => {
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    const wasRemembered = localStorage.getItem('rememberMe') === 'true';
+    if (rememberedEmail && wasRemembered) {
+      setEmail(rememberedEmail);
+      setRememberMe(true);
+    }
+  }, []);
+
+  // Real-time field validation
+  const validateField = (field, value) => {
+    const errors = { ...fieldErrors };
+    
+    if (field === 'email') {
+      if (!value) {
+        errors.email = 'Email is required';
+      } else if (!value.includes('@') && !/^[a-zA-Z0-9_]+$/.test(value)) {
+        errors.email = 'Please enter a valid email or username';
+      } else {
+        errors.email = '';
+      }
+    }
+    
+    if (field === 'password') {
+      if (!value) {
+        errors.password = 'Password is required';
+      } else if (value.length < 6) {
+        errors.password = 'Password must be at least 6 characters';
+      } else {
+        errors.password = '';
+      }
+    }
+    
+    setFieldErrors(errors);
+    return !errors.email && !errors.password;
+  };
+
+  const handleEmailBlur = () => validateField('email', email);
+  const handlePasswordBlur = () => validateField('password', password);
+
+  const dismissError = () => setError('');
+  const dismissSuccess = () => setSuccess('');
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
-
-    // Validation
+    setSuccess('');
+    
+    // Validate all fields
+    const emailValid = validateField('email', email);
+    const passwordValid = validateField('password', password);
+    
     if (!email || !password) {
       setError('Please enter email and password');
-      setLoading(false);
+      return;
+    }
+    
+    if (!emailValid || !passwordValid) {
       return;
     }
 
-    if (!email.includes('@')) {
-      setError('Please enter a valid email address');
-      setLoading(false);
-      return;
-    }
+    setLoading(true);
 
-    // Attempt login
-    const result = await login(email, password);
+    try {
+      // First try mock authentication (for demo/dev)
+      const mockResult = await mockLogin(email, password, rememberMe);
+      
+      if (mockResult.success) {
+        // Handle remember me
+        if (rememberMe) {
+          localStorage.setItem('rememberMe', 'true');
+          localStorage.setItem('rememberedEmail', email);
+        } else {
+          localStorage.removeItem('rememberMe');
+          localStorage.removeItem('rememberedEmail');
+        }
 
-    if (result.success) {
-      // Store remember me preference
-      if (rememberMe) {
-        localStorage.setItem('rememberMe', 'true');
-        localStorage.setItem('rememberedEmail', email);
-      } else {
-        localStorage.removeItem('rememberMe');
-        localStorage.removeItem('rememberedEmail');
+        // Check if 2FA is required
+        if (mockResult.requiresTwoFactor) {
+          // Store temp data and redirect to 2FA page
+          sessionStorage.setItem('2fa_temp_token', mockResult.tempToken);
+          sessionStorage.setItem('2fa_user', JSON.stringify(mockResult.user));
+          setSuccess('Credentials verified! Redirecting to verification...');
+          setTimeout(() => {
+            navigate('/verify-2fa');
+          }, 1000);
+          return;
+        }
+
+        // Direct login success
+        setSuccess('Login successful! Redirecting...');
+        setTimeout(() => {
+          navigate(mockResult.redirectTo);
+        }, 1000);
+        return;
       }
 
-      // Determine role-based redirect
-      const userRole = result.user?.user_metadata?.role || 'patient';
-      const dashboardPath = `/dashboard/${userRole}`;
-      navigate(dashboardPath);
-    } else {
-      // Login failed - show error
-      setError(result.error || 'Login failed. Please check your credentials and try again.');
+      // If mock auth fails, try real backend
+      const result = await login(email, password);
+
+      if (result.success) {
+        if (rememberMe) {
+          localStorage.setItem('rememberMe', 'true');
+          localStorage.setItem('rememberedEmail', email);
+        } else {
+          localStorage.removeItem('rememberMe');
+          localStorage.removeItem('rememberedEmail');
+        }
+
+        const userRole = (result.user?.role || result.user?.user_metadata?.role || 'PATIENT').toLowerCase();
+        const dashboardPath = `/dashboard/${userRole}`;
+        
+        setSuccess('Login successful! Redirecting...');
+        setTimeout(() => {
+          navigate(dashboardPath);
+        }, 1000);
+      } else {
+        setError(result.error || mockResult.error || 'Login failed. Please check your credentials and try again.');
+        setLoading(false);
+      }
+    } catch (err) {
+      setError('Network error. Please check your connection and try again.');
       setLoading(false);
     }
   };
@@ -144,17 +233,34 @@ export default function Login() {
               <form onSubmit={handleLogin} className="space-y-5 relative z-20">
                 <div className="space-y-2">
                   <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
-                    Email Address
+                    Email or Username
                   </label>
-                  <input
-                    type="email"
-                    id="email"
-                    className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all bg-white text-gray-900 placeholder-gray-500"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Mail className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      id="email"
+                      className={`w-full border-2 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 placeholder-gray-500 ${
+                        fieldErrors.email 
+                          ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                          : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                      }`}
+                      placeholder="Enter your email or username"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      onBlur={handleEmailBlur}
+                      aria-describedby={fieldErrors.email ? 'email-error' : undefined}
+                      required
+                    />
+                  </div>
+                  {fieldErrors.email && (
+                    <p id="email-error" className="text-sm text-red-600 flex items-center gap-1">
+                      <AlertCircle className="h-4 w-4" />
+                      {fieldErrors.email}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -166,15 +272,40 @@ export default function Login() {
                       Forgot?
                     </button>
                   </div>
-                  <input
-                    type="password"
-                    id="password"
-                    className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all bg-white text-gray-900 placeholder-gray-500"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Lock className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      id="password"
+                      className={`w-full border-2 rounded-xl pl-10 pr-12 py-3 focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 placeholder-gray-500 ${
+                        fieldErrors.password 
+                          ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                          : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                      }`}
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      onBlur={handlePasswordBlur}
+                      aria-describedby={fieldErrors.password ? 'password-error' : undefined}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                  {fieldErrors.password && (
+                    <p id="password-error" className="text-sm text-red-600 flex items-center gap-1">
+                      <AlertCircle className="h-4 w-4" />
+                      {fieldErrors.password}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex items-center">
@@ -190,9 +321,29 @@ export default function Login() {
                   </label>
                 </div>
 
+                {/* Error Alert */}
                 {error && (
-                  <div className="bg-gradient-to-r from-red-50 to-red-100 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium">
-                    {error}
+                  <div className="bg-gradient-to-r from-red-50 to-red-100 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium flex items-center justify-between animate-shake">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="h-5 w-5 text-red-500" />
+                      <span>{error}</span>
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={dismissError}
+                      className="text-red-500 hover:text-red-700 transition-colors"
+                      aria-label="Dismiss error"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Success Alert */}
+                {success && (
+                  <div className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <span>{success}</span>
                   </div>
                 )}
 
@@ -238,6 +389,20 @@ export default function Login() {
                 {' '}and{' '}
                 <button className="text-blue-600 hover:text-blue-700 font-medium">Privacy Policy</button>
               </p>
+
+              {/* Footer Links */}
+              <div className="pt-4 border-t border-gray-200 mt-6">
+                <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
+                  <button className="hover:text-blue-600 transition-colors">Privacy Policy</button>
+                  <span>•</span>
+                  <button className="hover:text-blue-600 transition-colors">Terms of Service</button>
+                  <span>•</span>
+                  <button className="hover:text-blue-600 transition-colors">Help</button>
+                </div>
+                <p className="text-center text-xs text-gray-400 mt-3">
+                  © 2026 Healthcare Management System. All rights reserved.
+                </p>
+              </div>
             </div>
           </div>
           </div>

@@ -10,18 +10,50 @@ import AppointmentList from '../../components/AppointmentList';
 import MiniCalendar from '../../components/MiniCalendar';
 import { mockPatients } from '../../mocks/patients';
 import { mockAppointments } from '../../mocks/appointments';
+import api from '../../services/api';
 
 const DoctorDashboard = () => {
    const navigate = useNavigate();
    const [searchTerm, setSearchTerm] = useState('');
 
-   // Basic filtering mock logic
-   const filteredPatients = mockPatients.filter(p =>
+   // State for data
+   const [patients, setPatients] = useState(mockPatients);
+   const [appointments, setAppointments] = useState(mockAppointments);
+
+   // Fetch data from API
+   React.useEffect(() => {
+      const fetchData = async () => {
+         try {
+            // Attempt to fetch patients
+            const patientsData = await api.patients.getAll();
+            if (Array.isArray(patientsData)) {
+               setPatients(patientsData);
+            }
+         } catch (error) {
+            console.log('Using mock patient data (API backend not reachable)');
+         }
+
+         try {
+            // Attempt to fetch appointments
+            const appointmentsData = await api.appointments.getAll();
+            if (Array.isArray(appointmentsData)) {
+               setAppointments(appointmentsData);
+            }
+         } catch (error) {
+            console.log('Using mock appointment data (API backend not reachable)');
+         }
+      };
+
+      fetchData();
+   }, []);
+
+   // Filter patients based on search
+   const filteredPatients = patients.filter(p =>
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.id.toLowerCase().includes(searchTerm.toLowerCase())
    );
 
-   const todaysAppointments = mockAppointments.filter(a => a.date === '2023-12-15');
+   const todaysAppointments = appointments.filter(a => a.date === '2023-12-15');
 
    return (
       <div className="space-y-8">
@@ -41,7 +73,7 @@ const DoctorDashboard = () => {
             <Card className="p-6 border border-gray-100 shadow-soft hover:shadow-lg transition-shadow duration-300 flex items-center justify-between group">
                <div>
                   <h3 className="text-gray-500 text-sm font-medium">Total Patients</h3>
-                  <p className="text-3xl font-bold text-gray-800 mt-2 group-hover:text-brand-medium transition-colors">{mockPatients.length}</p>
+                  <p className="text-3xl font-bold text-gray-800 mt-2 group-hover:text-brand-medium transition-colors">{patients.length}</p>
                </div>
                <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-brand-medium group-hover:scale-110 transition-transform">
                   <Users className="w-6 h-6" />
@@ -166,7 +198,7 @@ const DoctorDashboard = () => {
             {/* Right Column (Side Panel) */}
             <div className="space-y-8">
                {/* Mini Calendar */}
-               <MiniCalendar appointments={mockAppointments} />
+               <MiniCalendar appointments={appointments} />
 
                {/* Upcoming Appointments */}
                <Card className="p-6 border border-gray-100 shadow-soft h-fit">
@@ -174,7 +206,7 @@ const DoctorDashboard = () => {
                      <h3 className="text-lg font-bold text-gray-800">Upcoming List</h3>
                      <button className="text-sm text-brand-medium hover:underline font-medium bg-transparent border-none cursor-pointer">See all</button>
                   </div>
-                  <AppointmentList appointments={mockAppointments.slice(0, 5)} />
+                  <AppointmentList appointments={appointments.slice(0, 5)} />
                </Card>
 
                {/* Notifications/Alerts (Simplified) */}
