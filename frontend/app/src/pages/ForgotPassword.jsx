@@ -78,7 +78,7 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 flex">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex">
       {/* Left Side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-teal-600 p-12 flex-col justify-between relative overflow-hidden">
         {/* Background Pattern */}
@@ -127,7 +127,7 @@ export default function ForgotPassword() {
           {/* Back Button */}
           <button
             onClick={() => navigate('/login')}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-8 transition-colors"
+            className="flex items-center text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-100 mb-8 transition-colors"
           >
             <ArrowLeft className="h-5 w-5 mr-2" />
             Back to Login
@@ -138,16 +138,16 @@ export default function ForgotPassword() {
             <div className="bg-gradient-to-br from-blue-600 to-teal-600 p-2 rounded-xl">
               <Shield className="h-6 w-6 text-white" />
             </div>
-            <span className="text-gray-900 text-xl font-bold">SecureHealth</span>
+            <span className="text-gray-900 dark:text-slate-100 text-xl font-bold">SecureHealth</span>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-slate-700">
             <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-                <Mail className="h-8 w-8 text-blue-600" />
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-4">
+                <Mail className="h-8 w-8 text-blue-600 dark:text-blue-400" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">Reset Password</h2>
-              <p className="text-gray-600 mt-2">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Reset Password</h2>
+              <p className="text-gray-600 dark:text-slate-400 mt-2">
                 {emailSent 
                   ? 'Check your email for instructions'
                   : 'Enter your email to receive a reset link'
@@ -157,12 +157,12 @@ export default function ForgotPassword() {
 
             {/* Error Alert */}
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start animate-fade-in">
-                <AlertCircle className="h-5 w-5 text-red-500 mr-3 flex-shrink-0 mt-0.5" />
+              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl flex items-start animate-fade-in">
+                <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400 mr-3 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-red-700 text-sm font-medium">{error}</p>
+                  <p className="text-red-700 dark:text-red-300 text-sm font-medium">{error}</p>
                 </div>
-                <button onClick={() => setError('')} className="text-red-500 hover:text-red-700">
+                <button onClick={() => setError('')} className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
                   <X className="h-5 w-5" />
                 </button>
               </div>
@@ -170,12 +170,12 @@ export default function ForgotPassword() {
 
             {/* Success Alert */}
             {success && (
-              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-start animate-fade-in">
-                <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0 mt-0.5" />
+              <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-xl flex items-start animate-fade-in">
+                <CheckCircle className="h-5 w-5 text-green-500 dark:text-green-400 mr-3 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-green-700 text-sm font-medium">{success}</p>
+                  <p className="text-green-700 dark:text-green-300 text-sm font-medium">{success}</p>
                 </div>
-                <button onClick={() => setSuccess('')} className="text-green-500 hover:text-green-700">
+                <button onClick={() => setSuccess('')} className="text-green-500 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300">
                   <X className="h-5 w-5" />
                 </button>
               </div>
@@ -185,20 +185,20 @@ export default function ForgotPassword() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Email Input */}
                 <div className="space-y-2">
-                  <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
+                  <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-slate-200">
                     Email Address
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="h-5 w-5 text-gray-400" />
+                      <Mail className="h-5 w-5 text-gray-400 dark:text-slate-500" />
                     </div>
                     <input
                       type="email"
                       id="email"
-                      className={`w-full border-2 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 placeholder-gray-500 ${
+                      className={`w-full border-2 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 transition-all bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 placeholder-gray-500 dark:placeholder-slate-500 ${
                         fieldError
-                          ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                          : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                          ? 'border-red-300 dark:border-red-500 focus:ring-red-500 focus:border-red-500'
+                          : 'border-gray-300 dark:border-slate-600 focus:ring-blue-500 focus:border-blue-500'
                       }`}
                       placeholder="Enter your email"
                       value={email}
@@ -208,7 +208,7 @@ export default function ForgotPassword() {
                     />
                   </div>
                   {fieldError && (
-                    <p className="text-red-500 text-sm flex items-center mt-1">
+                    <p className="text-red-500 dark:text-red-400 text-sm flex items-center mt-1">
                       <AlertCircle className="h-4 w-4 mr-1" />
                       {fieldError}
                     </p>
@@ -241,19 +241,19 @@ export default function ForgotPassword() {
             ) : (
               <div className="space-y-6">
                 {/* Email Sent State */}
-                <div className="text-center p-6 bg-blue-50 rounded-xl">
-                  <p className="text-gray-700 mb-2">
+                <div className="text-center p-6 bg-blue-50 dark:bg-blue-900/30 rounded-xl">
+                  <p className="text-gray-700 dark:text-slate-300 mb-2">
                     We've sent an email to:
                   </p>
-                  <p className="font-semibold text-gray-900">{email}</p>
+                  <p className="font-semibold text-gray-900 dark:text-slate-100">{email}</p>
                 </div>
 
-                <div className="text-center text-sm text-gray-600">
+                <div className="text-center text-sm text-gray-600 dark:text-slate-400">
                   <p>Didn't receive the email?</p>
                   <button
                     onClick={handleResendEmail}
                     disabled={loading}
-                    className="text-blue-600 hover:text-blue-700 font-medium mt-1 disabled:opacity-50"
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium mt-1 disabled:opacity-50"
                   >
                     {loading ? 'Sending...' : 'Click to resend'}
                   </button>
@@ -269,9 +269,9 @@ export default function ForgotPassword() {
             )}
 
             {/* Help Text */}
-            <div className="mt-6 text-center text-sm text-gray-500">
+            <div className="mt-6 text-center text-sm text-gray-500 dark:text-slate-400">
               Remember your password?{' '}
-              <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+              <Link to="/login" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">
                 Sign in
               </Link>
             </div>

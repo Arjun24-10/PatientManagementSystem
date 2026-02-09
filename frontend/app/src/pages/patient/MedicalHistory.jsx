@@ -16,10 +16,7 @@ import {
    Activity,
    Stethoscope,
    Syringe,
-   AlertTriangle,
-   CheckCircle,
-   XCircle,
-   TrendingUp
+   AlertTriangle
 } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
@@ -74,15 +71,15 @@ const MedicalHistory = () => {
    const getTimelineColor = (type) => {
       switch (type) {
          case 'visit':
-            return 'border-blue-500 bg-blue-50 text-blue-600';
+            return 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400';
          case 'lab':
-            return 'border-orange-500 bg-orange-50 text-orange-600';
+            return 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400';
          case 'prescription':
-            return 'border-green-500 bg-green-50 text-green-600';
+            return 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400';
          case 'procedure':
-            return 'border-purple-500 bg-purple-50 text-purple-600';
+            return 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400';
          default:
-            return 'border-gray-500 bg-gray-50 text-gray-600';
+            return 'border-gray-500 bg-gray-50 dark:bg-slate-800/50 text-gray-600 dark:text-slate-300';
       }
    };
 
@@ -138,19 +135,19 @@ const MedicalHistory = () => {
          {/* Search and Filter Bar */}
          <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
-               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-slate-400 w-5 h-5" />
                <input
                   type="text"
                   placeholder="Search medical history..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100"
                />
             </div>
             <select
                value={filterType}
                onChange={(e) => setFilterType(e.target.value)}
-               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+               className="px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100"
             >
                <option value="all">All Events</option>
                <option value="visit">Visits</option>
@@ -167,14 +164,14 @@ const MedicalHistory = () => {
          {/* Timeline */}
          <div className="relative">
             {/* Vertical Line */}
-            <div className="absolute left-6 top-4 bottom-0 w-0.5 bg-blue-200"></div>
+            <div className="absolute left-6 top-4 bottom-0 w-0.5 bg-blue-200 dark:bg-blue-800"></div>
 
             <div className="space-y-6">
                {filteredTimeline.length > 0 ? (
                   filteredTimeline.map((event) => (
                      <div key={event.id} className="relative pl-16">
                         {/* Timeline Dot */}
-                        <div className="absolute left-3.5 top-6 w-5 h-5 rounded-full border-4 border-white bg-blue-500 shadow-sm z-10"></div>
+                        <div className="absolute left-3.5 top-6 w-5 h-5 rounded-full border-4 border-white dark:border-slate-800 bg-blue-500 shadow-sm z-10"></div>
 
                         <Card className={`p-6 hover:shadow-lg transition-all border-l-4 ${getTimelineColor(event.type).split(' ')[0]}`}>
                            <div className="flex flex-col md:flex-row justify-between md:items-start gap-4">
@@ -184,9 +181,9 @@ const MedicalHistory = () => {
                                  </div>
                                  <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-1">
-                                       <h3 className="font-bold text-gray-800 text-lg">{event.title}</h3>
+                                       <h3 className="font-bold text-gray-800 dark:text-slate-100 text-lg">{event.title}</h3>
                                     </div>
-                                    <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+                                    <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-slate-400 mb-3">
                                        <span className="flex items-center">
                                           <Calendar className="w-4 h-4 mr-1" />
                                           {new Date(event.date).toLocaleDateString('en-US', {
@@ -200,13 +197,13 @@ const MedicalHistory = () => {
                                           {event.doctor}
                                        </span>
                                     </div>
-                                    <p className="text-gray-600 mb-3">{event.summary}</p>
+                                    <p className="text-gray-600 dark:text-slate-300 mb-3">{event.summary}</p>
 
                                     {expandedCards[event.id] && (
-                                       <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                          <h4 className="font-semibold text-gray-700 mb-2">Full Details</h4>
-                                          <p className="text-gray-600 leading-relaxed">{event.details}</p>
-                                          <div className="mt-3 pt-3 border-t border-gray-200 text-sm text-gray-500">
+                                       <div className="mt-4 p-4 bg-gray-50 dark:bg-slate-800/50 rounded-lg border border-gray-200 dark:border-slate-700">
+                                          <h4 className="font-semibold text-gray-700 dark:text-slate-200 mb-2">Full Details</h4>
+                                          <p className="text-gray-600 dark:text-slate-300 leading-relaxed">{event.details}</p>
+                                          <div className="mt-3 pt-3 border-t border-gray-200 dark:border-slate-700 text-sm text-gray-500 dark:text-slate-400">
                                              <span className="font-medium">Department:</span> {event.department}
                                           </div>
                                        </div>
@@ -214,7 +211,7 @@ const MedicalHistory = () => {
 
                                     <button
                                        onClick={() => toggleCard(event.id)}
-                                       className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center mt-2"
+                                       className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium flex items-center mt-2"
                                     >
                                        {expandedCards[event.id] ? (
                                           <>
@@ -238,7 +235,7 @@ const MedicalHistory = () => {
                      </div>
                   ))
                ) : (
-                  <div className="p-12 text-center text-gray-400">
+                  <div className="p-12 text-center text-gray-400 dark:text-slate-500">
                      <Filter className="w-12 h-12 mx-auto mb-2 opacity-50" />
                      <p>No records found matching your search.</p>
                   </div>
@@ -254,13 +251,13 @@ const MedicalHistory = () => {
          {mockDiagnosesHistory.map((diagnosis) => (
             <Card key={diagnosis.id} className={`p-6 hover:shadow-lg transition-all border-l-4 ${diagnosis.status === 'active' ? 'border-red-500' :
                   diagnosis.status === 'chronic' ? 'border-orange-500' :
-                     'border-gray-300'
+                     'border-gray-300 dark:border-slate-600'
                }`}>
                <div className="flex justify-between items-start mb-3">
                   <div>
-                     <h3 className="font-bold text-gray-800 text-lg">{diagnosis.name}</h3>
+                     <h3 className="font-bold text-gray-800 dark:text-slate-100 text-lg">{diagnosis.name}</h3>
                      {diagnosis.icdCode && (
-                        <p className="text-sm text-gray-500 mt-1">ICD-10: {diagnosis.icdCode}</p>
+                        <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">ICD-10: {diagnosis.icdCode}</p>
                      )}
                   </div>
                   <Badge type={getStatusBadge(diagnosis.status)}>
@@ -270,8 +267,8 @@ const MedicalHistory = () => {
 
                <div className="space-y-2 mb-4">
                   <div className="flex items-center justify-between text-sm">
-                     <span className="text-gray-500">Diagnosed:</span>
-                     <span className="font-medium text-gray-700">
+                     <span className="text-gray-500 dark:text-slate-400">Diagnosed:</span>
+                     <span className="font-medium text-gray-700 dark:text-slate-200">
                         {new Date(diagnosis.dateRecorded).toLocaleDateString('en-US', {
                            year: 'numeric',
                            month: 'short',
@@ -280,19 +277,19 @@ const MedicalHistory = () => {
                      </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                     <span className="text-gray-500">Physician:</span>
-                     <span className="font-medium text-gray-700">{diagnosis.physician}</span>
+                     <span className="text-gray-500 dark:text-slate-400">Physician:</span>
+                     <span className="font-medium text-gray-700 dark:text-slate-200">{diagnosis.physician}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                     <span className="text-gray-500">Severity:</span>
+                     <span className="text-gray-500 dark:text-slate-400">Severity:</span>
                      <Badge type={getSeverityBadge(diagnosis.severity)}>
                         {diagnosis.severity}
                      </Badge>
                   </div>
                </div>
 
-               <div className="pt-4 border-t border-gray-200">
-                  <p className="text-sm text-gray-600 leading-relaxed">
+               <div className="pt-4 border-t border-gray-200 dark:border-slate-700">
+                  <p className="text-sm text-gray-600 dark:text-slate-300 leading-relaxed">
                      {expandedCards[diagnosis.id]
                         ? diagnosis.notes
                         : `${diagnosis.notes.substring(0, 100)}...`
@@ -301,7 +298,7 @@ const MedicalHistory = () => {
                   {diagnosis.notes.length > 100 && (
                      <button
                         onClick={() => toggleCard(diagnosis.id)}
-                        className="text-blue-600 hover:text-blue-700 text-sm font-medium mt-2"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium mt-2"
                      >
                         {expandedCards[diagnosis.id] ? 'Read less' : 'Read more'}
                      </button>
@@ -309,11 +306,11 @@ const MedicalHistory = () => {
                </div>
 
                {diagnosis.relatedMedications && diagnosis.relatedMedications.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                     <p className="text-xs text-gray-500 mb-2">Related Medications:</p>
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
+                     <p className="text-xs text-gray-500 dark:text-slate-400 mb-2">Related Medications:</p>
                      <div className="flex flex-wrap gap-2">
                         {diagnosis.relatedMedications.map((med, idx) => (
-                           <span key={idx} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full">
+                           <span key={idx} className="px-2 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 text-xs rounded-full">
                               {med}
                            </span>
                         ))}
@@ -333,12 +330,12 @@ const MedicalHistory = () => {
                <div className="flex flex-col md:flex-row justify-between md:items-start gap-4 mb-4">
                   <div className="flex-1">
                      <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-green-50 rounded-lg text-green-600">
+                        <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg text-green-600 dark:text-green-400">
                            <Activity className="w-5 h-5" />
                         </div>
                         <div>
-                           <h3 className="font-bold text-gray-800 text-lg">{treatment.name}</h3>
-                           <p className="text-sm text-gray-500">{treatment.type}</p>
+                           <h3 className="font-bold text-gray-800 dark:text-slate-100 text-lg">{treatment.name}</h3>
+                           <p className="text-sm text-gray-500 dark:text-slate-400">{treatment.type}</p>
                         </div>
                      </div>
                   </div>
@@ -349,8 +346,8 @@ const MedicalHistory = () => {
 
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
-                     <p className="text-sm text-gray-500">Start Date</p>
-                     <p className="font-medium text-gray-700">
+                     <p className="text-sm text-gray-500 dark:text-slate-400">Start Date</p>
+                     <p className="font-medium text-gray-700 dark:text-slate-200">
                         {new Date(treatment.startDate).toLocaleDateString('en-US', {
                            year: 'numeric',
                            month: 'short',
@@ -359,8 +356,8 @@ const MedicalHistory = () => {
                      </p>
                   </div>
                   <div>
-                     <p className="text-sm text-gray-500">End Date</p>
-                     <p className="font-medium text-gray-700">
+                     <p className="text-sm text-gray-500 dark:text-slate-400">End Date</p>
+                     <p className="font-medium text-gray-700 dark:text-slate-200">
                         {treatment.endDate
                            ? new Date(treatment.endDate).toLocaleDateString('en-US', {
                               year: 'numeric',
@@ -372,27 +369,27 @@ const MedicalHistory = () => {
                      </p>
                   </div>
                   <div>
-                     <p className="text-sm text-gray-500">Prescribed By</p>
-                     <p className="font-medium text-gray-700">{treatment.prescribedBy}</p>
+                     <p className="text-sm text-gray-500 dark:text-slate-400">Prescribed By</p>
+                     <p className="font-medium text-gray-700 dark:text-slate-200">{treatment.prescribedBy}</p>
                   </div>
                   <div>
-                     <p className="text-sm text-gray-500">Department</p>
-                     <p className="font-medium text-gray-700">{treatment.department}</p>
+                     <p className="text-sm text-gray-500 dark:text-slate-400">Department</p>
+                     <p className="font-medium text-gray-700 dark:text-slate-200">{treatment.department}</p>
                   </div>
                </div>
 
                <div className="mb-4">
-                  <p className="text-sm text-gray-500 mb-1">Purpose</p>
-                  <p className="text-gray-700">{treatment.purpose}</p>
+                  <p className="text-sm text-gray-500 dark:text-slate-400 mb-1">Purpose</p>
+                  <p className="text-gray-700 dark:text-slate-200">{treatment.purpose}</p>
                </div>
 
                {treatment.status === 'ongoing' && treatment.progress !== undefined && (
                   <div className="mb-4">
                      <div className="flex justify-between items-center mb-2">
-                        <p className="text-sm text-gray-500">Progress</p>
-                        <p className="text-sm font-medium text-gray-700">{treatment.progress}%</p>
+                        <p className="text-sm text-gray-500 dark:text-slate-400">Progress</p>
+                        <p className="text-sm font-medium text-gray-700 dark:text-slate-200">{treatment.progress}%</p>
                      </div>
-                     <div className="w-full bg-gray-200 rounded-full h-2">
+                     <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-2">
                         <div
                            className="bg-green-500 h-2 rounded-full transition-all"
                            style={{ width: `${treatment.progress}%` }}
@@ -403,10 +400,10 @@ const MedicalHistory = () => {
 
                {treatment.medications && treatment.medications.length > 0 && (
                   <div className="mb-4">
-                     <p className="text-sm text-gray-500 mb-2">Medications</p>
+                     <p className="text-sm text-gray-500 dark:text-slate-400 mb-2">Medications</p>
                      <div className="flex flex-wrap gap-2">
                         {treatment.medications.map((med, idx) => (
-                           <span key={idx} className="px-3 py-1 bg-blue-50 text-blue-700 text-sm rounded-full flex items-center">
+                           <span key={idx} className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 text-sm rounded-full flex items-center">
                               <Pill className="w-3 h-3 mr-1" />
                               {med}
                            </span>
@@ -415,12 +412,12 @@ const MedicalHistory = () => {
                   </div>
                )}
 
-               <div className="pt-4 border-t border-gray-200">
-                  <p className="text-sm text-gray-600">{treatment.notes}</p>
+               <div className="pt-4 border-t border-gray-200 dark:border-slate-700">
+                  <p className="text-sm text-gray-600 dark:text-slate-300">{treatment.notes}</p>
                </div>
 
                {treatment.nextReview && (
-                  <div className="mt-4 pt-4 border-t border-gray-200 flex items-center text-sm text-gray-500">
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700 flex items-center text-sm text-gray-500 dark:text-slate-400">
                      <Clock className="w-4 h-4 mr-2" />
                      Next Review: {new Date(treatment.nextReview).toLocaleDateString('en-US', {
                         year: 'numeric',
@@ -441,12 +438,12 @@ const MedicalHistory = () => {
             <Card key={procedure.id} className="p-6 hover:shadow-lg transition-all">
                <div className="flex flex-col md:flex-row justify-between md:items-start gap-4 mb-4">
                   <div className="flex items-start gap-4 flex-1">
-                     <div className="p-3 bg-purple-50 rounded-lg text-purple-600">
+                     <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-purple-600 dark:text-purple-400">
                         <Syringe className="w-6 h-6" />
                      </div>
                      <div className="flex-1">
-                        <h3 className="font-bold text-gray-800 text-lg mb-1">{procedure.name}</h3>
-                        <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+                        <h3 className="font-bold text-gray-800 dark:text-slate-100 text-lg mb-1">{procedure.name}</h3>
+                        <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-slate-400">
                            <span className="flex items-center">
                               <Calendar className="w-4 h-4 mr-1" />
                               {new Date(procedure.date).toLocaleDateString('en-US', {
@@ -476,19 +473,19 @@ const MedicalHistory = () => {
 
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
-                     <p className="text-sm text-gray-500">Location</p>
-                     <p className="font-medium text-gray-700">{procedure.location}</p>
+                     <p className="text-sm text-gray-500 dark:text-slate-400">Location</p>
+                     <p className="font-medium text-gray-700 dark:text-slate-200">{procedure.location}</p>
                   </div>
                   <div>
-                     <p className="text-sm text-gray-500">Department</p>
-                     <p className="font-medium text-gray-700">{procedure.department}</p>
+                     <p className="text-sm text-gray-500 dark:text-slate-400">Department</p>
+                     <p className="font-medium text-gray-700 dark:text-slate-200">{procedure.department}</p>
                   </div>
                </div>
 
                {procedure.indication && (
                   <div className="mb-4">
-                     <p className="text-sm text-gray-500 mb-1">Indication</p>
-                     <p className="text-gray-700">{procedure.indication}</p>
+                     <p className="text-sm text-gray-500 dark:text-slate-400 mb-1">Indication</p>
+                     <p className="text-gray-700 dark:text-slate-200">{procedure.indication}</p>
                   </div>
                )}
 
@@ -496,30 +493,30 @@ const MedicalHistory = () => {
                   <div className="space-y-4 mb-4">
                      {procedure.findings && (
                         <div>
-                           <p className="text-sm font-semibold text-gray-700 mb-1">Findings</p>
-                           <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">{procedure.findings}</p>
+                           <p className="text-sm font-semibold text-gray-700 dark:text-slate-200 mb-1">Findings</p>
+                           <p className="text-sm text-gray-600 dark:text-slate-300 bg-gray-50 dark:bg-slate-800/50 p-3 rounded-lg">{procedure.findings}</p>
                         </div>
                      )}
                      {procedure.preOpNotes && (
                         <div>
-                           <p className="text-sm font-semibold text-gray-700 mb-1">Pre-Procedure Notes</p>
-                           <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">{procedure.preOpNotes}</p>
+                           <p className="text-sm font-semibold text-gray-700 dark:text-slate-200 mb-1">Pre-Procedure Notes</p>
+                           <p className="text-sm text-gray-600 dark:text-slate-300 bg-gray-50 dark:bg-slate-800/50 p-3 rounded-lg">{procedure.preOpNotes}</p>
                         </div>
                      )}
                      {procedure.postOpNotes && (
                         <div>
-                           <p className="text-sm font-semibold text-gray-700 mb-1">Post-Procedure Notes</p>
-                           <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">{procedure.postOpNotes}</p>
+                           <p className="text-sm font-semibold text-gray-700 dark:text-slate-200 mb-1">Post-Procedure Notes</p>
+                           <p className="text-sm text-gray-600 dark:text-slate-300 bg-gray-50 dark:bg-slate-800/50 p-3 rounded-lg">{procedure.postOpNotes}</p>
                         </div>
                      )}
                      {procedure.documents && procedure.documents.length > 0 && (
                         <div>
-                           <p className="text-sm font-semibold text-gray-700 mb-2">Documents</p>
+                           <p className="text-sm font-semibold text-gray-700 dark:text-slate-200 mb-2">Documents</p>
                            <div className="flex flex-wrap gap-2">
                               {procedure.documents.map((doc, idx) => (
                                  <button
                                     key={idx}
-                                    className="px-3 py-2 bg-blue-50 text-blue-700 text-sm rounded-lg hover:bg-blue-100 transition flex items-center"
+                                    className="px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 text-sm rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition flex items-center"
                                  >
                                     <FileText className="w-4 h-4 mr-2" />
                                     {doc}
@@ -533,7 +530,7 @@ const MedicalHistory = () => {
 
                <button
                   onClick={() => toggleCard(procedure.id)}
-                  className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center"
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium flex items-center"
                >
                   {expandedCards[procedure.id] ? (
                      <>
@@ -549,7 +546,7 @@ const MedicalHistory = () => {
                </button>
 
                {procedure.nextProcedure && (
-                  <div className="mt-4 pt-4 border-t border-gray-200 flex items-center text-sm text-gray-500">
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700 flex items-center text-sm text-gray-500 dark:text-slate-400">
                      <Clock className="w-4 h-4 mr-2" />
                      Next Procedure Scheduled: {new Date(procedure.nextProcedure).toLocaleDateString('en-US', {
                         year: 'numeric',
@@ -568,12 +565,12 @@ const MedicalHistory = () => {
       <div className="space-y-8">
          {/* Critical Allergies Alert */}
          {mockAllergies.some(a => a.severity === 'severe') && (
-            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
+            <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
                <div className="flex items-start">
-                  <AlertTriangle className="w-6 h-6 text-red-600 mr-3 mt-0.5 flex-shrink-0" />
+                  <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400 mr-3 mt-0.5 flex-shrink-0" />
                   <div>
-                     <h3 className="font-bold text-red-800 mb-1">Critical Allergies Alert</h3>
-                     <p className="text-sm text-red-700">
+                     <h3 className="font-bold text-red-800 dark:text-red-300 mb-1">Critical Allergies Alert</h3>
+                     <p className="text-sm text-red-700 dark:text-red-400">
                         This patient has severe allergies. Please review allergy list before prescribing medications or procedures.
                      </p>
                   </div>
@@ -584,7 +581,7 @@ const MedicalHistory = () => {
          {/* Allergies Section */}
          <div>
             <div className="flex justify-between items-center mb-4">
-               <h3 className="text-xl font-bold text-gray-800 flex items-center">
+               <h3 className="text-xl font-bold text-gray-800 dark:text-slate-100 flex items-center">
                   <AlertCircle className="w-6 h-6 mr-2 text-red-500" />
                   Allergies
                </h3>
@@ -592,16 +589,16 @@ const MedicalHistory = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                {mockAllergies.map((allergy) => (
-                  <Card key={allergy.id} className={`p-6 border-l-4 ${allergy.severity === 'severe' ? 'border-red-500 bg-red-50' :
+                  <Card key={allergy.id} className={`p-6 border-l-4 ${allergy.severity === 'severe' ? 'border-red-500 bg-red-50 dark:bg-red-900/20' :
                         allergy.severity === 'moderate' ? 'border-orange-500' :
                            'border-yellow-500'
                      }`}>
                      <div className="flex justify-between items-start mb-3">
                         <div className="flex items-center gap-2">
                            {allergy.severity === 'severe' && (
-                              <AlertTriangle className="w-5 h-5 text-red-600" />
+                              <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
                            )}
-                           <h4 className="font-bold text-gray-800 text-lg">{allergy.allergen}</h4>
+                           <h4 className="font-bold text-gray-800 dark:text-slate-100 text-lg">{allergy.allergen}</h4>
                         </div>
                         <Badge type={getSeverityBadge(allergy.severity)}>
                            {allergy.severity}
@@ -610,12 +607,12 @@ const MedicalHistory = () => {
 
                      <div className="space-y-2 mb-4">
                         <div className="flex items-center justify-between text-sm">
-                           <span className="text-gray-500">Type:</span>
-                           <span className="font-medium text-gray-700 capitalize">{allergy.type}</span>
+                           <span className="text-gray-500 dark:text-slate-400">Type:</span>
+                           <span className="font-medium text-gray-700 dark:text-slate-200 capitalize">{allergy.type}</span>
                         </div>
                         <div className="flex items-center justify-between text-sm">
-                           <span className="text-gray-500">Identified:</span>
-                           <span className="font-medium text-gray-700">
+                           <span className="text-gray-500 dark:text-slate-400">Identified:</span>
+                           <span className="font-medium text-gray-700 dark:text-slate-200">
                               {new Date(allergy.dateIdentified).toLocaleDateString('en-US', {
                                  year: 'numeric',
                                  month: 'short'
@@ -625,24 +622,24 @@ const MedicalHistory = () => {
                      </div>
 
                      <div className="mb-4">
-                        <p className="text-sm text-gray-500 mb-1">Reaction:</p>
-                        <p className="text-sm text-gray-700 bg-white p-3 rounded-lg border border-gray-200">
+                        <p className="text-sm text-gray-500 dark:text-slate-400 mb-1">Reaction:</p>
+                        <p className="text-sm text-gray-700 dark:text-slate-200 bg-white dark:bg-slate-800 p-3 rounded-lg border border-gray-200 dark:border-slate-700">
                            {allergy.reaction}
                         </p>
                      </div>
 
                      {expandedCards[allergy.id] && (
-                        <div className="space-y-3 pt-4 border-t border-gray-200">
+                        <div className="space-y-3 pt-4 border-t border-gray-200 dark:border-slate-700">
                            <div>
-                              <p className="text-sm text-gray-500 mb-1">Notes:</p>
-                              <p className="text-sm text-gray-600">{allergy.notes}</p>
+                              <p className="text-sm text-gray-500 dark:text-slate-400 mb-1">Notes:</p>
+                              <p className="text-sm text-gray-600 dark:text-slate-300">{allergy.notes}</p>
                            </div>
                            {allergy.alternatives && allergy.alternatives.length > 0 && (
                               <div>
-                                 <p className="text-sm text-gray-500 mb-2">Safe Alternatives:</p>
+                                 <p className="text-sm text-gray-500 dark:text-slate-400 mb-2">Safe Alternatives:</p>
                                  <div className="flex flex-wrap gap-2">
                                     {allergy.alternatives.map((alt, idx) => (
-                                       <span key={idx} className="px-2 py-1 bg-green-50 text-green-700 text-xs rounded-full">
+                                       <span key={idx} className="px-2 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs rounded-full">
                                           {alt}
                                        </span>
                                     ))}
@@ -654,7 +651,7 @@ const MedicalHistory = () => {
 
                      <button
                         onClick={() => toggleCard(allergy.id)}
-                        className="text-blue-600 hover:text-blue-700 text-sm font-medium mt-3"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium mt-3"
                      >
                         {expandedCards[allergy.id] ? 'Show less' : 'Show more'}
                      </button>
@@ -666,7 +663,7 @@ const MedicalHistory = () => {
          {/* Chronic Conditions Section */}
          <div>
             <div className="flex justify-between items-center mb-4">
-               <h3 className="text-xl font-bold text-gray-800 flex items-center">
+               <h3 className="text-xl font-bold text-gray-800 dark:text-slate-100 flex items-center">
                   <Stethoscope className="w-6 h-6 mr-2 text-blue-500" />
                   Chronic Conditions
                </h3>
@@ -677,8 +674,8 @@ const MedicalHistory = () => {
                   <Card key={condition.id} className="p-6 hover:shadow-lg transition-all">
                      <div className="flex flex-col md:flex-row justify-between md:items-start gap-4 mb-4">
                         <div className="flex-1">
-                           <h4 className="font-bold text-gray-800 text-lg mb-1">{condition.name}</h4>
-                           <p className="text-sm text-gray-500">
+                           <h4 className="font-bold text-gray-800 dark:text-slate-100 text-lg mb-1">{condition.name}</h4>
+                           <p className="text-sm text-gray-500 dark:text-slate-400">
                               Diagnosed: {new Date(condition.dateDiagnosed).toLocaleDateString('en-US', {
                                  year: 'numeric',
                                  month: 'long'
@@ -692,16 +689,16 @@ const MedicalHistory = () => {
 
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                           <p className="text-sm text-gray-500">Managing Physician</p>
-                           <p className="font-medium text-gray-700">{condition.managingPhysician}</p>
+                           <p className="text-sm text-gray-500 dark:text-slate-400">Managing Physician</p>
+                           <p className="font-medium text-gray-700 dark:text-slate-200">{condition.managingPhysician}</p>
                         </div>
                         <div>
-                           <p className="text-sm text-gray-500">Department</p>
-                           <p className="font-medium text-gray-700">{condition.department}</p>
+                           <p className="text-sm text-gray-500 dark:text-slate-400">Department</p>
+                           <p className="font-medium text-gray-700 dark:text-slate-200">{condition.department}</p>
                         </div>
                         <div>
-                           <p className="text-sm text-gray-500">Last Checkup</p>
-                           <p className="font-medium text-gray-700">
+                           <p className="text-sm text-gray-500 dark:text-slate-400">Last Checkup</p>
+                           <p className="font-medium text-gray-700 dark:text-slate-200">
                               {new Date(condition.lastCheckup).toLocaleDateString('en-US', {
                                  year: 'numeric',
                                  month: 'short',
@@ -710,8 +707,8 @@ const MedicalHistory = () => {
                            </p>
                         </div>
                         <div>
-                           <p className="text-sm text-gray-500">Next Review</p>
-                           <p className="font-medium text-gray-700">
+                           <p className="text-sm text-gray-500 dark:text-slate-400">Next Review</p>
+                           <p className="font-medium text-gray-700 dark:text-slate-200">
                               {new Date(condition.nextReview).toLocaleDateString('en-US', {
                                  year: 'numeric',
                                  month: 'short',
@@ -723,10 +720,10 @@ const MedicalHistory = () => {
 
                      {condition.medications && condition.medications.length > 0 && (
                         <div className="mb-4">
-                           <p className="text-sm text-gray-500 mb-2">Current Medications</p>
+                           <p className="text-sm text-gray-500 dark:text-slate-400 mb-2">Current Medications</p>
                            <div className="flex flex-wrap gap-2">
                               {condition.medications.map((med, idx) => (
-                                 <span key={idx} className="px-3 py-1 bg-blue-50 text-blue-700 text-sm rounded-full flex items-center">
+                                 <span key={idx} className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 text-sm rounded-full flex items-center">
                                     <Pill className="w-3 h-3 mr-1" />
                                     {med}
                                  </span>
@@ -735,25 +732,25 @@ const MedicalHistory = () => {
                         </div>
                      )}
 
-                     <div className="pt-4 border-t border-gray-200">
-                        <p className="text-sm text-gray-600 mb-3">{condition.notes}</p>
+                     <div className="pt-4 border-t border-gray-200 dark:border-slate-700">
+                        <p className="text-sm text-gray-600 dark:text-slate-300 mb-3">{condition.notes}</p>
 
                         {expandedCards[condition.id] && (
-                           <div className="space-y-2 mt-4 pt-4 border-t border-gray-200">
+                           <div className="space-y-2 mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
                               <div className="flex items-center justify-between text-sm">
-                                 <span className="text-gray-500">Complications:</span>
-                                 <span className="font-medium text-gray-700">{condition.complications}</span>
+                                 <span className="text-gray-500 dark:text-slate-400">Complications:</span>
+                                 <span className="font-medium text-gray-700 dark:text-slate-200">{condition.complications}</span>
                               </div>
                               <div className="text-sm">
-                                 <span className="text-gray-500">Monitoring Plan:</span>
-                                 <p className="font-medium text-gray-700 mt-1">{condition.monitoring}</p>
+                                 <span className="text-gray-500 dark:text-slate-400">Monitoring Plan:</span>
+                                 <p className="font-medium text-gray-700 dark:text-slate-200 mt-1">{condition.monitoring}</p>
                               </div>
                            </div>
                         )}
 
                         <button
                            onClick={() => toggleCard(condition.id)}
-                           className="text-blue-600 hover:text-blue-700 text-sm font-medium mt-3"
+                           className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium mt-3"
                         >
                            {expandedCards[condition.id] ? 'Show less' : 'Show monitoring details'}
                         </button>
@@ -770,8 +767,8 @@ const MedicalHistory = () => {
          {/* Header */}
          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-               <h2 className="text-2xl font-bold text-gray-800">Medical History</h2>
-               <p className="text-gray-500">Complete medical records and health information</p>
+               <h2 className="text-2xl font-bold text-gray-800 dark:text-slate-100">Medical History</h2>
+               <p className="text-gray-500 dark:text-slate-400">Complete medical records and health information</p>
             </div>
             <div className="flex gap-2">
                <Button variant="outline" className="whitespace-nowrap">
@@ -786,7 +783,7 @@ const MedicalHistory = () => {
          </div>
 
          {/* Tabs */}
-         <div className="border-b border-gray-200">
+         <div className="border-b border-gray-200 dark:border-slate-700">
             <nav className="-mb-px flex space-x-8 overflow-x-auto">
                {tabs.map((tab) => {
                   const Icon = tab.icon;
@@ -797,8 +794,8 @@ const MedicalHistory = () => {
                         className={`
                            whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors
                            ${activeTab === tab.key
-                              ? 'border-blue-500 text-blue-600'
-                              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                              : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300 hover:border-gray-300 dark:hover:border-slate-600'
                            }
                         `}
                      >

@@ -357,7 +357,8 @@ const NurseVitals = () => {
       return alerts;
    }, [currentHasAbnormal, currentVitalsStatuses, vitalsData]);
 
-   const vitalsHistory = vitalsData?.history || [];
+   // eslint-disable-next-line react-hooks/exhaustive-deps
+   const vitalsHistory = useMemo(() => vitalsData?.history || [], [vitalsData?.history]);
 
    const computeTrend = (currentValue, previousValue) => {
       if (currentValue == null || previousValue == null || Number.isNaN(currentValue) || Number.isNaN(previousValue)) return 'flat';
@@ -621,22 +622,22 @@ const NurseVitals = () => {
 
    return (
       <div className="space-y-10" aria-label="Nurse vitals page">
-         <header className="bg-white rounded-2xl shadow-soft border border-gray-100 p-6 sm:p-8">
+         <header className="bg-white dark:bg-slate-800 rounded-2xl shadow-soft border border-gray-100 dark:border-slate-700 p-6 sm:p-8">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                <div>
                   <p className="text-sm font-medium text-brand-medium uppercase tracking-wide">{overview.nurse.unit}</p>
-                  <h1 className="text-3xl font-bold text-gray-900 mt-2 flex items-center gap-3">
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-slate-100 mt-2 flex items-center gap-3">
                      <Heart className="w-8 h-8 text-brand-medium" aria-hidden="true" />
                      Patient Vitals
                   </h1>
-                  <p className="text-gray-500 mt-3 flex items-center gap-2">
+                  <p className="text-gray-500 dark:text-slate-400 mt-3 flex items-center gap-2">
                      <Clock className="w-4 h-4 text-brand-medium" aria-hidden="true" />
                      <span>{formattedDate}</span>
                   </p>
                </div>
                <div className="flex items-center gap-4">
                   {overview.stats.overdueVitals > 0 && (
-                     <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-full text-sm" role="alert">
+                     <div className="flex items-center gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-2 rounded-full text-sm" role="alert">
                         <AlertTriangle className="w-4 h-4" aria-hidden="true" />
                         {overview.stats.overdueVitals} overdue vitals checks
                      </div>
@@ -672,12 +673,12 @@ const NurseVitals = () => {
          {/* Critical modal */}
          {showCriticalModal && (
             <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-               <Card className="max-w-md w-full p-6 space-y-6 shadow-xl">
-                  <div className="flex items-center gap-3 text-red-600">
+               <Card className="max-w-md w-full p-6 space-y-6 shadow-xl dark:bg-slate-800">
+                  <div className="flex items-center gap-3 text-red-600 dark:text-red-400">
                      <AlertTriangle className="w-8 h-8" aria-hidden="true" />
                      <h2 className="text-xl font-bold">Critical Values Detected</h2>
                   </div>
-                  <p className="text-gray-700">One or more vitals are in the critical range. Do you want to proceed with saving and notify the physician?</p>
+                  <p className="text-gray-700 dark:text-slate-300">One or more vitals are in the critical range. Do you want to proceed with saving and notify the physician?</p>
                   <div className="flex flex-wrap gap-3">
                      <Button variant="outline" onClick={handleCriticalCancel}>Cancel</Button>
                      <Button className="bg-amber-500 hover:bg-amber-600 text-white" onClick={handleCriticalProceed}>Save Without Notifying</Button>
@@ -692,8 +693,8 @@ const NurseVitals = () => {
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                <div className="flex items-center gap-3">
                   <Calendar className="w-6 h-6 text-brand-medium" aria-hidden="true" />
-                  <h2 id="vitals-schedule" className="text-xl font-bold text-gray-900">Vitals Schedule</h2>
-                  <span className="text-sm text-gray-500">Today&apos;s Schedule</span>
+                  <h2 id="vitals-schedule" className="text-xl font-bold text-gray-900 dark:text-slate-100">Vitals Schedule</h2>
+                  <span className="text-sm text-gray-500 dark:text-slate-400">Today&apos;s Schedule</span>
                </div>
                <Button variant="link" className="text-brand-medium text-sm font-semibold">
                   View Full Schedule
@@ -725,22 +726,22 @@ const NurseVitals = () => {
                      const completion = Math.round((slot.completed / slot.totalPatients) * 100);
 
                      return (
-                        <Card key={slot.time} className={`w-72 flex-shrink-0 border-2 ${borderColor} ${bgColor} p-6 space-y-4`}>
+                        <Card key={slot.time} className={`w-72 flex-shrink-0 border-2 ${borderColor} ${bgColor} dark:bg-slate-800 p-6 space-y-4`}>
                            <div className="flex items-start justify-between">
                               <div>
-                                 <p className="text-xs font-semibold uppercase text-gray-500">Time</p>
-                                 <p className="text-2xl font-bold text-gray-900 mt-1">{slot.time}</p>
+                                 <p className="text-xs font-semibold uppercase text-gray-500 dark:text-slate-400">Time</p>
+                                 <p className="text-2xl font-bold text-gray-900 dark:text-slate-100 mt-1">{slot.time}</p>
                               </div>
-                              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white text-brand-medium border border-brand-medium/20">
+                              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white dark:bg-slate-700 text-brand-medium border border-brand-medium/20">
                                  {slot.totalPatients} patients
                               </span>
                            </div>
                            <div className="space-y-3">
                               {slot.patients.map((patient) => (
-                                 <div key={patient.id} className="bg-white/80 border border-white rounded-lg px-3 py-2 flex items-center justify-between text-sm">
+                                 <div key={patient.id} className="bg-white/80 dark:bg-slate-700/80 border border-white dark:border-slate-600 rounded-lg px-3 py-2 flex items-center justify-between text-sm">
                                     <div className="space-y-1">
-                                       <p className="font-semibold text-gray-800">{patient.name}</p>
-                                       <p className="text-xs text-gray-500">Room {patient.room}</p>
+                                       <p className="font-semibold text-gray-800 dark:text-slate-100">{patient.name}</p>
+                                       <p className="text-xs text-gray-500 dark:text-slate-400">Room {patient.room}</p>
                                     </div>
                                     <div className="flex items-center gap-2 text-xs font-semibold">
                                        {patient.status === 'completed' && <Check className="w-4 h-4 text-green-500" aria-hidden="true" />}
@@ -762,11 +763,11 @@ const NurseVitals = () => {
                               ))}
                            </div>
                            <div className="space-y-2">
-                              <div className="flex items-center justify-between text-xs text-gray-500">
+                              <div className="flex items-center justify-between text-xs text-gray-500 dark:text-slate-400">
                                  <span>{slot.completed}/{slot.totalPatients} completed</span>
                                  <span>{completion}%</span>
                               </div>
-                              <div className="relative h-2 bg-white/60 rounded-full overflow-hidden">
+                              <div className="relative h-2 bg-white/60 dark:bg-slate-600/60 rounded-full overflow-hidden">
                                  <div
                                     className={`absolute inset-y-0 left-0 rounded-full ${
                                        slot.status === 'overdue'
@@ -814,10 +815,10 @@ const NurseVitals = () => {
 
             {/* Vitals Entry + Shift Assessment / Assigned Patients */}
             <div className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-6">
-               <Card className="p-6 border border-gray-100 shadow-soft">
+               <Card className="p-6 border border-gray-100 dark:border-slate-700 shadow-soft dark:bg-slate-800">
                   <div className="flex items-center gap-3 mb-6">
                      <Users className="w-5 h-5 text-brand-medium" aria-hidden="true" />
-                     <h3 className="text-lg font-bold text-gray-900">Vitals Entry &amp; Shift Assessment</h3>
+                     <h3 className="text-lg font-bold text-gray-900 dark:text-slate-100">Vitals Entry &amp; Shift Assessment</h3>
                   </div>
                   <VitalsEntryForm
                      form={vitalsForm}

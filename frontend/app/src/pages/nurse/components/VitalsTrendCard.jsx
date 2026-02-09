@@ -33,18 +33,18 @@ const VitalsTrendCard = ({
     vitalLimits,
     onExport,
 }) => (
-    <Card className="p-6 space-y-6 border border-gray-100 shadow-soft">
+    <Card className="p-6 space-y-6 border border-gray-100 dark:border-slate-700 shadow-soft dark:bg-slate-800">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
-                <h3 className="text-lg font-bold text-gray-900">Vitals Trend (Recharts)</h3>
-                <p className="text-sm text-gray-500">Multi-parameter view with normal range shading</p>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-slate-100">Vitals Trend (Recharts)</h3>
+                <p className="text-sm text-gray-500 dark:text-slate-400">Multi-parameter view with normal range shading</p>
             </div>
             <div className="flex flex-wrap gap-2">
                 {Object.keys(rangeLabels).map((range) => (
                     <button
                         key={range}
                         type="button"
-                        className={`px-3 py-1.5 rounded-full text-sm font-semibold border transition ${timeRange === range ? 'bg-brand-medium text-white border-brand-medium' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                        className={`px-3 py-1.5 rounded-full text-sm font-semibold border transition ${timeRange === range ? 'bg-brand-medium text-white border-brand-medium' : 'border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700'}`}
                         onClick={() => onTimeRangeChange(range)}
                     >
                         {rangeLabels[range]}
@@ -56,19 +56,19 @@ const VitalsTrendCard = ({
         {timeRange === 'custom' && (
             <div className="flex flex-wrap gap-3">
                 <div>
-                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Start</label>
+                    <label className="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1">Start</label>
                     <input
                         type="date"
-                        className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-medium"
+                        className="rounded-lg border border-gray-200 dark:border-slate-600 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-medium bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100"
                         value={customRange.start}
                         onChange={(event) => onCustomRangeChange({ ...customRange, start: event.target.value })}
                     />
                 </div>
                 <div>
-                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">End</label>
+                    <label className="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1">End</label>
                     <input
                         type="date"
-                        className="rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-medium"
+                        className="rounded-lg border border-gray-200 dark:border-slate-600 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-medium bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100"
                         value={customRange.end}
                         onChange={(event) => onCustomRangeChange({ ...customRange, end: event.target.value })}
                     />
@@ -76,12 +76,12 @@ const VitalsTrendCard = ({
             </div>
         )}
 
-        <div className="flex flex-wrap gap-2 text-xs text-gray-500">
+        <div className="flex flex-wrap gap-2 text-xs text-gray-500 dark:text-slate-400">
             {[{ key: 'bpSystolic', label: 'Systolic BP' }, { key: 'bpDiastolic', label: 'Diastolic BP' }, { key: 'heartRate', label: 'Heart Rate' }, { key: 'temperature', label: 'Temperature' }, { key: 'respiratoryRate', label: 'Resp Rate' }, { key: 'oxygenSaturation', label: 'SpO2' }].map((item) => (
                 <button
                     key={item.key}
                     type="button"
-                    className={`px-3 py-1 rounded-full border transition ${visibleVitals[item.key] ? 'bg-brand-light text-brand-deep border-brand-medium/40' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+                    className={`px-3 py-1 rounded-full border transition ${visibleVitals[item.key] ? 'bg-brand-light text-brand-deep border-brand-medium/40' : 'border-gray-200 dark:border-slate-600 text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'}`}
                     onClick={() => onToggleVital(item.key)}
                 >
                     {visibleVitals[item.key] ? 'Hide' : 'Show'} {item.label}
@@ -125,7 +125,7 @@ const VitalsTrendCard = ({
                     </LineChart>
                 </ResponsiveContainer>
             ) : (
-                <div className="h-full flex items-center justify-center text-sm text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                <div className="h-full flex items-center justify-center text-sm text-gray-500 dark:text-slate-400 bg-gray-50 dark:bg-slate-700 rounded-xl border border-dashed border-gray-200 dark:border-slate-600">
                     No vitals data for the selected range.
                 </div>
             )}

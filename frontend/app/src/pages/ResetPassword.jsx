@@ -22,6 +22,7 @@ export default function ResetPassword() {
   const [validatingToken, setValidatingToken] = useState(true);
   const [tokenValid, setTokenValid] = useState(false);
   const [error, setError] = useState('');
+  // eslint-disable-next-line no-unused-vars
   const [success, setSuccess] = useState('');
   const [passwordReset, setPasswordReset] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({ newPassword: '', confirmPassword: '' });
@@ -132,17 +133,17 @@ export default function ResetPassword() {
   // Loading state while validating token
   if (validatingToken) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Validating reset link...</p>
+          <p className="text-gray-600 dark:text-slate-400">Validating reset link...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 flex">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 flex">
       {/* Left Side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-teal-600 p-12 flex-col justify-between relative overflow-hidden">
         {/* Background Pattern */}
@@ -195,7 +196,7 @@ export default function ResetPassword() {
           {/* Back Button */}
           <button
             onClick={() => navigate('/login')}
-            className="flex items-center text-gray-600 hover:text-gray-900 mb-8 transition-colors"
+            className="flex items-center text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-100 mb-8 transition-colors"
           >
             <ArrowLeft className="h-5 w-5 mr-2" />
             Back to Login
@@ -206,18 +207,18 @@ export default function ResetPassword() {
             <div className="bg-gradient-to-br from-blue-600 to-teal-600 p-2 rounded-xl">
               <Shield className="h-6 w-6 text-white" />
             </div>
-            <span className="text-gray-900 text-xl font-bold">SecureHealth</span>
+            <span className="text-gray-900 dark:text-slate-100 text-xl font-bold">SecureHealth</span>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-slate-700">
             {/* Invalid Token State */}
             {!tokenValid && !validatingToken && (
               <div className="text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
-                  <AlertCircle className="h-8 w-8 text-red-600" />
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full mb-4">
+                  <AlertCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Invalid Link</h2>
-                <p className="text-gray-600 mb-6">{error}</p>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-2">Invalid Link</h2>
+                <p className="text-gray-600 dark:text-slate-400 mb-6">{error}</p>
                 <Link
                   to="/forgot-password"
                   className="inline-block w-full py-3 px-4 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 transition-all text-center"
@@ -230,11 +231,11 @@ export default function ResetPassword() {
             {/* Password Reset Success State */}
             {passwordReset && (
               <div className="text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-                  <CheckCircle className="h-8 w-8 text-green-600" />
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full mb-4">
+                  <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Password Reset!</h2>
-                <p className="text-gray-600 mb-6">Your password has been successfully updated.</p>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-2">Password Reset!</h2>
+                <p className="text-gray-600 dark:text-slate-400 mb-6">Your password has been successfully updated.</p>
                 <button
                   onClick={() => navigate('/login')}
                   className="w-full py-3 px-4 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 transition-all shadow-lg hover:shadow-xl"
@@ -248,21 +249,21 @@ export default function ResetPassword() {
             {tokenValid && !passwordReset && (
               <>
                 <div className="text-center mb-8">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-                    <KeyRound className="h-8 w-8 text-blue-600" />
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full mb-4">
+                    <KeyRound className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <h2 className="text-2xl font-bold text-gray-900">Set New Password</h2>
-                  <p className="text-gray-600 mt-2">Create a strong password for your account</p>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Set New Password</h2>
+                  <p className="text-gray-600 dark:text-slate-400 mt-2">Create a strong password for your account</p>
                 </div>
 
                 {/* Error Alert */}
                 {error && (
-                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start animate-fade-in">
-                    <AlertCircle className="h-5 w-5 text-red-500 mr-3 flex-shrink-0 mt-0.5" />
+                  <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl flex items-start animate-fade-in">
+                    <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400 mr-3 flex-shrink-0 mt-0.5" />
                     <div className="flex-1">
-                      <p className="text-red-700 text-sm font-medium">{error}</p>
+                      <p className="text-red-700 dark:text-red-300 text-sm font-medium">{error}</p>
                     </div>
-                    <button onClick={() => setError('')} className="text-red-500 hover:text-red-700">
+                    <button onClick={() => setError('')} className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
                       <X className="h-5 w-5" />
                     </button>
                   </div>
@@ -271,20 +272,20 @@ export default function ResetPassword() {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* New Password */}
                   <div className="space-y-2">
-                    <label htmlFor="newPassword" className="block text-sm font-semibold text-gray-700">
+                    <label htmlFor="newPassword" className="block text-sm font-semibold text-gray-700 dark:text-slate-200">
                       New Password
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Lock className="h-5 w-5 text-gray-400" />
+                        <Lock className="h-5 w-5 text-gray-400 dark:text-slate-500" />
                       </div>
                       <input
                         type={showNewPassword ? 'text' : 'password'}
                         id="newPassword"
-                        className={`w-full border-2 rounded-xl pl-10 pr-12 py-3 focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 placeholder-gray-500 ${
+                        className={`w-full border-2 rounded-xl pl-10 pr-12 py-3 focus:outline-none focus:ring-2 transition-all bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 placeholder-gray-500 dark:placeholder-slate-500 ${
                           fieldErrors.newPassword
-                            ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                            : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                            ? 'border-red-300 dark:border-red-500 focus:ring-red-500 focus:border-red-500'
+                            : 'border-gray-300 dark:border-slate-600 focus:ring-blue-500 focus:border-blue-500'
                         }`}
                         placeholder="Enter new password"
                         value={newPassword}
@@ -295,13 +296,13 @@ export default function ResetPassword() {
                       <button
                         type="button"
                         onClick={() => setShowNewPassword(!showNewPassword)}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300"
                       >
                         {showNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                       </button>
                     </div>
                     {fieldErrors.newPassword && (
-                      <p className="text-red-500 text-sm flex items-center mt-1">
+                      <p className="text-red-500 dark:text-red-400 text-sm flex items-center mt-1">
                         <AlertCircle className="h-4 w-4 mr-1" />
                         {fieldErrors.newPassword}
                       </p>
@@ -309,18 +310,18 @@ export default function ResetPassword() {
                   </div>
 
                   {/* Password Strength Indicators */}
-                  <div className="space-y-2 p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm font-medium text-gray-700">Password requirements:</p>
+                  <div className="space-y-2 p-3 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
+                    <p className="text-sm font-medium text-gray-700 dark:text-slate-200">Password requirements:</p>
                     <div className="space-y-1">
-                      <div className={`flex items-center text-sm ${passwordStrength.length ? 'text-green-600' : 'text-gray-500'}`}>
+                      <div className={`flex items-center text-sm ${passwordStrength.length ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-slate-400'}`}>
                         {passwordStrength.length ? (
                           <Check className="h-4 w-4 mr-2" />
                         ) : (
-                          <div className="w-4 h-4 mr-2 rounded-full border-2 border-gray-300" />
+                          <div className="w-4 h-4 mr-2 rounded-full border-2 border-gray-300 dark:border-slate-500" />
                         )}
                         At least 12 characters
                       </div>
-                      <div className={`flex items-center text-sm ${passwordStrength.noWeakPatterns ? 'text-green-600' : 'text-red-500'}`}>
+                      <div className={`flex items-center text-sm ${passwordStrength.noWeakPatterns ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
                         {passwordStrength.noWeakPatterns ? (
                           <Check className="h-4 w-4 mr-2" />
                         ) : (
@@ -333,20 +334,20 @@ export default function ResetPassword() {
 
                   {/* Confirm Password */}
                   <div className="space-y-2">
-                    <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700">
+                    <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 dark:text-slate-200">
                       Confirm Password
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Lock className="h-5 w-5 text-gray-400" />
+                        <Lock className="h-5 w-5 text-gray-400 dark:text-slate-500" />
                       </div>
                       <input
                         type={showConfirmPassword ? 'text' : 'password'}
                         id="confirmPassword"
-                        className={`w-full border-2 rounded-xl pl-10 pr-12 py-3 focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 placeholder-gray-500 ${
+                        className={`w-full border-2 rounded-xl pl-10 pr-12 py-3 focus:outline-none focus:ring-2 transition-all bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 placeholder-gray-500 dark:placeholder-slate-500 ${
                           fieldErrors.confirmPassword
-                            ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                            : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                            ? 'border-red-300 dark:border-red-500 focus:ring-red-500 focus:border-red-500'
+                            : 'border-gray-300 dark:border-slate-600 focus:ring-blue-500 focus:border-blue-500'
                         }`}
                         placeholder="Confirm new password"
                         value={confirmPassword}
@@ -357,13 +358,13 @@ export default function ResetPassword() {
                       <button
                         type="button"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300"
                       >
                         {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                       </button>
                     </div>
                     {fieldErrors.confirmPassword && (
-                      <p className="text-red-500 text-sm flex items-center mt-1">
+                      <p className="text-red-500 dark:text-red-400 text-sm flex items-center mt-1">
                         <AlertCircle className="h-4 w-4 mr-1" />
                         {fieldErrors.confirmPassword}
                       </p>
@@ -398,9 +399,9 @@ export default function ResetPassword() {
 
             {/* Help Text */}
             {tokenValid && !passwordReset && (
-              <div className="mt-6 text-center text-sm text-gray-500">
+              <div className="mt-6 text-center text-sm text-gray-500 dark:text-slate-400">
                 Remember your password?{' '}
-                <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+                <Link to="/login" className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">
                   Sign in
                 </Link>
               </div>

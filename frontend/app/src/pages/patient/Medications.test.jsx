@@ -16,7 +16,7 @@ describe('Medications Page', () => {
 
    test('displays download all button', () => {
       render(<Medications />);
-      expect(screen.getByText('Download All')).toBeInTheDocument();
+      expect(screen.getByTitle('Download All Medications')).toBeInTheDocument();
    });
 
    test('displays stats cards', () => {

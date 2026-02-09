@@ -55,37 +55,37 @@ const AppointmentCalendar = ({ appointments }) => {
 
 
    return (
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
          {/* Header */}
-         <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50/50">
-            <h2 className="text-lg font-bold text-gray-800 flex items-center">
+         <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-900/50">
+            <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100 flex items-center">
                <CalendarIcon className="w-5 h-5 mr-2 text-brand-medium" />
                {format(currentMonth, 'MMMM yyyy')}
             </h2>
             <div className="flex space-x-2">
-               <button onClick={prevMonth} className="p-2 hover:bg-gray-200 rounded-full transition text-gray-600">
+               <button onClick={prevMonth} className="p-2 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full transition text-gray-600 dark:text-slate-400">
                   <ChevronLeft size={20} />
                </button>
-               <button onClick={() => setCurrentMonth(new Date())} className="px-3 py-1 text-sm font-medium text-brand-medium hover:bg-brand-light rounded-md transition">
+               <button onClick={() => setCurrentMonth(new Date())} className="px-3 py-1 text-sm font-medium text-brand-medium hover:bg-brand-light dark:hover:bg-slate-700 rounded-md transition">
                   Today
                </button>
-               <button onClick={nextMonth} className="p-2 hover:bg-gray-200 rounded-full transition text-gray-600">
+               <button onClick={nextMonth} className="p-2 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full transition text-gray-600 dark:text-slate-400">
                   <ChevronRight size={20} />
                </button>
             </div>
          </div>
 
          {/* Days Header */}
-         <div className="grid grid-cols-7 border-b border-gray-100 bg-gray-50">
+         <div className="grid grid-cols-7 border-b border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-900">
             {weekDays.map(day => (
-               <div key={day} className="py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
+               <div key={day} className="py-2 text-center text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wider">
                   {day}
                </div>
             ))}
          </div>
 
          {/* Calendar Grid */}
-         <div className="grid grid-cols-7 auto-rows-fr bg-white">
+         <div className="grid grid-cols-7 auto-rows-fr bg-white dark:bg-slate-800">
             {calendarDays.map((day, dayIdx) => {
                const dayAppointments = getDailyAppointments(day);
                const isSelectedMonth = isSameMonth(day, monthStart);
@@ -96,20 +96,20 @@ const AppointmentCalendar = ({ appointments }) => {
                      key={day.toString()}
                      onClick={() => onDateClick(day)}
                      className={`
-                        min-h-[100px] border-b border-r border-gray-100 p-2 cursor-pointer transition-colors hover:bg-gray-50
-                        ${!isSelectedMonth ? 'bg-gray-50/30 text-gray-400' : 'bg-white'}
-                        ${isCurrentDay ? 'bg-blue-50/30' : ''}
+                        min-h-[100px] border-b border-r border-gray-100 dark:border-slate-700 p-2 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-slate-700
+                        ${!isSelectedMonth ? 'bg-gray-50/30 dark:bg-slate-900/30 text-gray-400 dark:text-slate-500' : 'bg-white dark:bg-slate-800'}
+                        ${isCurrentDay ? 'bg-blue-50/30 dark:bg-blue-900/20' : ''}
                     `}
                   >
                      <div className="flex justify-between items-start mb-1">
                         <span className={`
                             text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full
-                            ${isCurrentDay ? 'bg-brand-medium text-white shadow-md' : 'text-gray-700'}
+                            ${isCurrentDay ? 'bg-brand-medium text-white shadow-md' : 'text-gray-700 dark:text-slate-300'}
                         `}>
                            {format(day, 'd')}
                         </span>
                         {dayAppointments.length > 0 && (
-                           <span className="text-[10px] font-bold text-gray-500">{dayAppointments.length}</span>
+                           <span className="text-[10px] font-bold text-gray-500 dark:text-slate-400">{dayAppointments.length}</span>
                         )}
                      </div>
 
@@ -117,14 +117,14 @@ const AppointmentCalendar = ({ appointments }) => {
                         {dayAppointments.slice(0, 3).map((appt) => (
                            <div
                               key={appt.id}
-                              className="flex items-center text-[10px] truncate px-1.5 py-0.5 rounded-sm border-l-2 bg-gray-50 border-gray-200"
+                              className="flex items-center text-[10px] truncate px-1.5 py-0.5 rounded-sm border-l-2 bg-gray-50 dark:bg-slate-700 border-gray-200 dark:border-slate-600"
                            >
                               <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${getDotColor(appt.type)}`}></span>
-                              <span className="truncate flex-1 font-medium text-gray-600">{appt.patientName}</span>
+                              <span className="truncate flex-1 font-medium text-gray-600 dark:text-slate-300">{appt.patientName}</span>
                            </div>
                         ))}
                         {dayAppointments.length > 3 && (
-                           <div className="text-[10px] text-gray-400 pl-2">
+                           <div className="text-[10px] text-gray-400 dark:text-slate-500 pl-2">
                               + {dayAppointments.length - 3} more
                            </div>
                         )}
@@ -137,13 +137,13 @@ const AppointmentCalendar = ({ appointments }) => {
          {/* Details Modal */}
          {isModalOpen && selectedDate && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-               <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-                  <div className="flex justify-between items-center p-4 border-b border-gray-100 bg-gray-50">
-                     <h3 className="font-bold text-lg text-gray-800 flex items-center">
+               <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+                  <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-900">
+                     <h3 className="font-bold text-lg text-gray-800 dark:text-slate-100 flex items-center">
                         <Clock className="w-5 h-5 mr-2 text-brand-medium" />
                         {format(selectedDate, 'EEEE, MMMM do, yyyy')}
                      </h3>
-                     <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                     <button onClick={() => setIsModalOpen(false)} className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300">
                         <X size={20} />
                      </button>
                   </div>
@@ -178,7 +178,7 @@ const AppointmentCalendar = ({ appointments }) => {
                            ))}
                         </div>
                      ) : (
-                        <div className="text-center py-8 text-gray-400">
+                        <div className="text-center py-8 text-gray-400 dark:text-slate-500">
                            <CalendarIcon className="w-12 h-12 mx-auto mb-2 opacity-50" />
                            <p>No appointments scheduled for this day.</p>
                            <Button className="mt-4" onClick={() => alert('New Appointment')}>+ Add Appointment</Button>

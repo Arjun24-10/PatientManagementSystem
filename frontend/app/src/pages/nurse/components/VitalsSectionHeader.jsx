@@ -7,8 +7,8 @@ const VitalsSectionHeader = ({ patient, onExportPdf, onPrint }) => (
         <div className="flex items-start lg:items-center gap-3">
             <Thermometer className="w-6 h-6 text-brand-medium" aria-hidden="true" />
             <div>
-                <h2 id="patient-vitals" className="text-xl font-bold text-gray-900">Patient Vitals</h2>
-                <p className="text-sm text-gray-500">{patient ? `${patient.name} · Room ${patient.room} · Age ${patient.age}` : 'No patient selected'}</p>
+                <h2 id="patient-vitals" className="text-xl font-bold text-gray-900 dark:text-slate-100">Patient Vitals</h2>
+                <p className="text-sm text-gray-500 dark:text-slate-400">{patient ? `${patient.name} · Room ${patient.room} · Age ${patient.age}` : 'No patient selected'}</p>
             </div>
         </div>
         <div className="flex flex-wrap gap-3">

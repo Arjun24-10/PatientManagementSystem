@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 import Login from './pages/login.jsx';
 import CreateAccount from './pages/createAccount.jsx';
@@ -22,6 +23,7 @@ import PatientLabResults from './pages/patient/LabResults.jsx';
 import PatientMedicalHistory from './pages/patient/MedicalHistory.jsx';
 import PatientMedications from './pages/patient/Medications.jsx';
 import PatientPrescriptions from './pages/patient/Prescriptions.jsx';
+import ConsentManagement from './pages/patient/ConsentManagement.jsx';
 import NurseDashboard from './pages/nurse/Dashboard.jsx';
 import NurseVitals from './pages/nurse/Vitals.jsx';
 import LabDashboard from './pages/lab/Dashboard.jsx';
@@ -33,7 +35,8 @@ import AdminDashboard from './pages/admin/Dashboard.jsx';
 
 function App() {
   return (
-    <BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
@@ -63,6 +66,7 @@ function App() {
           <Route path="history" element={<PatientMedicalHistory />} />
           <Route path="medications" element={<PatientMedications />} />
           <Route path="prescriptions" element={<PatientPrescriptions />} />
+          <Route path="consents" element={<ConsentManagement />} />
         </Route>
 
         {/* Nurse Dashboard */}
@@ -86,6 +90,7 @@ function App() {
         </Route>
       </Routes>
     </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

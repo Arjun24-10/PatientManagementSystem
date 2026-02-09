@@ -64,7 +64,7 @@ export default function CreateAccount() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50 font-sans">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-slate-900 font-sans">
       {/* Left Panel - Completely new design */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 text-white p-12 flex-col justify-between">
         <div>
@@ -104,18 +104,18 @@ export default function CreateAccount() {
       </div>
 
       {/* Right Panel - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-white">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-white dark:bg-slate-800">
         <div className="w-full max-w-md">
           <div className="mb-10">
-            <h2 className="text-3xl font-bold text-gray-900">Create Your Patient Account</h2>
-            <p className="mt-3 text-gray-600">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-slate-100">Create Your Patient Account</h2>
+            <p className="mt-3 text-gray-600 dark:text-slate-400">
               Get started with secure access to your health records and care team
             </p>
           </div>
 
           <form onSubmit={handleSignUp} className="space-y-6">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-1.5">
                 Full Name
               </label>
               <input
@@ -123,7 +123,7 @@ export default function CreateAccount() {
                 type="text"
                 autoComplete="name"
                 required
-                className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                className="block w-full rounded-lg border border-gray-300 dark:border-slate-600 px-4 py-3 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 bg-white dark:bg-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
                 placeholder="Enter your full name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -131,7 +131,7 @@ export default function CreateAccount() {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-1.5">
                 Email Address
               </label>
               <input
@@ -139,7 +139,7 @@ export default function CreateAccount() {
                 type="email"
                 autoComplete="email"
                 required
-                className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                className="block w-full rounded-lg border border-gray-300 dark:border-slate-600 px-4 py-3 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 bg-white dark:bg-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -147,7 +147,7 @@ export default function CreateAccount() {
             </div>
 
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-1.5">
                 Mobile Number
               </label>
               <input
@@ -155,7 +155,7 @@ export default function CreateAccount() {
                 type="tel"
                 autoComplete="tel"
                 required
-                className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                className="block w-full rounded-lg border border-gray-300 dark:border-slate-600 px-4 py-3 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 bg-white dark:bg-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
                 placeholder="10-digit mobile number"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
@@ -163,7 +163,7 @@ export default function CreateAccount() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-1.5">
                 Password
               </label>
               <input
@@ -171,7 +171,7 @@ export default function CreateAccount() {
                 type="password"
                 autoComplete="new-password"
                 required
-                className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                className="block w-full rounded-lg border border-gray-300 dark:border-slate-600 px-4 py-3 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 bg-white dark:bg-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
                 placeholder="At least 12 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -179,7 +179,7 @@ export default function CreateAccount() {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-1.5">
                 Confirm Password
               </label>
               <input
@@ -187,7 +187,7 @@ export default function CreateAccount() {
                 type="password"
                 autoComplete="new-password"
                 required
-                className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                className="block w-full rounded-lg border border-gray-300 dark:border-slate-600 px-4 py-3 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 bg-white dark:bg-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
                 placeholder="Re-enter password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -195,13 +195,13 @@ export default function CreateAccount() {
             </div>
 
             {error && (
-              <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+              <div className="rounded-md bg-red-50 dark:bg-red-900/30 p-3 text-sm text-red-700 dark:text-red-300">
                 {error}
               </div>
             )}
 
             {success && (
-              <div className="rounded-md bg-green-50 p-3 text-sm text-green-700">
+              <div className="rounded-md bg-green-50 dark:bg-green-900/30 p-3 text-sm text-green-700 dark:text-green-300">
                 {success}
               </div>
             )}
@@ -214,24 +214,24 @@ export default function CreateAccount() {
               {loading ? 'Creating Account...' : 'Create Account'}
             </button>
 
-            <div className="text-center text-sm text-gray-500 mt-6">
+            <div className="text-center text-sm text-gray-500 dark:text-slate-400 mt-6">
               Already have an account?{' '}
               <button
                 type="button"
-                className="font-medium text-blue-600 hover:text-blue-500 transition"
+                className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition"
                 onClick={() => navigate('/')}
               >
                 Sign in
               </button>
             </div>
 
-            <p className="text-center text-xs text-gray-400 mt-8">
+            <p className="text-center text-xs text-gray-400 dark:text-slate-500 mt-8">
               By creating an account, you agree to our{' '}
-              <button className="text-gray-500 underline hover:text-gray-700 bg-transparent border-none cursor-pointer p-0 font-inherit">
+              <button className="text-gray-500 dark:text-slate-400 underline hover:text-gray-700 dark:hover:text-slate-300 bg-transparent border-none cursor-pointer p-0 font-inherit">
                 Terms of Service
               </button>{' '}
               and{' '}
-              <button className="text-gray-500 underline hover:text-gray-700 bg-transparent border-none cursor-pointer p-0 font-inherit">
+              <button className="text-gray-500 dark:text-slate-400 underline hover:text-gray-700 dark:hover:text-slate-300 bg-transparent border-none cursor-pointer p-0 font-inherit">
                 Privacy Policy
               </button>
             </p>

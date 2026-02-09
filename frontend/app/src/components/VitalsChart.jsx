@@ -1,5 +1,6 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useTheme } from '../contexts/ThemeContext';
 
 const data = [
    { name: 'Mon', sys: 120, dia: 80, hr: 72 },
@@ -12,6 +13,13 @@ const data = [
 ];
 
 const VitalsChart = () => {
+   const { isDarkMode } = useTheme();
+
+   const gridColor = isDarkMode ? '#334155' : '#E5E7EB';
+   const tickColor = isDarkMode ? '#94A3B8' : '#9CA3AF';
+   const tooltipBg = isDarkMode ? '#1E293B' : '#FFFFFF';
+   const tooltipText = isDarkMode ? '#E2E8F0' : '#1F2937';
+
    return (
       <div className="h-64 w-full">
          <ResponsiveContainer width="100%" height="100%">
@@ -24,21 +32,28 @@ const VitalsChart = () => {
                   bottom: 5,
                }}
             >
-               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={gridColor} />
                <XAxis
                   dataKey="name"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                  tick={{ fill: tickColor, fontSize: 12 }}
                   dy={10}
                />
                <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                  tick={{ fill: tickColor, fontSize: 12 }}
                />
                <Tooltip
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                  contentStyle={{ 
+                     borderRadius: '8px', 
+                     border: 'none', 
+                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                     backgroundColor: tooltipBg,
+                     color: tooltipText
+                  }}
+                  labelStyle={{ color: tooltipText }}
                />
                <Line
                   type="monotone"

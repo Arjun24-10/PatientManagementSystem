@@ -85,26 +85,26 @@ const Appointments = () => {
     return (
         <div className="space-y-6 relative">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h2 className="text-2xl font-bold text-gray-800">Appointments</h2>
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-slate-100">Appointments</h2>
                 <div className="flex items-center space-x-3">
-                    <div className="flex bg-gray-100 p-1 rounded-lg">
+                    <div className="flex bg-gray-100 dark:bg-slate-700 p-1 rounded-lg">
                         <button
                             onClick={() => setViewMode('list')}
-                            className={`p-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                            className={`p-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-600 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'}`}
                             title="List View"
                         >
                             <List size={20} />
                         </button>
                         <button
                             onClick={() => setViewMode('calendar')}
-                            className={`p-2 rounded-md transition-all ${viewMode === 'calendar' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                            className={`p-2 rounded-md transition-all ${viewMode === 'calendar' ? 'bg-white dark:bg-slate-600 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'}`}
                             title="Month View"
                         >
                             <LayoutGrid size={20} />
                         </button>
                         <button
                             onClick={() => setViewMode('day')}
-                            className={`p-2 rounded-md transition-all ${viewMode === 'day' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                            className={`p-2 rounded-md transition-all ${viewMode === 'day' ? 'bg-white dark:bg-slate-600 shadow-sm text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300'}`}
                             title="Day/Schedule View"
                         >
                             <Columns size={20} className="rotate-90" />
@@ -126,7 +126,7 @@ const Appointments = () => {
             ) : (
                 <>
                     {/* List View Content */}
-                    <div className="border-b border-gray-200">
+                    <div className="border-b border-gray-200 dark:border-slate-700">
                         <nav className="-mb-px flex space-x-8">
                             {['upcoming', 'history'].map((tab) => (
                                 <button
@@ -135,8 +135,8 @@ const Appointments = () => {
                                     className={`
                         whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm capitalize
                         ${activeTab === tab
-                                            ? 'border-blue-500 text-blue-600'
-                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
+                                            ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                                            : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300 hover:border-gray-300 dark:hover:border-slate-600'}
                     `}
                                 >
                                     {tab} Appointments
@@ -148,18 +148,18 @@ const Appointments = () => {
                     <div className="space-y-4">
                         {filteredAppointments.length > 0 ? (
                             filteredAppointments.map(appt => (
-                                <Card key={appt.id} className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+                                <Card key={appt.id} className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center dark:bg-slate-800">
                                     <div className="flex items-start space-x-4">
-                                        <div className="bg-blue-50 p-3 rounded-lg text-blue-600">
+                                        <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-blue-600 dark:text-blue-400">
                                             <CalendarIcon size={24} />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-gray-800">{appt.type} - {appt.patientName}</h4>
-                                            <div className="flex items-center text-sm text-gray-500 mt-1">
+                                            <h4 className="font-bold text-gray-800 dark:text-slate-100">{appt.type} - {appt.patientName}</h4>
+                                            <div className="flex items-center text-sm text-gray-500 dark:text-slate-400 mt-1">
                                                 <Clock size={14} className="mr-1" />
                                                 {appt.date} at {appt.time}
                                             </div>
-                                            <div className="flex items-center text-sm text-gray-500 mt-1">
+                                            <div className="flex items-center text-sm text-gray-500 dark:text-slate-400 mt-1">
                                                 <User size={14} className="mr-1" />
                                                 Patient ID: {appt.patientId}
                                             </div>
@@ -180,7 +180,7 @@ const Appointments = () => {
                                                 <Button variant="outline" className="text-sm py-1" onClick={() => handleComplete(appt.id)}>
                                                     Check In
                                                 </Button>
-                                                <Button variant="danger" className="text-sm py-1 bg-white text-red-600 border-red-200 hover:bg-red-50" onClick={() => handleCancelClick(appt)}>
+                                                <Button variant="danger" className="text-sm py-1 bg-white dark:bg-slate-700 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={() => handleCancelClick(appt)}>
                                                     Cancel
                                                 </Button>
                                             </div>
@@ -189,8 +189,8 @@ const Appointments = () => {
                                 </Card>
                             ))
                         ) : (
-                            <div className="p-12 text-center text-gray-500 bg-white rounded-lg border border-dashed border-gray-300">
-                                <CalendarIcon className="w-12 h-12 mx-auto text-gray-300 mb-2" />
+                            <div className="p-12 text-center text-gray-500 dark:text-slate-400 bg-white dark:bg-slate-800 rounded-lg border border-dashed border-gray-300 dark:border-slate-600">
+                                <CalendarIcon className="w-12 h-12 mx-auto text-gray-300 dark:text-slate-600 mb-2" />
                                 <p>No appointments found in this view.</p>
                             </div>
                         )}
@@ -223,9 +223,9 @@ const Appointments = () => {
             >
                 {apptToCancel && (
                     <div className="space-y-4">
-                        <div className="bg-yellow-50 p-4 rounded-lg flex items-start">
-                            <AlertCircle className="w-5 h-5 text-yellow-600 mr-2 mt-0.5" />
-                            <p className="text-sm text-yellow-800">
+                        <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg flex items-start">
+                            <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-2 mt-0.5" />
+                            <p className="text-sm text-yellow-800 dark:text-yellow-200">
                                 Are you sure you want to cancel the appointment for <strong>{apptToCancel.patientName}</strong>?
                                 This action cannot be undone.
                             </p>

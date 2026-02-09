@@ -29,7 +29,9 @@ const PatientDetail = () => {
     // Data States
     const [prescriptions, setPrescriptions] = useState(mockPrescriptions);
     const [treatments, setTreatments] = useState(mockTreatments);
+    // eslint-disable-next-line no-unused-vars
     const [medicalHistory, setMedicalHistory] = useState(mockMedicalHistory);
+    // eslint-disable-next-line no-unused-vars
     const [labs, setLabs] = useState(mockLabs);
     const [isLoading, setIsLoading] = useState(true);
     const [isRxModalOpen, setIsRxModalOpen] = useState(false);
@@ -83,8 +85,8 @@ const PatientDetail = () => {
         if (id) fetchData();
     }, [id]);
 
-    if (isLoading && !patient) return <div className="p-6">Loading patient details...</div>;
-    if (!patient) return <div className="p-6">Patient not found</div>;
+    if (isLoading && !patient) return <div className="p-6 dark:text-slate-100">Loading patient details...</div>;
+    if (!patient) return <div className="p-6 dark:text-slate-100">Patient not found</div>;
 
     const handleAddRx = (e) => {
         e.preventDefault();
@@ -138,8 +140,8 @@ const PatientDetail = () => {
                     <ArrowLeft size={20} />
                 </Button>
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-800">{patient.name}</h2>
-                    <div className="flex items-center space-x-2 text-sm text-gray-500">
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-slate-100">{patient.name}</h2>
+                    <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-slate-400">
                         <span>ID: {patient.id}</span>
                         <span>•</span>
                         <span>{patient.age} yrs, {patient.gender}</span>
@@ -151,7 +153,7 @@ const PatientDetail = () => {
             </div>
 
             {/* Tabs */}
-            <div className="border-b border-gray-200">
+            <div className="border-b border-gray-200 dark:border-slate-700">
                 <nav className="-mb-px flex space-x-8">
                     {['overview', 'history', 'labs', 'prescriptions', 'treatments'].map((tab) => (
                         <button
@@ -160,8 +162,8 @@ const PatientDetail = () => {
                             className={`
                 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm capitalize
                 ${activeTab === tab
-                                    ? 'border-blue-500 text-blue-600'
-                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
+                                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                                    : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300 hover:border-gray-300 dark:hover:border-slate-600'}
               `}
                         >
                             {tab}
@@ -174,40 +176,40 @@ const PatientDetail = () => {
             <div className="min-h-[400px]">
                 {activeTab === 'overview' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Card className="p-6">
-                            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                        <Card className="p-6 dark:bg-slate-800">
+                            <h3 className="text-lg font-bold text-gray-800 dark:text-slate-100 mb-4 flex items-center">
                                 <Activity className="w-5 h-5 mr-2 text-blue-500" />
                                 Vitals & Condition
                             </h3>
                             <div className="space-y-4">
-                                <div className="flex justify-between border-b pb-2">
-                                    <span className="text-gray-600">Condition</span>
-                                    <span className="font-medium">{patient.condition}</span>
+                                <div className="flex justify-between border-b dark:border-slate-700 pb-2">
+                                    <span className="text-gray-600 dark:text-slate-400">Condition</span>
+                                    <span className="font-medium dark:text-slate-100">{patient.condition}</span>
                                 </div>
-                                <div className="flex justify-between border-b pb-2">
-                                    <span className="text-gray-600">Blood Pressure</span>
-                                    <span className="font-medium">120/80</span>
+                                <div className="flex justify-between border-b dark:border-slate-700 pb-2">
+                                    <span className="text-gray-600 dark:text-slate-400">Blood Pressure</span>
+                                    <span className="font-medium dark:text-slate-100">120/80</span>
                                 </div>
-                                <div className="flex justify-between border-b pb-2">
-                                    <span className="text-gray-600">Heart Rate</span>
-                                    <span className="font-medium">72 bpm</span>
+                                <div className="flex justify-between border-b dark:border-slate-700 pb-2">
+                                    <span className="text-gray-600 dark:text-slate-400">Heart Rate</span>
+                                    <span className="font-medium dark:text-slate-100">72 bpm</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-gray-600">Weight</span>
-                                    <span className="font-medium">70 kg</span>
+                                    <span className="text-gray-600 dark:text-slate-400">Weight</span>
+                                    <span className="font-medium dark:text-slate-100">70 kg</span>
                                 </div>
                             </div>
                         </Card>
 
-                        <Card className="p-6">
-                            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                        <Card className="p-6 dark:bg-slate-800">
+                            <h3 className="text-lg font-bold text-gray-800 dark:text-slate-100 mb-4 flex items-center">
                                 <Clock className="w-5 h-5 mr-2 text-blue-500" />
                                 Recent Activity
                             </h3>
                             <ul className="space-y-3">
                                 {mockMedicalHistory.slice(0, 3).map(item => (
                                     <li key={item.id} className="text-sm">
-                                        <span className="font-bold text-gray-700">{item.date}:</span> {item.type} - {item.note}
+                                        <span className="font-bold text-gray-700 dark:text-slate-300">{item.date}:</span> <span className="dark:text-slate-400">{item.type} - {item.note}</span>
                                     </li>
                                 ))}
                             </ul>
@@ -219,10 +221,10 @@ const PatientDetail = () => {
                     <div className="space-y-8">
                         {/* Active Prescriptions */}
                         <div className="space-y-4">
-                            <div className="flex justify-between items-center bg-blue-50 p-4 rounded-lg border border-blue-100">
+                            <div className="flex justify-between items-center bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
                                 <div>
-                                    <h3 className="font-bold text-blue-900">Active Prescriptions</h3>
-                                    <p className="text-xs text-blue-700">Currently being taken by patient</p>
+                                    <h3 className="font-bold text-blue-900 dark:text-blue-100">Active Prescriptions</h3>
+                                    <p className="text-xs text-blue-700 dark:text-blue-300">Currently being taken by patient</p>
                                 </div>
                                 <Button onClick={() => setIsRxModalOpen(true)} className="flex items-center text-sm shadow-none">
                                     <Plus className="w-4 h-4 mr-1" /> Add New
@@ -231,32 +233,32 @@ const PatientDetail = () => {
 
                             {activePrescriptions.length > 0 ? (
                                 activePrescriptions.map(rx => (
-                                    <Card key={rx.id} className="p-4 flex justify-between items-start group hover:border-blue-300 transition-colors">
+                                    <Card key={rx.id} className="p-4 flex justify-between items-start group hover:border-blue-300 dark:hover:border-blue-600 transition-colors dark:bg-slate-800">
                                         <div className="flex items-start">
-                                            <div className="p-3 rounded-xl bg-blue-100 text-blue-600 mr-4">
+                                            <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 mr-4">
                                                 <Pill size={24} />
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-2">
-                                                    <h4 className="font-bold text-gray-800 text-lg">{rx.name}</h4>
+                                                    <h4 className="font-bold text-gray-800 dark:text-slate-100 text-lg">{rx.name}</h4>
                                                     <Badge type="green">Active</Badge>
                                                 </div>
-                                                <div className="text-sm text-gray-600 mt-1 font-medium">{rx.dosage} • {rx.frequency}</div>
-                                                {rx.duration && <div className="text-sm text-gray-500">Duration: {rx.duration}</div>}
-                                                {rx.instructions && <div className="text-sm text-gray-500 italic mt-1">"{rx.instructions}"</div>}
-                                                <div className="text-xs text-gray-400 mt-2">Prescribed by {rx.prescribedBy} on {rx.date}</div>
+                                                <div className="text-sm text-gray-600 dark:text-slate-400 mt-1 font-medium">{rx.dosage} • {rx.frequency}</div>
+                                                {rx.duration && <div className="text-sm text-gray-500 dark:text-slate-400">Duration: {rx.duration}</div>}
+                                                {rx.instructions && <div className="text-sm text-gray-500 dark:text-slate-400 italic mt-1">"{rx.instructions}"</div>}
+                                                <div className="text-xs text-gray-400 dark:text-slate-500 mt-2">Prescribed by {rx.prescribedBy} on {rx.date}</div>
                                             </div>
                                         </div>
                                         <div className="flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <Button variant="outline" className="text-xs py-1 h-8">Edit</Button>
-                                            <Button variant="danger" className="text-xs py-1 h-8 bg-white border-red-200 text-red-600 hover:bg-red-50" onClick={() => handleDeleteRx(rx.id)}>
+                                            <Button variant="danger" className="text-xs py-1 h-8 bg-white dark:bg-slate-700 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={() => handleDeleteRx(rx.id)}>
                                                 Discontinue
                                             </Button>
                                         </div>
                                     </Card>
                                 ))
                             ) : (
-                                <div className="text-center py-8 text-gray-400 border border-dashed rounded-lg">
+                                <div className="text-center py-8 text-gray-400 dark:text-slate-500 border border-dashed dark:border-slate-600 rounded-lg">
                                     <Pill className="w-8 h-8 mx-auto mb-2 opacity-50" />
                                     No active prescriptions.
                                 </div>
@@ -266,17 +268,17 @@ const PatientDetail = () => {
                         {/* Prescription History */}
                         <div className="space-y-4">
                             <div className="flex justify-between items-center px-4">
-                                <h3 className="font-bold text-gray-700">Prescription History</h3>
+                                <h3 className="font-bold text-gray-700 dark:text-slate-300">Prescription History</h3>
                             </div>
 
                             {historyPrescriptions.length > 0 ? (
-                                <div className="bg-gray-50 rounded-xl overflow-hidden border border-gray-200">
+                                <div className="bg-gray-50 dark:bg-slate-800 rounded-xl overflow-hidden border border-gray-200 dark:border-slate-700">
                                     {historyPrescriptions.map((rx, idx) => (
-                                        <div key={rx.id} className={`p-4 flex justify-between items-center ${idx !== historyPrescriptions.length - 1 ? 'border-b border-gray-200' : ''}`}>
+                                        <div key={rx.id} className={`p-4 flex justify-between items-center ${idx !== historyPrescriptions.length - 1 ? 'border-b border-gray-200 dark:border-slate-700' : ''}`}>
                                             <div className="opacity-70">
-                                                <h4 className="font-bold text-gray-700">{rx.name}</h4>
-                                                <p className="text-sm text-gray-500">{rx.dosage} • {rx.frequency}</p>
-                                                <p className="text-xs text-gray-400">Ended: {rx.date}</p>
+                                                <h4 className="font-bold text-gray-700 dark:text-slate-300">{rx.name}</h4>
+                                                <p className="text-sm text-gray-500 dark:text-slate-400">{rx.dosage} • {rx.frequency}</p>
+                                                <p className="text-xs text-gray-400 dark:text-slate-500">Ended: {rx.date}</p>
                                             </div>
                                             <div className="flex items-center gap-3">
                                                 <Badge type="gray">Discontinued</Badge>
@@ -286,7 +288,7 @@ const PatientDetail = () => {
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center py-4 text-gray-400 text-sm">
+                                <div className="text-center py-4 text-gray-400 dark:text-slate-500 text-sm">
                                     No prescription history.
                                 </div>
                             )}
@@ -296,17 +298,17 @@ const PatientDetail = () => {
 
                 {activeTab === 'treatments' && (
                     <div className="space-y-4">
-                        <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
-                            <h3 className="font-bold text-gray-700">Active Treatments</h3>
+                        <div className="flex justify-between items-center bg-gray-50 dark:bg-slate-800 p-4 rounded-lg">
+                            <h3 className="font-bold text-gray-700 dark:text-slate-300">Active Treatments</h3>
                             <Button onClick={() => setIsTreatmentModalOpen(true)} className="flex items-center text-sm">
                                 <Plus className="w-4 h-4 mr-1" /> Add Treatment
                             </Button>
                         </div>
                         {treatments.map(item => (
-                            <Card key={item.id} className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center">
+                            <Card key={item.id} className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center dark:bg-slate-800">
                                 <div>
-                                    <h4 className="font-bold text-gray-800">{item.name}</h4>
-                                    <p className="text-sm text-gray-600">{item.notes}</p>
+                                    <h4 className="font-bold text-gray-800 dark:text-slate-100">{item.name}</h4>
+                                    <p className="text-sm text-gray-600 dark:text-slate-400">{item.notes}</p>
                                     <Badge type="blue" className="mt-2">{item.frequency}</Badge>
                                 </div>
                                 <div className="mt-4 md:mt-0">
@@ -359,16 +361,16 @@ const PatientDetail = () => {
                         required
                     />
                     <div className="space-y-1">
-                        <label className="block text-sm font-medium text-gray-700">Instructions</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">Instructions</label>
                         <textarea
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none h-24"
+                            className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none h-24 dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-400"
                             value={newRx.instructions}
                             onChange={e => setNewRx({ ...newRx, instructions: e.target.value })}
                             placeholder="e.g. Take with food..."
                         />
                     </div>
 
-                    <div className="pt-4 flex justify-end space-x-3 border-t border-gray-100">
+                    <div className="pt-4 flex justify-end space-x-3 border-t border-gray-100 dark:border-slate-700">
                         <Button type="button" variant="secondary" onClick={() => setIsRxModalOpen(false)}>Cancel</Button>
                         <Button type="submit">Submit Prescription</Button>
                     </div>

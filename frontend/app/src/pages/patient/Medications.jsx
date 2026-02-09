@@ -5,15 +5,11 @@ import {
    Download,
    AlertCircle,
    User,
-   Clock,
-   ChevronDown,
    ChevronUp,
    Search,
    AlertTriangle,
    CheckCircle,
-   XCircle,
    RefreshCw,
-   Printer,
    Info
 } from 'lucide-react';
 import Card from '../../components/common/Card';
@@ -22,7 +18,6 @@ import Badge from '../../components/common/Badge';
 import {
    mockMedicationsData,
    mockDrugInteractions,
-   mockMedicationSchedule,
    mockMedicationStats
 } from '../../mocks/medications';
 
@@ -79,26 +74,25 @@ const Medications = () => {
          {/* Header */}
          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-               <h2 className="text-2xl font-bold text-gray-800">My Medications</h2>
-               <p className="text-gray-500">Manage your current and past prescriptions</p>
+               <h2 className="text-2xl font-bold text-gray-800 dark:text-slate-100">My Medications</h2>
+               <p className="text-gray-500 dark:text-slate-400">Manage your current and past prescriptions</p>
             </div>
             <div className="flex gap-2">
-               <Button variant="outline" className="whitespace-nowrap">
-                  <Download className="w-4 h-4 mr-2" />
-                  Download All
+               <Button variant="outline" className="p-2" title="Download All Medications">
+                  <Download className="w-5 h-5" />
                </Button>
             </div>
          </div>
 
          {/* Drug Interaction Warning */}
          {mockDrugInteractions.length > 0 && activeTab === 'active' && (
-            <div className="bg-orange-50 border-l-4 border-orange-500 p-4 rounded-r-lg">
+            <div className="bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-500 p-4 rounded-r-lg">
                <div className="flex items-start">
-                  <AlertTriangle className="w-6 h-6 text-orange-600 mr-3 mt-0.5 flex-shrink-0" />
+                  <AlertTriangle className="w-6 h-6 text-orange-600 dark:text-orange-400 mr-3 mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
-                     <h3 className="font-bold text-orange-800 mb-1">Potential Drug Interaction Detected</h3>
+                     <h3 className="font-bold text-orange-800 dark:text-orange-300 mb-1">Potential Drug Interaction Detected</h3>
                      {mockDrugInteractions.map((interaction, idx) => (
-                        <div key={idx} className="text-sm text-orange-700 mb-2">
+                        <div key={idx} className="text-sm text-orange-700 dark:text-orange-400 mb-2">
                            <p className="font-medium">{interaction.medication1} + {interaction.medication2}</p>
                            <p>{interaction.description}</p>
                            <p className="mt-1"><span className="font-semibold">Recommendation:</span> {interaction.recommendation}</p>
@@ -114,23 +108,11 @@ const Medications = () => {
             <Card className="p-6 hover:shadow-md transition-shadow">
                <div className="flex items-center justify-between">
                   <div>
-                     <p className="text-sm text-gray-500 mb-1">Active Medications</p>
-                     <p className="text-3xl font-bold text-gray-800">{mockMedicationStats.totalActive}</p>
+                     <p className="text-sm text-gray-500 dark:text-slate-400 mb-1">Active Medications</p>
+                     <p className="text-3xl font-bold text-gray-800 dark:text-slate-100">{mockMedicationStats.totalActive}</p>
                   </div>
-                  <div className="p-3 bg-blue-50 rounded-lg">
-                     <Pill className="w-6 h-6 text-blue-600" />
-                  </div>
-               </div>
-            </Card>
-
-            <Card className="p-6 hover:shadow-md transition-shadow">
-               <div className="flex items-center justify-between">
-                  <div>
-                     <p className="text-sm text-gray-500 mb-1">Needing Refill</p>
-                     <p className="text-3xl font-bold text-gray-800">{mockMedicationStats.needingRefill}</p>
-                  </div>
-                  <div className="p-3 bg-orange-50 rounded-lg">
-                     <RefreshCw className="w-6 h-6 text-orange-600" />
+                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                     <Pill className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                   </div>
                </div>
             </Card>
@@ -138,11 +120,11 @@ const Medications = () => {
             <Card className="p-6 hover:shadow-md transition-shadow">
                <div className="flex items-center justify-between">
                   <div>
-                     <p className="text-sm text-gray-500 mb-1">Expiring Soon</p>
-                     <p className="text-3xl font-bold text-gray-800">{mockMedicationStats.upcomingExpirations}</p>
+                     <p className="text-sm text-gray-500 dark:text-slate-400 mb-1">Needing Refill</p>
+                     <p className="text-3xl font-bold text-gray-800 dark:text-slate-100">{mockMedicationStats.needingRefill}</p>
                   </div>
-                  <div className="p-3 bg-red-50 rounded-lg">
-                     <AlertCircle className="w-6 h-6 text-red-600" />
+                  <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                     <RefreshCw className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                   </div>
                </div>
             </Card>
@@ -150,11 +132,23 @@ const Medications = () => {
             <Card className="p-6 hover:shadow-md transition-shadow">
                <div className="flex items-center justify-between">
                   <div>
-                     <p className="text-sm text-gray-500 mb-1">Adherence Rate</p>
-                     <p className="text-3xl font-bold text-gray-800">{mockMedicationStats.adherenceRate}%</p>
+                     <p className="text-sm text-gray-500 dark:text-slate-400 mb-1">Expiring Soon</p>
+                     <p className="text-3xl font-bold text-gray-800 dark:text-slate-100">{mockMedicationStats.upcomingExpirations}</p>
                   </div>
-                  <div className="p-3 bg-green-50 rounded-lg">
-                     <CheckCircle className="w-6 h-6 text-green-600" />
+                  <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                     <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                  </div>
+               </div>
+            </Card>
+
+            <Card className="p-6 hover:shadow-md transition-shadow">
+               <div className="flex items-center justify-between">
+                  <div>
+                     <p className="text-sm text-gray-500 dark:text-slate-400 mb-1">Adherence Rate</p>
+                     <p className="text-3xl font-bold text-gray-800 dark:text-slate-100">{mockMedicationStats.adherenceRate}%</p>
+                  </div>
+                  <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                     <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
                   </div>
                </div>
             </Card>
@@ -163,13 +157,13 @@ const Medications = () => {
          {/* Search and Tabs */}
          <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
-               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-slate-500 w-5 h-5" />
                <input
                   type="text"
                   placeholder="Search medications..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100"
                />
             </div>
             <div className="flex gap-2">
@@ -177,7 +171,7 @@ const Medications = () => {
                   onClick={() => setActiveTab('active')}
                   className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === 'active'
                      ? 'bg-blue-600 text-white'
-                     : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                     : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 border border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700/50'
                      }`}
                >
                   Active
@@ -186,7 +180,7 @@ const Medications = () => {
                   onClick={() => setActiveTab('history')}
                   className={`px-4 py-2 rounded-lg font-medium transition ${activeTab === 'history'
                      ? 'bg-blue-600 text-white'
-                     : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                     : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 border border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700/50'
                      }`}
                >
                   History
@@ -209,8 +203,8 @@ const Medications = () => {
                      <div className="mb-4">
                         <div className="flex items-start justify-between mb-2">
                            <div className="flex-1">
-                              <h3 className="font-bold text-gray-800 text-lg">{medication.name}</h3>
-                              <p className="text-sm text-gray-500">{medication.genericName}</p>
+                              <h3 className="font-bold text-gray-800 dark:text-slate-100 text-lg">{medication.name}</h3>
+                              <p className="text-sm text-gray-500 dark:text-slate-400">{medication.genericName}</p>
                            </div>
                            {medication.critical && (
                               <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
@@ -220,23 +214,23 @@ const Medications = () => {
                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getFormBadge(medication.form)}`}>
                               {medication.form}
                            </span>
-                           <span className="text-sm font-medium text-gray-700">{medication.strength}</span>
+                           <span className="text-sm font-medium text-gray-700 dark:text-slate-200">{medication.strength}</span>
                         </div>
                      </div>
 
                      {/* Dosage Info */}
                      <div className="space-y-2 mb-4">
                         <div className="flex items-center text-sm">
-                           <Pill className="w-4 h-4 mr-2 text-gray-400" />
-                           <span className="text-gray-700">{medication.dosage}</span>
+                           <Pill className="w-4 h-4 mr-2 text-gray-400 dark:text-slate-500" />
+                           <span className="text-gray-700 dark:text-slate-200">{medication.dosage}</span>
                         </div>
                         <div className="flex items-center text-sm">
-                           <User className="w-4 h-4 mr-2 text-gray-400" />
-                           <span className="text-gray-700">{medication.prescribedBy.name}</span>
+                           <User className="w-4 h-4 mr-2 text-gray-400 dark:text-slate-500" />
+                           <span className="text-gray-700 dark:text-slate-200">{medication.prescribedBy.name}</span>
                         </div>
                         <div className="flex items-center text-sm">
-                           <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                           <span className="text-gray-700">
+                           <Calendar className="w-4 h-4 mr-2 text-gray-400 dark:text-slate-500" />
+                           <span className="text-gray-700 dark:text-slate-200">
                               Since {new Date(medication.startDate).toLocaleDateString('en-US', {
                                  year: 'numeric',
                                  month: 'short'
@@ -247,15 +241,15 @@ const Medications = () => {
 
                      {/* Status and Refills */}
                      {activeTab === 'active' && (
-                        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                        <div className="mb-4 p-3 bg-gray-50 dark:bg-slate-800/50 rounded-lg">
                            <div className="flex items-center justify-between text-sm mb-2">
-                              <span className="text-gray-600">Refills Remaining:</span>
+                              <span className="text-gray-600 dark:text-slate-300">Refills Remaining:</span>
                               <Badge type={medication.refillsRemaining <= 1 ? 'yellow' : 'green'}>
                                  {medication.refillsRemaining} of {medication.totalRefills}
                               </Badge>
                            </div>
                            {medication.expiryWarning && (
-                              <p className="text-xs text-orange-600 font-medium">{medication.expiryWarning}</p>
+                              <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">{medication.expiryWarning}</p>
                            )}
                         </div>
                      )}
@@ -267,31 +261,31 @@ const Medications = () => {
                               {medication.status}
                            </Badge>
                            {medication.discontinuedReason && (
-                              <p className="text-xs text-gray-600 mt-2">Reason: {medication.discontinuedReason}</p>
+                              <p className="text-xs text-gray-600 dark:text-slate-300 mt-2">Reason: {medication.discontinuedReason}</p>
                            )}
                         </div>
                      )}
 
                      {/* Purpose */}
-                     <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                        <p className="text-xs text-blue-600 font-semibold mb-1">Purpose</p>
-                        <p className="text-sm text-blue-900">{medication.purpose}</p>
+                     <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+                        <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold mb-1">Purpose</p>
+                        <p className="text-sm text-blue-900 dark:text-blue-300">{medication.purpose}</p>
                      </div>
 
                      {/* Expanded Details */}
                      {isExpanded && (
-                        <div className="mt-4 pt-4 border-t border-gray-200 space-y-3">
+                        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700 space-y-3">
                            <div>
-                              <p className="text-xs font-semibold text-gray-600 mb-1">Instructions</p>
-                              <p className="text-sm text-gray-700">{medication.instructions}</p>
+                              <p className="text-xs font-semibold text-gray-600 dark:text-slate-300 mb-1">Instructions</p>
+                              <p className="text-sm text-gray-700 dark:text-slate-200">{medication.instructions}</p>
                            </div>
 
                            {medication.sideEffects && medication.sideEffects.length > 0 && (
                               <div>
-                                 <p className="text-xs font-semibold text-gray-600 mb-1">Common Side Effects</p>
+                                 <p className="text-xs font-semibold text-gray-600 dark:text-slate-300 mb-1">Common Side Effects</p>
                                  <div className="flex flex-wrap gap-1">
                                     {medication.sideEffects.map((effect, idx) => (
-                                       <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                                       <span key={idx} className="px-2 py-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-200 text-xs rounded">
                                           {effect}
                                        </span>
                                     ))}
@@ -301,10 +295,10 @@ const Medications = () => {
 
                            {medication.interactions && medication.interactions.length > 0 && (
                               <div>
-                                 <p className="text-xs font-semibold text-red-600 mb-1">Drug Interactions</p>
+                                 <p className="text-xs font-semibold text-red-600 dark:text-red-400 mb-1">Drug Interactions</p>
                                  <div className="flex flex-wrap gap-1">
                                     {medication.interactions.map((interaction, idx) => (
-                                       <span key={idx} className="px-2 py-1 bg-red-50 text-red-700 text-xs rounded">
+                                       <span key={idx} className="px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-xs rounded">
                                           {interaction}
                                        </span>
                                     ))}
@@ -314,8 +308,8 @@ const Medications = () => {
 
                            {medication.warnings && medication.warnings.length > 0 && (
                               <div>
-                                 <p className="text-xs font-semibold text-orange-600 mb-1">Warnings</p>
-                                 <ul className="text-xs text-orange-700 space-y-1">
+                                 <p className="text-xs font-semibold text-orange-600 dark:text-orange-400 mb-1">Warnings</p>
+                                 <ul className="text-xs text-orange-700 dark:text-orange-400 space-y-1">
                                     {medication.warnings.map((warning, idx) => (
                                        <li key={idx}>• {warning}</li>
                                     ))}
@@ -323,7 +317,7 @@ const Medications = () => {
                               </div>
                            )}
 
-                           <div className="text-xs text-gray-500">
+                           <div className="text-xs text-gray-500 dark:text-slate-400">
                               <p>Prescription #: {medication.prescriptionNumber}</p>
                               <p>Pharmacy: {medication.pharmacy}</p>
                            </div>
@@ -359,7 +353,7 @@ const Medications = () => {
                         )}
                         <button
                            onClick={() => handleDownload(medication)}
-                           className="px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition text-sm font-medium inline-flex items-center justify-center whitespace-nowrap"
+                           className="px-3 py-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700/50 transition text-sm font-medium inline-flex items-center justify-center whitespace-nowrap"
                         >
                            <Download className="w-4 h-4" />
                         </button>
@@ -371,7 +365,7 @@ const Medications = () => {
 
          {/* Empty State */}
          {filteredMedications.length === 0 && (
-            <div className="p-12 text-center text-gray-400">
+            <div className="p-12 text-center text-gray-400 dark:text-slate-500">
                <Pill className="w-12 h-12 mx-auto mb-2 opacity-50" />
                <p>No medications found matching your search.</p>
             </div>
@@ -381,28 +375,28 @@ const Medications = () => {
          {showRefillModal && selectedMed && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                <Card className="max-w-md w-full p-6">
-                  <h3 className="text-xl font-bold text-gray-800 mb-4">Request Refill</h3>
+                  <h3 className="text-xl font-bold text-gray-800 dark:text-slate-100 mb-4">Request Refill</h3>
 
-                  <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-                     <p className="font-semibold text-gray-800">{selectedMed.name} {selectedMed.strength}</p>
-                     <p className="text-sm text-gray-600">{selectedMed.dosage}</p>
-                     <p className="text-sm text-gray-600 mt-2">
+                  <div className="mb-4 p-4 bg-gray-50 dark:bg-slate-800/50 rounded-lg">
+                     <p className="font-semibold text-gray-800 dark:text-slate-100">{selectedMed.name} {selectedMed.strength}</p>
+                     <p className="text-sm text-gray-600 dark:text-slate-300">{selectedMed.dosage}</p>
+                     <p className="text-sm text-gray-600 dark:text-slate-300 mt-2">
                         Refills Remaining: {selectedMed.refillsRemaining} of {selectedMed.totalRefills}
                      </p>
                   </div>
 
                   <div className="space-y-4 mb-6">
                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">
                            Preferred Pharmacy
                         </label>
-                        <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <select className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100">
                            <option>{selectedMed.pharmacy}</option>
                         </select>
                      </div>
 
                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">
                            Pickup Method
                         </label>
                         <div className="flex gap-4">
@@ -420,7 +414,7 @@ const Medications = () => {
                      <div>
                         <label className="flex items-center">
                            <input type="checkbox" defaultChecked className="mr-2" />
-                           <span className="text-sm text-gray-700">I confirm this is for the same dosage</span>
+                           <span className="text-sm text-gray-700 dark:text-slate-200">I confirm this is for the same dosage</span>
                         </label>
                      </div>
                   </div>

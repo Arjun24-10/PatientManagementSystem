@@ -6,8 +6,8 @@ const VitalsChart = ({ data }) => {
     if (!data || data.length === 0) return null;
 
     return (
-        <Card className="p-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">Vitals Trends</h3>
+        <Card className="p-6 dark:bg-slate-800">
+            <h3 className="text-lg font-bold text-gray-800 dark:text-slate-100 mb-4">Vitals Trends</h3>
             <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                     <LineChart

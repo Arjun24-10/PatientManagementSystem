@@ -6,7 +6,6 @@ import {
     Filter,
     ChevronDown,
     AlertTriangle,
-    AlertCircle,
     Droplet,
     Ban,
     Shield,
@@ -32,20 +31,20 @@ const AssignedPatientsPanel = ({
     vitalsStatusMap,
     medicationStatusMap,
 }) => (
-    <Card className="p-6 space-y-6 border border-gray-100 shadow-soft h-full">
+    <Card className="p-6 space-y-6 border border-gray-100 dark:border-slate-700 shadow-soft h-full dark:bg-slate-800">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="flex items-center gap-3">
                 <Users className="w-6 h-6 text-brand-medium" aria-hidden="true" />
                 <div>
-                    <h3 className="text-lg font-bold text-gray-900">My Assigned Patients</h3>
-                    <p className="text-sm text-gray-500">Total {totalCount}</p>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-slate-100">My Assigned Patients</h3>
+                    <p className="text-sm text-gray-500 dark:text-slate-400">Total {totalCount}</p>
                 </div>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-                <div className="inline-flex rounded-full border border-gray-200 overflow-hidden" role="group" aria-label="Toggle patient view">
+                <div className="inline-flex rounded-full border border-gray-200 dark:border-slate-600 overflow-hidden" role="group" aria-label="Toggle patient view">
                     <button
                         type="button"
-                        className={`px-3 py-2 text-sm font-medium flex items-center gap-2 transition ${viewMode === 'grid' ? 'bg-brand-medium text-white' : 'text-gray-600 bg-white hover:bg-gray-50'}`}
+                        className={`px-3 py-2 text-sm font-medium flex items-center gap-2 transition ${viewMode === 'grid' ? 'bg-brand-medium text-white' : 'text-gray-600 dark:text-slate-300 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600'}`}
                         onClick={() => onViewModeChange('grid')}
                         aria-pressed={viewMode === 'grid'}
                     >
@@ -54,7 +53,7 @@ const AssignedPatientsPanel = ({
                     </button>
                     <button
                         type="button"
-                        className={`px-3 py-2 text-sm font-medium flex items-center gap-2 transition ${viewMode === 'list' ? 'bg-brand-medium text-white' : 'text-gray-600 bg-white hover:bg-gray-50'}`}
+                        className={`px-3 py-2 text-sm font-medium flex items-center gap-2 transition ${viewMode === 'list' ? 'bg-brand-medium text-white' : 'text-gray-600 dark:text-slate-300 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600'}`}
                         onClick={() => onViewModeChange('list')}
                         aria-pressed={viewMode === 'list'}
                     >
@@ -67,17 +66,17 @@ const AssignedPatientsPanel = ({
                     <select
                         value={sortBy}
                         onChange={(event) => onSortChange(event.target.value)}
-                        className="appearance-none bg-white border border-gray-200 rounded-full px-4 py-2 text-sm font-medium text-gray-600 pr-10 focus:outline-none focus:ring-2 focus:ring-brand-medium"
+                        className="appearance-none bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 rounded-full px-4 py-2 text-sm font-medium text-gray-600 dark:text-slate-300 pr-10 focus:outline-none focus:ring-2 focus:ring-brand-medium"
                         aria-label="Sort patients"
                     >
                         {sortOptions.map((option) => (
                             <option key={option.id} value={option.id}>Sort by: {option.label}</option>
                         ))}
                     </select>
-                    <ChevronDown className="w-4 h-4 text-gray-400 absolute right-4 top-3 pointer-events-none" aria-hidden="true" />
+                    <ChevronDown className="w-4 h-4 text-gray-400 dark:text-slate-500 absolute right-4 top-3 pointer-events-none" aria-hidden="true" />
                 </div>
 
-                <div className="inline-flex items-center gap-2 text-sm text-gray-500">
+                <div className="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
                     <Filter className="w-4 h-4" aria-hidden="true" />
                     Filters
                 </div>
@@ -89,7 +88,7 @@ const AssignedPatientsPanel = ({
                 <button
                     key={filter.id}
                     type="button"
-                    className={`px-4 py-2 rounded-full text-sm font-medium border transition ${activeFilter === filter.id ? 'bg-brand-medium text-white border-brand-medium' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                    className={`px-4 py-2 rounded-full text-sm font-medium border transition ${activeFilter === filter.id ? 'bg-brand-medium text-white border-brand-medium' : 'border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700'}`}
                     onClick={() => onFilterChange(filter.id)}
                     aria-pressed={activeFilter === filter.id}
                 >
@@ -99,10 +98,10 @@ const AssignedPatientsPanel = ({
         </div>
 
         {filteredPatients.length === 0 ? (
-            <Card className="p-12 text-center border border-dashed border-gray-200">
-                <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" aria-hidden="true" />
-                <h4 className="text-lg font-semibold text-gray-900">No patients assigned for this shift</h4>
-                <p className="text-gray-500 mt-2">Please refresh or check with charge nurse.</p>
+            <Card className="p-12 text-center border border-dashed border-gray-200 dark:border-slate-600 dark:bg-slate-800">
+                <Users className="w-12 h-12 text-gray-300 dark:text-slate-600 mx-auto mb-3" aria-hidden="true" />
+                <h4 className="text-lg font-semibold text-gray-900 dark:text-slate-100">No patients assigned for this shift</h4>
+                <p className="text-gray-500 dark:text-slate-400 mt-2">Please refresh or check with charge nurse.</p>
                 <Button className="mt-6" variant="outline">Refresh</Button>
             </Card>
         ) : (
@@ -118,70 +117,70 @@ const AssignedPatientsPanel = ({
                     return (
                         <Card
                             key={patient.id}
-                            className={`h-full p-5 shadow-soft hover:shadow-lg transition-shadow duration-300 border border-gray-100 ${acuity.border}`}
+                            className={`h-full p-5 shadow-soft hover:shadow-lg transition-shadow duration-300 border border-gray-100 dark:border-slate-700 dark:bg-slate-800 ${acuity.border}`}
                         >
                             <div className="flex flex-col h-full gap-4">
                                 <div className="flex justify-between items-start gap-4">
                                     <div>
-                                        <h4 className="text-lg font-semibold text-gray-900 tracking-tight">{patient.name}</h4>
+                                        <h4 className="text-lg font-semibold text-gray-900 dark:text-slate-100 tracking-tight">{patient.name}</h4>
                                         <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
                                             <Badge type="blue" className="!bg-brand-light !text-brand-medium">
                                                 MRN: {patient.mrn}
                                             </Badge>
                                         </div>
                                     </div>
-                                    <div className="text-right text-sm text-gray-500 space-y-1">
+                                    <div className="text-right text-sm text-gray-500 dark:text-slate-400 space-y-1">
                                         <div className="flex items-center gap-2 justify-end">
-                                            <Users className="w-4 h-4 text-gray-400" aria-hidden="true" />
+                                            <Users className="w-4 h-4 text-gray-400 dark:text-slate-500" aria-hidden="true" />
                                             <span>Age {patient.age}, {patient.gender}</span>
                                         </div>
                                         <div className="flex items-center gap-2 justify-end">
-                                            <Calendar className="w-4 h-4 text-gray-400" aria-hidden="true" />
+                                            <Calendar className="w-4 h-4 text-gray-400 dark:text-slate-500" aria-hidden="true" />
                                             <span>Admitted: {new Date(patient.admissionDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="flex flex-wrap items-center gap-3 text-sm">
-                                    <span className="px-3 py-1 rounded-full font-semibold text-xs uppercase tracking-wide bg-gray-100 text-gray-700 flex items-center gap-2">
+                                    <span className="px-3 py-1 rounded-full font-semibold text-xs uppercase tracking-wide bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 flex items-center gap-2">
                                         Room {patient.room} · Bed {patient.bed}
                                     </span>
                                     <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${acuity.badge}`}>{acuity.label}</span>
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm font-medium">
-                                    <div className={`flex items-center gap-2 rounded-lg border border-gray-100 px-3 py-2 ${vitalsStatus.classes}`}>
+                                    <div className={`flex items-center gap-2 rounded-lg border border-gray-100 dark:border-slate-600 px-3 py-2 ${vitalsStatus.classes}`}>
                                         <VitalsIcon className="w-4 h-4" aria-hidden="true" />
                                         {patient.vitalsStatus === 'overdue' && patient.vitalsOverdueBy ? `Overdue ${patient.vitalsOverdueBy} min` : vitalsStatus.text}
                                     </div>
-                                    <div className={`flex items-center gap-2 rounded-lg border border-gray-100 px-3 py-2 ${medicationStatus.classes}`}>
+                                    <div className={`flex items-center gap-2 rounded-lg border border-gray-100 dark:border-slate-600 px-3 py-2 ${medicationStatus.classes}`}>
                                         <MedicationIcon className="w-4 h-4" aria-hidden="true" />
                                         {patient.medicationStatus === 'due-soon' && patient.medicationsDue ? `${patient.medicationsDue} due soon` : medicationStatus.text}
                                     </div>
                                 </div>
 
                                 {patient.specialAlerts.length > 0 && (
-                                    <div className="flex flex-wrap gap-2 text-xs text-gray-600">
+                                    <div className="flex flex-wrap gap-2 text-xs text-gray-600 dark:text-slate-400">
                                         {patient.specialAlerts.includes('fall-risk') && (
-                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-100 text-red-600" title="Fall risk">
+                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400" title="Fall risk">
                                                 <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />
                                                 Fall risk
                                             </span>
                                         )}
                                         {patient.specialAlerts.includes('diabetic') && (
-                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 text-amber-600" title="Diabetic">
+                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400" title="Diabetic">
                                                 <Droplet className="w-3.5 h-3.5" aria-hidden="true" />
                                                 Diabetic
                                             </span>
                                         )}
                                         {patient.specialAlerts.includes('npo') && (
-                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-200 text-gray-700" title="NPO">
+                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-200 dark:bg-slate-600 text-gray-700 dark:text-slate-300" title="NPO">
                                                 <Ban className="w-3.5 h-3.5" aria-hidden="true" />
                                                 NPO
                                             </span>
                                         )}
                                         {patient.specialAlerts.includes('contact-isolation') && (
-                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-100 text-brand-deep" title="Contact isolation">
+                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-brand-deep dark:text-blue-400" title="Contact isolation">
                                                 <Shield className="w-3.5 h-3.5" aria-hidden="true" />
                                                 Contact isolation
                                             </span>
@@ -190,7 +189,7 @@ const AssignedPatientsPanel = ({
                                 )}
 
                                 {showAllergy && (
-                                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-start gap-2" role="alert">
+                                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg flex items-start gap-2" role="alert">
                                         <AlertTriangle className="w-4 h-4 mt-0.5" aria-hidden="true" />
                                         <div>
                                             <p className="font-semibold text-sm">Allergy Alert</p>

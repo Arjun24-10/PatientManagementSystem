@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Pill, RefreshCw, Clock, CheckCircle } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
@@ -15,12 +15,12 @@ const PatientPrescriptions = () => {
 
    return (
       <div className="space-y-8">
-         <h2 className="text-2xl font-bold text-gray-800">My Medications</h2>
+         <h2 className="text-2xl font-bold text-gray-800 dark:text-slate-100">My Medications</h2>
 
          {/* Active Medications */}
          <div className="space-y-4">
-            <h3 className="font-bold text-gray-600 uppercase tracking-wider text-sm flex items-center">
-               <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
+            <h3 className="font-bold text-gray-600 dark:text-slate-300 uppercase tracking-wider text-sm flex items-center">
+               <CheckCircle className="w-4 h-4 mr-2 text-green-500 dark:text-green-400" />
                Current Prescriptions
             </h3>
 
@@ -32,18 +32,18 @@ const PatientPrescriptions = () => {
                      </div>
 
                      <div>
-                        <h4 className="text-xl font-bold text-gray-800">{rx.name}</h4>
-                        <p className="text-green-600 font-medium">{rx.dosage}</p>
+                        <h4 className="text-xl font-bold text-gray-800 dark:text-slate-100">{rx.name}</h4>
+                        <p className="text-green-600 dark:text-green-400 font-medium">{rx.dosage}</p>
                      </div>
 
-                     <div className="bg-gray-50 p-3 rounded-lg space-y-1">
+                     <div className="bg-gray-50 dark:bg-slate-800/50 p-3 rounded-lg space-y-1">
                         <div className="flex justify-between text-sm">
-                           <span className="text-gray-500">Frequency:</span>
-                           <span className="font-medium text-gray-800">{rx.frequency}</span>
+                           <span className="text-gray-500 dark:text-slate-400">Frequency:</span>
+                           <span className="font-medium text-gray-800 dark:text-slate-100">{rx.frequency}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                           <span className="text-gray-500">Next Refill:</span>
-                           <span className="font-medium text-gray-800">In 5 days</span>
+                           <span className="text-gray-500 dark:text-slate-400">Next Refill:</span>
+                           <span className="font-medium text-gray-800 dark:text-slate-100">In 5 days</span>
                         </div>
                      </div>
 
@@ -54,28 +54,28 @@ const PatientPrescriptions = () => {
                      </div>
                   </Card>
                ))}
-               {activeRx.length === 0 && <p className="text-gray-500 italic">No active prescriptions.</p>}
+               {activeRx.length === 0 && <p className="text-gray-500 dark:text-slate-400 italic">No active prescriptions.</p>}
             </div>
          </div>
 
          {/* History */}
          <div className="space-y-4 pt-6 text-opacity-80">
-            <h3 className="font-bold text-gray-600 uppercase tracking-wider text-sm flex items-center">
-               <Clock className="w-4 h-4 mr-2 text-gray-400" />
+            <h3 className="font-bold text-gray-600 dark:text-slate-300 uppercase tracking-wider text-sm flex items-center">
+               <Clock className="w-4 h-4 mr-2 text-gray-400 dark:text-slate-500" />
                Past Medications
             </h3>
 
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
                {historyRx.map((rx, idx) => (
-                  <div key={rx.id} className={`p-4 flex justify-between items-center ${idx !== historyRx.length - 1 ? 'border-b border-gray-100' : ''}`}>
+                  <div key={rx.id} className={`p-4 flex justify-between items-center ${idx !== historyRx.length - 1 ? 'border-b border-gray-100 dark:border-slate-700' : ''}`}>
                      <div>
-                        <h4 className="font-bold text-gray-700">{rx.name}</h4>
-                        <p className="text-sm text-gray-500">{rx.dosage} • {rx.date}</p>
+                        <h4 className="font-bold text-gray-700 dark:text-slate-200">{rx.name}</h4>
+                        <p className="text-sm text-gray-500 dark:text-slate-400">{rx.dosage} • {rx.date}</p>
                      </div>
                      <Badge type="gray">Discontinued</Badge>
                   </div>
                ))}
-               {historyRx.length === 0 && <div className="p-6 text-center text-gray-400">No history found.</div>}
+               {historyRx.length === 0 && <div className="p-6 text-center text-gray-400 dark:text-slate-500">No history found.</div>}
             </div>
          </div>
       </div>

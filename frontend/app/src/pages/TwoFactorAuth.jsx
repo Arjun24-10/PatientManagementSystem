@@ -256,7 +256,7 @@ export default function TwoFactorAuth() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-cyan-50">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-cyan-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Animated Background */}
       <div className="absolute top-0 left-0 w-full h-full">
         <div className="absolute top-0 left-0 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float"></div>
@@ -269,26 +269,26 @@ export default function TwoFactorAuth() {
           {/* Back Button */}
           <button
             onClick={handleBackToLogin}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors group"
+            className="flex items-center gap-2 text-gray-600 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-100 mb-6 transition-colors group"
           >
             <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
             <span className="font-medium">Back to Login</span>
           </button>
 
           {/* Main Card */}
-          <div className="glass-card p-8 md:p-10 rounded-3xl animate-fade-in">
+          <div className="glass-card dark:bg-slate-800/80 dark:border-slate-700/50 p-8 md:p-10 rounded-3xl animate-fade-in">
             {/* Header */}
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-4">
                 <Shield className="h-8 w-8 text-white" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Two-Factor Authentication</h1>
-              <p className="text-gray-600">Enter the verification code sent to your device</p>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100 mb-2">Two-Factor Authentication</h1>
+              <p className="text-gray-600 dark:text-slate-400">Enter the verification code sent to your device</p>
               
               {/* User Info */}
-              <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full">
-                <Mail className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-700">
+              <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/30 rounded-full">
+                <Mail className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
                   {user.maskedEmail || user.email}
                 </span>
               </div>
@@ -296,14 +296,14 @@ export default function TwoFactorAuth() {
 
             {/* Error Alert */}
             {error && (
-              <div className="mb-6 bg-gradient-to-r from-red-50 to-red-100 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium flex items-center justify-between animate-shake">
+              <div className="mb-6 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-xl text-sm font-medium flex items-center justify-between animate-shake">
                 <div className="flex items-center gap-2">
-                  <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+                  <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400 flex-shrink-0" />
                   <span>{error}</span>
                 </div>
                 <button 
                   onClick={dismissError}
-                  className="text-red-500 hover:text-red-700 transition-colors"
+                  className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
                   aria-label="Dismiss error"
                 >
                   <X className="h-4 w-4" />
@@ -313,16 +313,16 @@ export default function TwoFactorAuth() {
 
             {/* Success Alert */}
             {success && (
-              <div className="mb-6 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
+              <div className="mb-6 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-500 dark:text-green-400" />
                 <span>{success}</span>
               </div>
             )}
 
             {/* Lockout Warning */}
             {isLocked && (
-              <div className="mb-6 bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 text-orange-700 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2">
-                <Lock className="h-5 w-5 text-orange-500" />
+              <div className="mb-6 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/30 border border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-300 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2">
+                <Lock className="h-5 w-5 text-orange-500 dark:text-orange-400" />
                 <span>Account locked. Try again in {formatTime(lockoutCountdown)}</span>
               </div>
             )}
@@ -331,7 +331,7 @@ export default function TwoFactorAuth() {
               /* OTP Input Section */
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-4 text-center">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-slate-200 mb-4 text-center">
                     Enter 6-digit verification code
                   </label>
                   
@@ -351,12 +351,12 @@ export default function TwoFactorAuth() {
                         disabled={isLocked || verifying}
                         className={`w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-bold rounded-xl border-2 focus:outline-none focus:ring-2 transition-all ${
                           isLocked || verifying
-                            ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
+                            ? 'bg-gray-100 dark:bg-slate-700 border-gray-200 dark:border-slate-600 text-gray-400 dark:text-slate-500 cursor-not-allowed'
                             : error
-                            ? 'border-red-300 focus:ring-red-500 focus:border-red-500 animate-shake'
+                            ? 'border-red-300 dark:border-red-500 focus:ring-red-500 focus:border-red-500 animate-shake bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100'
                             : digit
-                            ? 'border-blue-500 bg-blue-50 focus:ring-blue-500'
-                            : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 focus:ring-blue-500 text-gray-900 dark:text-slate-100'
+                            : 'border-gray-300 dark:border-slate-600 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100'
                         }`}
                         aria-label={`Digit ${index + 1}`}
                       />
@@ -365,7 +365,7 @@ export default function TwoFactorAuth() {
                 </div>
 
                 {/* Verification Method Indicator */}
-                <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+                <div className="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-slate-400">
                   <Smartphone className="h-4 w-4" />
                   <span>Code sent to {user.maskedPhone || user.maskedEmail}</span>
                 </div>
@@ -394,27 +394,27 @@ export default function TwoFactorAuth() {
 
                 {/* Resend Code Section */}
                 <div className="text-center space-y-2">
-                  <p className="text-sm text-gray-500">Didn't receive a code?</p>
+                  <p className="text-sm text-gray-500 dark:text-slate-400">Didn't receive a code?</p>
                   {canResend ? (
                     <button
                       onClick={handleResendCode}
-                      className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center gap-1 mx-auto transition-colors"
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-sm flex items-center gap-1 mx-auto transition-colors"
                     >
                       <RefreshCw className="h-4 w-4" />
                       Resend Code
                     </button>
                   ) : (
-                    <p className="text-sm text-gray-400">
+                    <p className="text-sm text-gray-400 dark:text-slate-500">
                       Resend code in {countdown}s
                     </p>
                   )}
                 </div>
 
                 {/* Backup Code Link */}
-                <div className="text-center pt-4 border-t border-gray-200">
+                <div className="text-center pt-4 border-t border-gray-200 dark:border-slate-700">
                   <button
                     onClick={() => setShowBackupCode(true)}
-                    className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors"
                   >
                     Use backup code instead
                   </button>
@@ -424,7 +424,7 @@ export default function TwoFactorAuth() {
               /* Backup Code Section */
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-slate-200 mb-2">
                     Enter one of your backup codes
                   </label>
                   <input
@@ -438,10 +438,10 @@ export default function TwoFactorAuth() {
                     placeholder="XXXX-XXXX-XXXX-XXXX"
                     className={`w-full border-2 rounded-xl px-4 py-3 text-center font-mono text-lg tracking-wider focus:outline-none focus:ring-2 transition-all ${
                       isLocked || verifying
-                        ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
+                        ? 'bg-gray-100 dark:bg-slate-700 border-gray-200 dark:border-slate-600 text-gray-400 dark:text-slate-500 cursor-not-allowed'
                         : error
-                        ? 'border-red-300 focus:ring-red-500'
-                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                        ? 'border-red-300 dark:border-red-500 focus:ring-red-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100'
+                        : 'border-gray-300 dark:border-slate-600 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100'
                     }`}
                   />
                 </div>
@@ -476,7 +476,7 @@ export default function TwoFactorAuth() {
                       setBackupCode('');
                       setError('');
                     }}
-                    className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors"
                   >
                     Back to verification code
                   </button>
@@ -485,9 +485,9 @@ export default function TwoFactorAuth() {
             )}
 
             {/* Security Notice */}
-            <div className="mt-6 flex items-center gap-2 p-3 bg-blue-50 rounded-xl">
-              <Shield className="h-5 w-5 text-blue-600 flex-shrink-0" />
-              <p className="text-xs text-blue-700">
+            <div className="mt-6 flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl">
+              <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+              <p className="text-xs text-blue-700 dark:text-blue-300">
                 For your security, this code will expire in 10 minutes.
               </p>
             </div>
@@ -496,21 +496,21 @@ export default function TwoFactorAuth() {
             <div className="mt-6">
               <button
                 onClick={() => setShowHelp(!showHelp)}
-                className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors"
+                className="w-full flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700/50 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
               >
-                <div className="flex items-center gap-2 text-gray-700">
+                <div className="flex items-center gap-2 text-gray-700 dark:text-slate-300">
                   <HelpCircle className="h-5 w-5" />
                   <span className="font-medium text-sm">Having trouble?</span>
                 </div>
                 {showHelp ? (
-                  <ChevronUp className="h-5 w-5 text-gray-400" />
+                  <ChevronUp className="h-5 w-5 text-gray-400 dark:text-slate-500" />
                 ) : (
-                  <ChevronDown className="h-5 w-5 text-gray-400" />
+                  <ChevronDown className="h-5 w-5 text-gray-400 dark:text-slate-500" />
                 )}
               </button>
               
               {showHelp && (
-                <div className="mt-3 p-4 bg-gray-50 rounded-xl space-y-3 text-sm text-gray-600 animate-fade-in">
+                <div className="mt-3 p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl space-y-3 text-sm text-gray-600 dark:text-slate-400 animate-fade-in">
                   <p>• Make sure you're checking the correct device</p>
                   <p>• Check your spam folder for the email</p>
                   <p className="flex items-center gap-2">
@@ -527,7 +527,7 @@ export default function TwoFactorAuth() {
           </div>
 
           {/* Footer */}
-          <div className="mt-6 text-center text-xs text-gray-500">
+          <div className="mt-6 text-center text-xs text-gray-500 dark:text-slate-500">
             <p>© 2026 Healthcare Management System. All rights reserved.</p>
           </div>
         </div>

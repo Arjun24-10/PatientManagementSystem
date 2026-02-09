@@ -26,10 +26,10 @@ const VitalsAlertBanner = ({
                     <p className={`font-semibold text-sm ${toneClasses.text}`}>
                         {severity === 'critical' ? 'Critical values detected' : 'Abnormal vitals detected'}
                     </p>
-                    <ul className="mt-2 space-y-1 text-sm text-gray-700">
+                    <ul className="mt-2 space-y-1 text-sm text-gray-700 dark:text-slate-300">
                         {alerts.map((alert) => (
                             <li key={alert} className="flex items-center gap-2">
-                                <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${severity === 'critical' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'}`}>
+                                <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${severity === 'critical' ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'}`}>
                                     {severity === 'critical' ? 'Critical' : 'Warning'}
                                 </span>
                                 <span>{alert}</span>
@@ -37,7 +37,7 @@ const VitalsAlertBanner = ({
                         ))}
                     </ul>
                     {notified && (
-                        <p className="text-xs text-gray-600 mt-2">Physician notified at {new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</p>
+                        <p className="text-xs text-gray-600 dark:text-slate-400 mt-2">Physician notified at {new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</p>
                     )}
                 </div>
             </div>
