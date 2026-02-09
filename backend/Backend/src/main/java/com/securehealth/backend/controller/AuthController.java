@@ -1,8 +1,10 @@
 package com.securehealth.backend.controller;
 
+import com.securehealth.backend.dto.ForgotPasswordRequest;
 import com.securehealth.backend.dto.LoginRequest;
 import com.securehealth.backend.dto.LoginResponse;
 import com.securehealth.backend.dto.RegistrationRequest;
+import com.securehealth.backend.dto.ResetPasswordRequest;
 import com.securehealth.backend.model.Login;
 import com.securehealth.backend.service.AuthService;
 import jakarta.servlet.http.Cookie;            
@@ -209,5 +211,114 @@ public class AuthController {
         response.addCookie(cookie);
         
         return ResponseEntity.ok("Logged out successfully");
+    }
+
+    // ==================== PASSWORD RECOVERY ENDPOINTS ====================
+
+    /**
+     * Initiates the password reset process.
+     *
+     * <p><b>Endpoint:</b> POST /api/auth/forgot-password</p>
+     *
+     * <p>This endpoint accepts a user's email address and, if the account exists,
+     * sends a password reset link to that email. For security reasons, the same
+     * response is returned whether or not the email exists in the system.</p>
+     *
+     * <p><b>Security Note:</b> This endpoint does not reveal whether an email
+     * is registered to prevent email enumeration attacks.</p>
+     *
+     * @param request The validated DTO containing the user's email.
+     * @return HTTP 200 with a generic success message.
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, String>> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest request) {
+        try {
+            authService.initiatePasswordReset(request.getEmail());
+            
+            // Always return success to prevent email enumeration
+            Map<String, String> resp = new HashMap<>();
+            resp.put("message", "If an account exists with this email, a password reset link has been sent.");
+            return ResponseEntity.ok(resp);
+            
+        } catch (Exception e) {
+            // Log the error but don't expose details
+            Map<String, String> resp = new HashMap<>();
+            resp.put("message", "If an account exists with this email, a password reset link has been sent.");
+            return ResponseEntity.ok(resp);
+        }
+    }
+
+    /**
+     * Validates a password reset token.
+     *
+     * <p><b>Endpoint:</b> GET /api/auth/validate-reset-token</p>
+     *
+     * <p>This endpoint checks if a reset token is valid before showing
+     * the password reset form. This prevents users from filling out
+     * the form only to find out the token is expired.</p>
+     *
+     * @param token The reset token from the URL query parameter.
+     * @return HTTP 200 if valid, HTTP 400 if invalid or expired.
+     */
+    @GetMapping("/validate-reset-token")
+    public ResponseEntity<Map<String, Object>> validateResetToken(
+            @RequestParam("token") String token) {
+        
+        boolean isValid = authService.validateResetToken(token);
+        
+        Map<String, Object> resp = new HashMap<>();
+        if (isValid) {
+            resp.put("valid", true);
+            resp.put("message", "Token is valid");
+            return ResponseEntity.ok(resp);
+        } else {
+            resp.put("valid", false);
+            resp.put("message", "Token is invalid or expired");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resp);
+        }
+    }
+
+    /**
+     * Resets the user's password using a valid reset token.
+     *
+     * <p><b>Endpoint:</b> POST /api/auth/reset-password</p>
+     *
+     * <p>This endpoint validates the reset token, checks for password reuse,
+     * and updates the user's password. It also invalidates all active sessions
+     * for security purposes.</p>
+     *
+     * <p><b>Password Requirements:</b></p>
+     * <ul>
+     *   <li>Minimum 12 characters (NIST 800-63B compliant)</li>
+     *   <li>Cannot be one of the last 5 passwords used</li>
+     *   <li>Cannot contain common weak patterns</li>
+     * </ul>
+     *
+     * @param request The validated DTO containing token, new password, and confirmation.
+     * @return HTTP 200 if successful, HTTP 400 if validation fails.
+     */
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request) {
+        try {
+            // Validate passwords match
+            if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+                Map<String, String> resp = new HashMap<>();
+                resp.put("message", "Passwords do not match");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resp);
+            }
+
+            authService.resetPassword(request.getToken(), request.getNewPassword());
+            
+            Map<String, String> resp = new HashMap<>();
+            resp.put("message", "Password has been reset successfully. Please login with your new password.");
+            return ResponseEntity.ok(resp);
+            
+        } catch (RuntimeException e) {
+            Map<String, String> resp = new HashMap<>();
+            resp.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resp);
+        }
     }
 }

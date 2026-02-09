@@ -2,9 +2,13 @@ package com.securehealth.backend.service;
 
 import com.securehealth.backend.dto.LoginResponse;
 import com.securehealth.backend.model.Login;
+import com.securehealth.backend.model.PasswordHistory;
+import com.securehealth.backend.model.PasswordResetToken;
 import com.securehealth.backend.model.Role;
 import com.securehealth.backend.model.Session;
 import com.securehealth.backend.repository.LoginRepository;
+import com.securehealth.backend.repository.PasswordHistoryRepository;
+import com.securehealth.backend.repository.PasswordResetTokenRepository;
 import com.securehealth.backend.repository.SessionRepository;
 import com.securehealth.backend.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +19,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -32,6 +39,12 @@ class AuthServiceTest {
 
     @Mock
     private SessionRepository sessionRepository;
+
+    @Mock
+    private PasswordResetTokenRepository resetTokenRepository;
+
+    @Mock
+    private PasswordHistoryRepository passwordHistoryRepository;
 
     @Mock
     private JwtUtil jwtUtil;
@@ -193,5 +206,215 @@ class AuthServiceTest {
         // Verify the session was updated (revoked)
         verify(sessionRepository).save(mockSession);
         assertTrue(mockSession.isRevoked());
+    }
+
+    // ==================== Password Recovery Tests ====================
+
+    @Test
+    void testInitiatePasswordReset_Success() {
+        // Arrange
+        String email = "test@example.com";
+        when(loginRepository.findByEmail(email)).thenReturn(Optional.of(testUser));
+
+        // Act
+        authService.initiatePasswordReset(email);
+
+        // Assert
+        verify(resetTokenRepository).invalidateAllTokensForUser(testUser);
+        verify(resetTokenRepository).save(any(PasswordResetToken.class));
+        verify(emailService).sendPasswordResetEmail(eq(email), anyString());
+    }
+
+    @Test
+    void testInitiatePasswordReset_UserNotFound() {
+        // Arrange
+        String email = "nonexistent@example.com";
+        when(loginRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        // Act - Should not throw, just silently return
+        assertDoesNotThrow(() -> authService.initiatePasswordReset(email));
+
+        // Assert - No token should be created, no email sent
+        verify(resetTokenRepository, never()).save(any(PasswordResetToken.class));
+        verify(emailService, never()).sendPasswordResetEmail(anyString(), anyString());
+    }
+
+    @Test
+    void testValidateResetToken_Valid() {
+        // Arrange
+        String token = "validToken123";
+        PasswordResetToken mockToken = new PasswordResetToken();
+        mockToken.setUsed(false);
+        mockToken.setExpiresAt(LocalDateTime.now().plusMinutes(30));
+        
+        when(resetTokenRepository.findValidToken(anyString(), any(LocalDateTime.class)))
+            .thenReturn(Optional.of(mockToken));
+
+        // Act
+        boolean result = authService.validateResetToken(token);
+
+        // Assert
+        assertTrue(result);
+    }
+
+    @Test
+    void testValidateResetToken_Invalid() {
+        // Arrange
+        String token = "invalidToken";
+        when(resetTokenRepository.findValidToken(anyString(), any(LocalDateTime.class)))
+            .thenReturn(Optional.empty());
+
+        // Act
+        boolean result = authService.validateResetToken(token);
+
+        // Assert
+        assertFalse(result);
+    }
+
+    @Test
+    void testResetPassword_Success() {
+        // Arrange
+        String token = "validToken123";
+        String newPassword = "NewSecurePass123!";
+        
+        PasswordResetToken mockResetToken = new PasswordResetToken();
+        mockResetToken.setUser(testUser);
+        mockResetToken.setUsed(false);
+        mockResetToken.setExpiresAt(LocalDateTime.now().plusMinutes(30));
+        
+        when(resetTokenRepository.findValidToken(anyString(), any(LocalDateTime.class)))
+            .thenReturn(Optional.of(mockResetToken));
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false); // Password not reused
+        when(passwordHistoryRepository.findRecentPasswords(any(Login.class), anyInt()))
+            .thenReturn(Collections.emptyList());
+        when(passwordEncoder.encode(newPassword)).thenReturn("newHashedPassword");
+
+        // Act
+        assertDoesNotThrow(() -> authService.resetPassword(token, newPassword));
+
+        // Assert
+        verify(passwordHistoryRepository).save(any(PasswordHistory.class)); // Old password saved to history
+        verify(loginRepository).save(testUser); // New password saved
+        verify(resetTokenRepository).save(mockResetToken); // Token marked as used
+        assertTrue(mockResetToken.isUsed());
+    }
+
+    @Test
+    void testResetPassword_InvalidToken() {
+        // Arrange
+        String token = "invalidToken";
+        String newPassword = "NewSecurePass123!";
+        
+        when(resetTokenRepository.findValidToken(anyString(), any(LocalDateTime.class)))
+            .thenReturn(Optional.empty());
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+            () -> authService.resetPassword(token, newPassword));
+        
+        assertEquals("Invalid or expired reset token", exception.getMessage());
+        verify(loginRepository, never()).save(any(Login.class));
+    }
+
+    @Test
+    void testResetPassword_PasswordReused() {
+        // Arrange
+        String token = "validToken123";
+        String newPassword = "MyOldSecure123!"; // No weak patterns, 14 chars
+        
+        PasswordResetToken mockResetToken = new PasswordResetToken();
+        mockResetToken.setUser(testUser);
+        mockResetToken.setUsed(false);
+        mockResetToken.setExpiresAt(LocalDateTime.now().plusMinutes(30));
+        
+        when(resetTokenRepository.findValidToken(anyString(), any(LocalDateTime.class)))
+            .thenReturn(Optional.of(mockResetToken));
+        // Current password matches (reuse detected)
+        when(passwordEncoder.matches(newPassword, testUser.getPasswordHash())).thenReturn(true);
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+            () -> authService.resetPassword(token, newPassword));
+        
+        assertTrue(exception.getMessage().contains("reuse"));
+        verify(loginRepository, never()).save(any(Login.class));
+    }
+
+    @Test
+    void testResetPassword_PasswordInHistory() {
+        // Arrange
+        String token = "validToken123";
+        String newPassword = "HistoricSecure1!"; // No weak patterns, 16 chars
+        
+        PasswordResetToken mockResetToken = new PasswordResetToken();
+        mockResetToken.setUser(testUser);
+        mockResetToken.setUsed(false);
+        mockResetToken.setExpiresAt(LocalDateTime.now().plusMinutes(30));
+        
+        PasswordHistory historyEntry = new PasswordHistory(testUser, "oldHashedPassword");
+        
+        when(resetTokenRepository.findValidToken(anyString(), any(LocalDateTime.class)))
+            .thenReturn(Optional.of(mockResetToken));
+        // Current password doesn't match
+        when(passwordEncoder.matches(newPassword, testUser.getPasswordHash())).thenReturn(false);
+        // But password in history matches (reuse detected)
+        when(passwordHistoryRepository.findRecentPasswords(any(Login.class), anyInt()))
+            .thenReturn(List.of(historyEntry));
+        when(passwordEncoder.matches(newPassword, historyEntry.getPasswordHash())).thenReturn(true);
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+            () -> authService.resetPassword(token, newPassword));
+        
+        assertTrue(exception.getMessage().contains("reuse"));
+        verify(loginRepository, never()).save(any(Login.class));
+    }
+
+    @Test
+    void testResetPassword_WeakPassword() {
+        // Arrange
+        String token = "validToken123";
+        String weakPassword = "password1234"; // Contains "password" - weak pattern
+        
+        PasswordResetToken mockResetToken = new PasswordResetToken();
+        mockResetToken.setUser(testUser);
+        mockResetToken.setUsed(false);
+        mockResetToken.setExpiresAt(LocalDateTime.now().plusMinutes(30));
+        
+        when(resetTokenRepository.findValidToken(anyString(), any(LocalDateTime.class)))
+            .thenReturn(Optional.of(mockResetToken));
+        // Note: No stubs for passwordEncoder/passwordHistoryRepository 
+        // because validation fails before reuse check
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+            () -> authService.resetPassword(token, weakPassword));
+        
+        assertTrue(exception.getMessage().contains("weak pattern"));
+        verify(loginRepository, never()).save(any(Login.class));
+    }
+
+    @Test
+    void testResetPassword_ShortPassword() {
+        // Arrange
+        String token = "validToken123";
+        String shortPassword = "Short1!"; // Less than 12 characters
+        
+        PasswordResetToken mockResetToken = new PasswordResetToken();
+        mockResetToken.setUser(testUser);
+        mockResetToken.setUsed(false);
+        mockResetToken.setExpiresAt(LocalDateTime.now().plusMinutes(30));
+        
+        when(resetTokenRepository.findValidToken(anyString(), any(LocalDateTime.class)))
+            .thenReturn(Optional.of(mockResetToken));
+        // Note: No stubs for passwordEncoder/passwordHistoryRepository 
+        // because validation fails before reuse check
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+            () -> authService.resetPassword(token, shortPassword));
+        
+        assertTrue(exception.getMessage().contains("12 characters"));
+        verify(loginRepository, never()).save(any(Login.class));
     }
 }

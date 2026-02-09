@@ -39,4 +39,32 @@ public class EmailService {
         msg.setText("Your OTP is: " + otp);
         mailSender.send(msg);
     }
+
+    /**
+     * Sends a password reset email to a user.
+     *
+     * <p>This method constructs an email containing a secure link
+     * for resetting the user's password. The link contains a unique
+     * token that expires after 30 minutes.</p>
+     *
+     * @param to        The recipient's email address.
+     * @param resetLink The full URL containing the reset token.
+     */
+    public void sendPasswordResetEmail(String to, String resetLink) {
+        SimpleMailMessage msg = new SimpleMailMessage();
+        msg.setTo(to);
+        msg.setSubject("SecureHealth - Password Reset Request");
+        msg.setText(
+            "Hello,\n\n" +
+            "We received a request to reset your password for your SecureHealth account.\n\n" +
+            "Click the link below to reset your password:\n" +
+            resetLink + "\n\n" +
+            "This link will expire in 30 minutes.\n\n" +
+            "If you did not request a password reset, please ignore this email " +
+            "or contact support if you have concerns.\n\n" +
+            "Best regards,\n" +
+            "SecureHealth Team"
+        );
+        mailSender.send(msg);
+    }
 }
