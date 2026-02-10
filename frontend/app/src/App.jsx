@@ -1,5 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from './contexts/ThemeContext';
+import { Routes, Route } from 'react-router-dom';
 
 import Login from './pages/login.jsx';
 import CreateAccount from './pages/createAccount.jsx';
@@ -40,66 +39,63 @@ import AdminDashboard from './pages/admin/Dashboard.jsx';
 
 function App() {
   return (
-    <ThemeProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/create" element={<CreateAccount />} />
-          <Route path="/verify-2fa" element={<TwoFactorAuth />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/create" element={<CreateAccount />} />
+      <Route path="/verify-2fa" element={<TwoFactorAuth />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
-          {/* Doctor Dashboard */}
-          <Route path="/dashboard/doctor/*" element={<DashboardLayout role="doctor" userName="Dr. Smith" />}>
-            <Route path="" element={<DoctorDashboard />} />
-            <Route path="patients" element={<Patients />} />
-            <Route path="patient/:id" element={<PatientDetail />} />
-            <Route path="appointments" element={<DoctorAppointments />} />
-            <Route path="profile" element={<DoctorProfile />} />
-            <Route path="messages" element={<DoctorMessages />} />
-            <Route path="labs" element={<DoctorLabResults />} />
-            <Route path="prescriptions" element={<DoctorPrescriptions />} />
-            <Route path="reports" element={<DoctorReports />} />
-          </Route>
+      {/* Doctor Dashboard */}
+      <Route path="/dashboard/doctor/*" element={<DashboardLayout role="doctor" userName="Dr. Smith" />}>
 
-          {/* Patient Dashboard */}
-          <Route path="/dashboard/patient/*" element={<DashboardLayout role="patient" userName="John Doe" />}>
-            <Route path="" element={<PatientDashboard />} />
-            <Route path="appointments" element={<PatientAppointments />} />
-            <Route path="profile" element={<PatientProfile />} />
-            <Route path="labs" element={<PatientLabResults />} />
-            <Route path="history" element={<PatientMedicalHistory />} />
-            <Route path="medications" element={<PatientMedications />} />
-            <Route path="prescriptions" element={<PatientPrescriptions />} />
-            <Route path="consents" element={<ConsentManagement />} />
-          </Route>
+        <Route path="" element={<DoctorDashboard />} />
+        <Route path="patients" element={<Patients />} />
+        <Route path="patient/:id" element={<PatientDetail />} />
+        <Route path="appointments" element={<DoctorAppointments />} />
+        <Route path="profile" element={<DoctorProfile />} />
+        <Route path="messages" element={<DoctorMessages />} />
+        <Route path="labs" element={<DoctorLabResults />} />
+        <Route path="prescriptions" element={<DoctorPrescriptions />} />
+        <Route path="reports" element={<DoctorReports />} />
+      </Route>
 
-          {/* Nurse Dashboard */}
-          <Route path="/dashboard/nurse/*" element={<DashboardLayout role="nurse" userName="Nurse Joy" />}>
-            <Route path="" element={<NurseDashboard />} />
-            <Route path="vitals" element={<NurseVitals />} />
-            <Route path="profile" element={<NurseProfile />} />
-          </Route>
+      {/* Patient Dashboard */}
+      <Route path="/dashboard/patient/*" element={<DashboardLayout role="patient" userName="John Doe" />}>
+        <Route path="" element={<PatientDashboard />} />
+        <Route path="appointments" element={<PatientAppointments />} />
+        <Route path="profile" element={<PatientProfile />} />
+        <Route path="labs" element={<PatientLabResults />} />
+        <Route path="history" element={<PatientMedicalHistory />} />
+        <Route path="medications" element={<PatientMedications />} />
+        <Route path="prescriptions" element={<PatientPrescriptions />} />
+        <Route path="consents" element={<ConsentManagement />} />
+      </Route>
 
-          {/* Lab Dashboard */}
-          <Route path="/dashboard/lab/*" element={<DashboardLayout role="lab" userName="Tech Mike" />}>
-            <Route path="" element={<LabDashboard />} />
-            <Route path="orders" element={<LabOrders />} />
-            <Route path="orders/:id" element={<LabOrderDetail />} />
-            <Route path="upload" element={<UploadResults />} />
-            <Route path="history" element={<LabHistory />} />
-            <Route path="profile" element={<LabProfile />} />
-          </Route>
+      {/* Nurse Dashboard */}
+      <Route path="/dashboard/nurse/*" element={<DashboardLayout role="nurse" userName="Nurse Joy" />}>
+        <Route path="" element={<NurseDashboard />} />
+        <Route path="vitals" element={<NurseVitals />} />
+        <Route path="profile" element={<NurseProfile />} />
+      </Route>
 
-          {/* Admin Dashboard */}
-          <Route path="/dashboard/admin/*" element={<DashboardLayout role="admin" userName="Admin User" />}>
-            <Route path="" element={<AdminDashboard />} />
-            <Route path="profile" element={<AdminProfile />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </ThemeProvider>
+      {/* Lab Dashboard */}
+      <Route path="/dashboard/lab/*" element={<DashboardLayout role="lab" userName="Tech Mike" />}>
+        <Route path="" element={<LabDashboard />} />
+        <Route path="orders" element={<LabOrders />} />
+        <Route path="orders/:id" element={<LabOrderDetail />} />
+        <Route path="upload" element={<UploadResults />} />
+        <Route path="history" element={<LabHistory />} />
+        <Route path="profile" element={<LabProfile />} />
+      </Route>
+
+      {/* Admin Dashboard */}
+      <Route path="/dashboard/admin/*" element={<DashboardLayout role="admin" userName="Admin User" />}>
+        <Route path="" element={<AdminDashboard />} />
+        <Route path="profile" element={<AdminProfile />} />
+      </Route>
+    </Routes>
   );
 }
 
