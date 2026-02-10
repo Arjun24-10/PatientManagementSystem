@@ -15,20 +15,21 @@ public class AuditLog {
     private Long id;
 
     @Column(nullable = false)
-    private String email;          // Identity (Task #19281)
+    private String email;          // WHO performed the action
 
     @Column(nullable = false)
-    private String action;         // e.g. "LOGIN_SUCCESS", "OTP_SENT", "LOGOUT"
+    private String action;         // WHAT (e.g., LOGIN_SUCCESS, OTP_FAILED)
 
-    private String ipAddress;      // Metadata (Task #19282)
+    private String ipAddress;      // WHERE (IP Address)
 
-    private String userAgent;      // Device Metadata (Task #19282)
+    private String userAgent;      // HOW (Browser/Device info)
 
-    private String details;        // e.g. "Failed: Invalid Password" or "OTP Required"
+    private String details;        // CONTEXT (e.g., "Account locked due to 5 failed attempts")
 
     @Column(nullable = false)
-    private LocalDateTime timestamp = LocalDateTime.now(); // Timestamp (Task #19281)
+    private LocalDateTime timestamp = LocalDateTime.now(); // WHEN
 
+    // Constructor for easy saving
     public AuditLog(String email, String action, String ip, String agent, String details) {
         this.email = email;
         this.action = action;

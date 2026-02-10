@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
-    // We will use this later for the Admin Dashboard (Task #19284)
+    
+    // This will be used later for the Admin Dashboard (User Story 1.4)
+    // "Show me the last 10 logs for manas@example.com"
     List<AuditLog> findByEmailOrderByTimestampDesc(String email);
 }
