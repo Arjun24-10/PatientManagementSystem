@@ -174,53 +174,17 @@ export default function Login() {
                 <span className="text-gray-800 dark:text-slate-100">Always Available</span>
               </h1>
 
+              <div className="mt-2 space-y-1">
+                <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">Your Health, Your Data, Your Control.</p>
+                <p className="text-sm text-gray-600 dark:text-slate-400">Secure Access to Personalized Care.</p>
+              </div>
               <p className="text-sm text-gray-600 dark:text-slate-400 max-w-md">
-                Join thousands of patients experiencing world-class healthcare with our dedicated team of specialists.
+                {/* Removed marketing text for minimal UI */}
               </p>
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-2 gap-2">
-              <div className="glass-card dark:bg-slate-800/50 dark:border-slate-700/50 p-3 rounded-xl hover-lift animate-fade-in-delay-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="p-1.5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg">
-                    <Users className="w-4 h-4 text-white" />
-                  </div>
-                  <p className="text-lg font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">5000+</p>
-                </div>
-                <p className="text-xs text-gray-600 dark:text-slate-400 font-medium">Verified Doctors</p>
-              </div>
-
-              <div className="glass-card dark:bg-slate-800/50 dark:border-slate-700/50 p-3 rounded-xl hover-lift animate-fade-in-delay-2">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="p-1.5 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg">
-                    <Clock className="w-4 h-4 text-white" />
-                  </div>
-                  <p className="text-lg font-bold bg-gradient-to-r from-purple-600 to-purple-700 bg-clip-text text-transparent">24/7</p>
-                </div>
-                <p className="text-xs text-gray-600 dark:text-slate-400 font-medium">Available Care</p>
-              </div>
-
-              <div className="glass-card dark:bg-slate-800/50 dark:border-slate-700/50 p-3 rounded-xl hover-lift animate-fade-in-delay-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="p-1.5 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-lg">
-                    <Shield className="w-4 h-4 text-white" />
-                  </div>
-                  <p className="text-lg font-bold bg-gradient-to-r from-cyan-600 to-cyan-700 bg-clip-text text-transparent">100%</p>
-                </div>
-                <p className="text-xs text-gray-600 dark:text-slate-400 font-medium">HIPAA Secure</p>
-              </div>
-
-              <div className="glass-card dark:bg-slate-800/50 dark:border-slate-700/50 p-3 rounded-xl hover-lift animate-fade-in-delay-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="p-1.5 bg-gradient-to-br from-green-500 to-green-600 rounded-lg">
-                    <Heart className="w-4 h-4 text-white" />
-                  </div>
-                  <p className="text-lg font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent">98%</p>
-                </div>
-                <p className="text-xs text-gray-600 dark:text-slate-400 font-medium">Satisfaction Rate</p>
-              </div>
-            </div>
+            {/* Removed stats cards for minimal UI */}
           </div>
 
           {/* Right Panel - Login Form */}
