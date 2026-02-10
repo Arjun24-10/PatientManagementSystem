@@ -25,22 +25,16 @@ describe('DashboardLayout Component', () => {
    });
 
    test('sidebar profile click navigates to profile page', () => {
-      const { getByText } = render(
+      const { getAllByText } = render(
          <DashboardLayout role="doctor" userName="Dr. Smith">
             <div>Content</div>
          </DashboardLayout>
       );
 
-      // Find the user name in the sidebar (there are two, one in mobile/header (hidden on desktop) and one in sidebar)
-      // The sidebar one is in the "Premium User Profile Section"
-      // We can search for the role text "doctor" which is also present.
-      // A better way is to look for the container with the onClick. 
-      // Since we added `glass-card-dark` class to the clickable div, we can try to find by text and traverse up, or just click the text.
-      // The text "Dr. Smith" appears in the sidebar.
-
-      const profileName = getByText('Dr. Smith');
-      // Click it
-      fireEvent.click(profileName);
+      // Find the user name in the sidebar (there are two, one in mobile/header and one in sidebar)
+      const profileNames = getAllByText('Dr. Smith');
+      // Click the first one
+      fireEvent.click(profileNames[0]);
 
       // Verify navigation
       expect(mockNavigate).toHaveBeenCalledWith('/dashboard/doctor/profile');

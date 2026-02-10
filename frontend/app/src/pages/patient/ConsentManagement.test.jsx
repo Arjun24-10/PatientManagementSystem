@@ -21,7 +21,7 @@ describe('ConsentManagement', () => {
 
    test('displays page header with title', () => {
       render(<ConsentManagement />);
-      expect(screen.getByText(/privacy & consent management/i)).toBeInTheDocument();
+      expect(screen.getByText(/privacy & consent/i)).toBeInTheDocument();
    });
 
    test('displays HIPAA information banner', () => {

@@ -17,11 +17,11 @@ const VitalsAlertBanner = ({
 
     return (
         <div
-            className={`rounded-2xl border px-5 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-soft ${toneClasses.bg} ${toneClasses.border} ${!acknowledged && severity === 'critical' ? 'animate-pulse' : ''}`}
+            className={`rounded-lg border px-3 py-2.5 flex flex-col md:flex-row md:items-center md:justify-between gap-2 shadow-soft ${toneClasses.bg} ${toneClasses.border} ${!acknowledged && severity === 'critical' ? 'animate-pulse' : ''}`}
             role="alert"
         >
-            <div className="flex items-start gap-3">
-                <AlertTriangle className={`w-5 h-5 mt-0.5 ${toneClasses.text}`} aria-hidden="true" />
+            <div className="flex items-start gap-2">
+                <AlertTriangle className={`w-4 h-4 mt-0.5 ${toneClasses.text}`} aria-hidden="true" />
                 <div>
                     <p className={`font-semibold text-sm ${toneClasses.text}`}>
                         {severity === 'critical' ? 'Critical values detected' : 'Abnormal vitals detected'}
@@ -41,17 +41,17 @@ const VitalsAlertBanner = ({
                     )}
                 </div>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2">
                 <Button
                     variant="outline"
-                    className={`text-sm font-semibold ${acknowledged ? 'text-gray-500 border-gray-300 bg-white' : ''}`}
+                    className={`text-xs font-semibold ${acknowledged ? 'text-gray-500 border-gray-300 bg-white' : ''}`}
                     onClick={onAcknowledge}
                     disabled={acknowledged}
                 >
                     Acknowledge Alert
                 </Button>
-                <Button variant="danger" className="flex items-center gap-2" onClick={onNotify}>
-                    <MessageSquare className="w-4 h-4" />
+                <Button variant="danger" className="flex items-center gap-1.5 text-xs" onClick={onNotify}>
+                    <MessageSquare className="w-3.5 h-3.5" />
                     Notify Physician
                 </Button>
             </div>

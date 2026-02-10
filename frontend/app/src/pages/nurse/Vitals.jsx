@@ -621,28 +621,28 @@ const NurseVitals = () => {
    };
 
    return (
-      <div className="space-y-10" aria-label="Nurse vitals page">
-         <header className="bg-white dark:bg-slate-800 rounded-2xl shadow-soft border border-gray-100 dark:border-slate-700 p-6 sm:p-8">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="space-y-4" aria-label="Nurse vitals page">
+         <header className="bg-white dark:bg-slate-800 rounded-lg shadow-soft border border-gray-100 dark:border-slate-700 p-4">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
                <div>
-                  <p className="text-sm font-medium text-brand-medium uppercase tracking-wide">{overview.nurse.unit}</p>
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-slate-100 mt-2 flex items-center gap-3">
-                     <Heart className="w-8 h-8 text-brand-medium" aria-hidden="true" />
+                  <p className="text-xs font-medium text-brand-medium uppercase tracking-wide">{overview.nurse.unit}</p>
+                  <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100 mt-1 flex items-center gap-2">
+                     <Heart className="w-5 h-5 text-brand-medium" aria-hidden="true" />
                      Patient Vitals
                   </h1>
-                  <p className="text-gray-500 dark:text-slate-400 mt-3 flex items-center gap-2">
-                     <Clock className="w-4 h-4 text-brand-medium" aria-hidden="true" />
+                  <p className="text-gray-500 dark:text-slate-400 mt-1 flex items-center gap-1.5 text-sm">
+                     <Clock className="w-3.5 h-3.5 text-brand-medium" aria-hidden="true" />
                      <span>{formattedDate}</span>
                   </p>
                </div>
-               <div className="flex items-center gap-4">
+               <div className="flex items-center gap-2">
                   {overview.stats.overdueVitals > 0 && (
-                     <div className="flex items-center gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-2 rounded-full text-sm" role="alert">
-                        <AlertTriangle className="w-4 h-4" aria-hidden="true" />
+                     <div className="flex items-center gap-1.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-2.5 py-1 rounded-full text-xs" role="alert">
+                        <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />
                         {overview.stats.overdueVitals} overdue vitals checks
                      </div>
                   )}
-                  <Button className="bg-brand-medium hover:bg-brand-deep text-white">
+                  <Button className="bg-brand-medium hover:bg-brand-deep text-white text-xs py-1.5">
                      Quick Entry
                   </Button>
                </div>
@@ -673,36 +673,36 @@ const NurseVitals = () => {
          {/* Critical modal */}
          {showCriticalModal && (
             <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-               <Card className="max-w-md w-full p-6 space-y-6 shadow-xl dark:bg-slate-800">
-                  <div className="flex items-center gap-3 text-red-600 dark:text-red-400">
-                     <AlertTriangle className="w-8 h-8" aria-hidden="true" />
-                     <h2 className="text-xl font-bold">Critical Values Detected</h2>
+               <Card className="max-w-md w-full p-4 space-y-3 shadow-xl dark:bg-slate-800">
+                  <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                     <AlertTriangle className="w-6 h-6" aria-hidden="true" />
+                     <h2 className="text-lg font-bold">Critical Values Detected</h2>
                   </div>
-                  <p className="text-gray-700 dark:text-slate-300">One or more vitals are in the critical range. Do you want to proceed with saving and notify the physician?</p>
-                  <div className="flex flex-wrap gap-3">
-                     <Button variant="outline" onClick={handleCriticalCancel}>Cancel</Button>
-                     <Button className="bg-amber-500 hover:bg-amber-600 text-white" onClick={handleCriticalProceed}>Save Without Notifying</Button>
-                     <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={handleCriticalNotify}>Save &amp; Notify Physician</Button>
+                  <p className="text-sm text-gray-700 dark:text-slate-300">One or more vitals are in the critical range. Do you want to proceed with saving and notify the physician?</p>
+                  <div className="flex flex-wrap gap-2">
+                     <Button variant="outline" className="text-xs py-1" onClick={handleCriticalCancel}>Cancel</Button>
+                     <Button className="bg-amber-500 hover:bg-amber-600 text-white text-xs py-1" onClick={handleCriticalProceed}>Save Without Notifying</Button>
+                     <Button className="bg-red-600 hover:bg-red-700 text-white text-xs py-1" onClick={handleCriticalNotify}>Save &amp; Notify Physician</Button>
                   </div>
                </Card>
             </div>
          )}
 
          {/* Vitals Schedule */}
-         <section aria-labelledby="vitals-schedule" className="space-y-6">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-               <div className="flex items-center gap-3">
-                  <Calendar className="w-6 h-6 text-brand-medium" aria-hidden="true" />
-                  <h2 id="vitals-schedule" className="text-xl font-bold text-gray-900 dark:text-slate-100">Vitals Schedule</h2>
-                  <span className="text-sm text-gray-500 dark:text-slate-400">Today&apos;s Schedule</span>
+         <section aria-labelledby="vitals-schedule" className="space-y-3">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
+               <div className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-brand-medium" aria-hidden="true" />
+                  <h2 id="vitals-schedule" className="text-sm font-bold text-gray-900 dark:text-slate-100">Vitals Schedule</h2>
+                  <span className="text-xs text-gray-500 dark:text-slate-400">Today&apos;s Schedule</span>
                </div>
-               <Button variant="link" className="text-brand-medium text-sm font-semibold">
+               <Button variant="link" className="text-brand-medium text-xs font-semibold">
                   View Full Schedule
                </Button>
             </div>
 
-            <div className="overflow-x-auto pb-2">
-               <div className="flex min-w-full gap-5">
+            <div className="overflow-x-auto pb-1">
+               <div className="flex min-w-full gap-3">
                   {overview.vitalsSchedule.map((slot) => {
                      const isCurrent = slot.status === 'current';
                      const borderColor =
@@ -726,17 +726,17 @@ const NurseVitals = () => {
                      const completion = Math.round((slot.completed / slot.totalPatients) * 100);
 
                      return (
-                        <Card key={slot.time} className={`w-72 flex-shrink-0 border-2 ${borderColor} ${bgColor} dark:bg-slate-800 p-6 space-y-4`}>
+                        <Card key={slot.time} className={`w-60 flex-shrink-0 border-2 ${borderColor} ${bgColor} dark:bg-slate-800 p-3 space-y-2`}>
                            <div className="flex items-start justify-between">
                               <div>
                                  <p className="text-xs font-semibold uppercase text-gray-500 dark:text-slate-400">Time</p>
-                                 <p className="text-2xl font-bold text-gray-900 dark:text-slate-100 mt-1">{slot.time}</p>
+                                 <p className="text-lg font-bold text-gray-900 dark:text-slate-100 mt-0.5">{slot.time}</p>
                               </div>
-                              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white dark:bg-slate-700 text-brand-medium border border-brand-medium/20">
+                              <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-white dark:bg-slate-700 text-brand-medium border border-brand-medium/20">
                                  {slot.totalPatients} patients
                               </span>
                            </div>
-                           <div className="space-y-3">
+                           <div className="space-y-1.5">
                               {slot.patients.map((patient) => (
                                  <div key={patient.id} className="bg-white/80 dark:bg-slate-700/80 border border-white dark:border-slate-600 rounded-lg px-3 py-2 flex items-center justify-between text-sm">
                                     <div className="space-y-1">
@@ -762,12 +762,12 @@ const NurseVitals = () => {
                                  </div>
                               ))}
                            </div>
-                           <div className="space-y-2">
+                           <div className="space-y-1">
                               <div className="flex items-center justify-between text-xs text-gray-500 dark:text-slate-400">
                                  <span>{slot.completed}/{slot.totalPatients} completed</span>
                                  <span>{completion}%</span>
                               </div>
-                              <div className="relative h-2 bg-white/60 dark:bg-slate-600/60 rounded-full overflow-hidden">
+                              <div className="relative h-1.5 bg-white/60 dark:bg-slate-600/60 rounded-full overflow-hidden">
                                  <div
                                     className={`absolute inset-y-0 left-0 rounded-full ${
                                        slot.status === 'overdue'
@@ -780,11 +780,11 @@ const NurseVitals = () => {
                                  />
                               </div>
                            </div>
-                           <div className="flex items-center justify-between gap-2">
-                              <Button className="flex-1 bg-brand-medium hover:bg-brand-deep text-white text-sm py-2">
+                           <div className="flex items-center justify-between gap-1.5">
+                              <Button className="flex-1 bg-brand-medium hover:bg-brand-deep text-white text-xs py-1.5">
                                  Record All
                               </Button>
-                              <Button variant="outline" className="flex-1 text-sm py-2 border-brand-medium text-brand-medium">
+                              <Button variant="outline" className="flex-1 text-xs py-1.5 border-brand-medium text-brand-medium">
                                  View
                               </Button>
                            </div>
@@ -796,7 +796,7 @@ const NurseVitals = () => {
          </section>
 
          {/* Patient Vitals Section */}
-         <section aria-labelledby="patient-vitals" className="space-y-6">
+         <section aria-labelledby="patient-vitals" className="space-y-3">
             <VitalsSectionHeader
                patient={vitalsPatient}
                onExportPdf={() => triggerToast('info', 'Export to PDF coming soon. (mock)')}
@@ -814,11 +814,11 @@ const NurseVitals = () => {
             />
 
             {/* Vitals Entry + Shift Assessment / Assigned Patients */}
-            <div className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-6">
-               <Card className="p-6 border border-gray-100 dark:border-slate-700 shadow-soft dark:bg-slate-800">
-                  <div className="flex items-center gap-3 mb-6">
-                     <Users className="w-5 h-5 text-brand-medium" aria-hidden="true" />
-                     <h3 className="text-lg font-bold text-gray-900 dark:text-slate-100">Vitals Entry &amp; Shift Assessment</h3>
+            <div className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-3">
+               <Card className="p-3 border border-gray-100 dark:border-slate-700 shadow-soft dark:bg-slate-800">
+                  <div className="flex items-center gap-2 mb-3">
+                     <Users className="w-4 h-4 text-brand-medium" aria-hidden="true" />
+                     <h3 className="text-sm font-bold text-gray-900 dark:text-slate-100">Vitals Entry &amp; Shift Assessment</h3>
                   </div>
                   <VitalsEntryForm
                      form={vitalsForm}

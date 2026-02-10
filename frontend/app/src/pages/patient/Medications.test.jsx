@@ -11,7 +11,7 @@ describe('Medications Page', () => {
    test('displays page header with title', () => {
       render(<Medications />);
       expect(screen.getByText('My Medications')).toBeInTheDocument();
-      expect(screen.getByText('Manage your current and past prescriptions')).toBeInTheDocument();
+      expect(screen.getByText('Manage your prescriptions')).toBeInTheDocument();
    });
 
    test('displays download all button', () => {
@@ -21,10 +21,11 @@ describe('Medications Page', () => {
 
    test('displays stats cards', () => {
       render(<Medications />);
-      expect(screen.getByText('Active Medications')).toBeInTheDocument();
-      expect(screen.getByText('Needing Refill')).toBeInTheDocument();
-      expect(screen.getByText('Expiring Soon')).toBeInTheDocument();
-      expect(screen.getByText('Adherence Rate')).toBeInTheDocument();
+      const activeLabels = screen.getAllByText('Active');
+      expect(activeLabels.length).toBeGreaterThan(0);
+      expect(screen.getByText('Need Refill')).toBeInTheDocument();
+      expect(screen.getByText('Expiring')).toBeInTheDocument();
+      expect(screen.getByText('Adherence')).toBeInTheDocument();
    });
 
    test('displays search input', () => {
@@ -124,7 +125,7 @@ describe('Medications Page', () => {
       render(<Medications />);
       const activeButton = screen.getByRole('button', { name: /Active/i });
       fireEvent.click(activeButton);
-      expect(screen.getByText(/Manage your current and past prescriptions/i)).toBeInTheDocument();
+      expect(screen.getByText(/Manage your prescriptions/i)).toBeInTheDocument();
    });
 
    test('modal displays medication details when refill is requested', () => {
@@ -140,7 +141,7 @@ describe('Medications Page', () => {
       const refillButtons = screen.queryAllByRole('button', { name: /Refill/i });
       expect(refillButtons.length).toBeGreaterThan(0);
       fireEvent.click(refillButtons[0]);
-      expect(screen.getByText('Preferred Pharmacy')).toBeInTheDocument();
+      expect(screen.getByText('Pharmacy')).toBeInTheDocument();
    });
 
    test('modal has pickup method options', () => {
@@ -157,7 +158,7 @@ describe('Medications Page', () => {
       const refillButtons = screen.queryAllByRole('button', { name: /Refill/i });
       expect(refillButtons.length).toBeGreaterThan(0);
       fireEvent.click(refillButtons[0]);
-      const submitButton = screen.getByRole('button', { name: /Submit Request/i });
+      const submitButton = screen.getByRole('button', { name: /Submit/i });
       fireEvent.click(submitButton);
       expect(window.alert).toHaveBeenCalled();
    });

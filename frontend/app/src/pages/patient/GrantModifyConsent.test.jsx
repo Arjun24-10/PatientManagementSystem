@@ -85,12 +85,12 @@ describe('GrantModifyConsent', () => {
 
    test('displays required badge for required options', () => {
       render(<GrantModifyConsent {...defaultProps} />);
-      expect(screen.getByText(/required/i)).toBeInTheDocument();
+      expect(screen.getByText(/REQ/i)).toBeInTheDocument();
    });
 
    test('displays recommended badge for recommended options', () => {
       render(<GrantModifyConsent {...defaultProps} />);
-      expect(screen.getByText(/recommended/i)).toBeInTheDocument();
+      expect(screen.getByText(/REC/i)).toBeInTheDocument();
    });
 
    test('close button calls onClose', () => {

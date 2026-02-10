@@ -83,9 +83,9 @@ const Appointments = () => {
     };
 
     return (
-        <div className="space-y-6 relative">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h2 className="text-2xl font-bold text-gray-800 dark:text-slate-100">Appointments</h2>
+        <div className="space-y-3 relative">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+                <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">Appointments</h2>
                 <div className="flex items-center space-x-3">
                     <div className="flex bg-gray-100 dark:bg-slate-700 p-1 rounded-lg">
                         <button
@@ -127,13 +127,13 @@ const Appointments = () => {
                 <>
                     {/* List View Content */}
                     <div className="border-b border-gray-200 dark:border-slate-700">
-                        <nav className="-mb-px flex space-x-8">
+                        <nav className="-mb-px flex space-x-4">
                             {['upcoming', 'history'].map((tab) => (
                                 <button
                                     key={tab}
                                     onClick={() => setActiveTab(tab)}
                                     className={`
-                        whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm capitalize
+                        whitespace-nowrap py-2 px-1 border-b-2 font-medium text-xs capitalize
                         ${activeTab === tab
                                             ? 'border-blue-500 text-blue-600 dark:text-blue-400'
                                             : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300 hover:border-gray-300 dark:hover:border-slate-600'}
@@ -145,28 +145,28 @@ const Appointments = () => {
                         </nav>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-2">
                         {filteredAppointments.length > 0 ? (
                             filteredAppointments.map(appt => (
-                                <Card key={appt.id} className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center dark:bg-slate-800">
-                                    <div className="flex items-start space-x-4">
-                                        <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-blue-600 dark:text-blue-400">
-                                            <CalendarIcon size={24} />
+                                <Card key={appt.id} className="p-3 flex flex-col md:flex-row justify-between items-start md:items-center dark:bg-slate-800">
+                                    <div className="flex items-start space-x-3">
+                                        <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded text-blue-600 dark:text-blue-400">
+                                            <CalendarIcon size={18} />
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-gray-800 dark:text-slate-100">{appt.type} - {appt.patientName}</h4>
-                                            <div className="flex items-center text-sm text-gray-500 dark:text-slate-400 mt-1">
-                                                <Clock size={14} className="mr-1" />
+                                            <h4 className="font-bold text-sm text-gray-800 dark:text-slate-100">{appt.type} - {appt.patientName}</h4>
+                                            <div className="flex items-center text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                                                <Clock size={12} className="mr-1" />
                                                 {appt.date} at {appt.time}
                                             </div>
-                                            <div className="flex items-center text-sm text-gray-500 dark:text-slate-400 mt-1">
-                                                <User size={14} className="mr-1" />
+                                            <div className="flex items-center text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                                                <User size={12} className="mr-1" />
                                                 Patient ID: {appt.patientId}
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="mt-4 md:mt-0 flex items-center space-x-4">
+                                    <div className="mt-2 md:mt-0 flex items-center space-x-2">
                                         <Badge type={
                                             appt.status === 'Confirmed' ? 'green' :
                                                 appt.status === 'Pending' ? 'yellow' :
@@ -176,11 +176,11 @@ const Appointments = () => {
                                         </Badge>
 
                                         {activeTab === 'upcoming' && (
-                                            <div className="flex space-x-2">
-                                                <Button variant="outline" className="text-sm py-1" onClick={() => handleComplete(appt.id)}>
+                                            <div className="flex space-x-1">
+                                                <Button variant="outline" className="text-xs py-0.5 px-2" onClick={() => handleComplete(appt.id)}>
                                                     Check In
                                                 </Button>
-                                                <Button variant="danger" className="text-sm py-1 bg-white dark:bg-slate-700 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={() => handleCancelClick(appt)}>
+                                                <Button variant="danger" className="text-xs py-0.5 px-2 bg-white dark:bg-slate-700 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20" onClick={() => handleCancelClick(appt)}>
                                                     Cancel
                                                 </Button>
                                             </div>

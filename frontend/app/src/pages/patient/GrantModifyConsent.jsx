@@ -19,13 +19,13 @@ import {
 
 // Step indicator component
 const StepIndicator = ({ currentStep, totalSteps }) => (
-   <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
-      <span className="font-medium">Step {currentStep} of {totalSteps}</span>
-      <div className="flex gap-1">
+   <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
+      <span className="font-medium">Step {currentStep}/{totalSteps}</span>
+      <div className="flex gap-0.5">
          {Array.from({ length: totalSteps }, (_, i) => (
             <div
                key={i}
-               className={`h-2 w-8 rounded-full transition-colors ${
+               className={`h-1.5 w-5 rounded-full transition-colors ${
                   i < currentStep ? 'bg-blue-500' : 'bg-gray-200 dark:bg-slate-700'
                }`}
             />
@@ -45,14 +45,14 @@ const ConsentOptionCard = ({
 }) => {
    return (
       <div
-         className={`border rounded-xl p-4 transition-all duration-200 ${
+         className={`border rounded p-3 transition-all duration-200 ${
             isSelected
                ? 'border-blue-500 border-2 bg-blue-50/30 dark:bg-blue-900/20'
                : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 hover:shadow-sm'
          } ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
          onClick={() => !disabled && !option.required && onToggle(option.id)}
       >
-         <div className="flex items-start gap-4">
+         <div className="flex items-start gap-2">
             {/* Checkbox */}
             <button
                onClick={(e) => {
@@ -60,58 +60,58 @@ const ConsentOptionCard = ({
                   if (!disabled && !option.required) onToggle(option.id);
                }}
                disabled={disabled || option.required}
-               className={`flex-shrink-0 w-6 h-6 rounded-md flex items-center justify-center transition-all ${
+               className={`flex-shrink-0 w-5 h-5 rounded flex items-center justify-center transition-all ${
                   isSelected
                      ? 'bg-blue-500 text-white'
                      : 'bg-white dark:bg-slate-800 border-2 border-gray-300 dark:border-slate-600'
                } ${option.required ? 'cursor-not-allowed' : 'hover:border-blue-400'}`}
                aria-label={isSelected ? 'Deselect option' : 'Select option'}
             >
-               {isSelected && <Check className="w-4 h-4" />}
-               {option.required && !isSelected && <Lock className="w-3 h-3 text-gray-400 dark:text-slate-500" />}
+               {isSelected && <Check className="w-3 h-3" />}
+               {option.required && !isSelected && <Lock className="w-2.5 h-2.5 text-gray-400 dark:text-slate-500" />}
             </button>
 
             {/* Content */}
             <div className="flex-1 min-w-0">
-               <div className="flex items-start justify-between gap-2">
+               <div className="flex items-start justify-between gap-1.5">
                   <div>
-                     <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="font-semibold text-gray-900 dark:text-slate-100">{option.title}</h4>
+                     <div className="flex items-center gap-1.5 flex-wrap">
+                        <h4 className="font-semibold text-gray-900 dark:text-slate-100 text-sm">{option.title}</h4>
                         {option.required && (
-                           <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 flex items-center gap-1">
-                              <Lock className="w-3 h-3" /> REQUIRED
+                           <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 flex items-center gap-0.5">
+                              <Lock className="w-2.5 h-2.5" /> REQ
                            </span>
                         )}
                         {option.recommended && !option.required && (
-                           <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 flex items-center gap-1">
-                              <Star className="w-3 h-3" /> RECOMMENDED
+                           <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 flex items-center gap-0.5">
+                              <Star className="w-2.5 h-2.5" /> REC
                            </span>
                         )}
                      </div>
-                     <p className="text-sm text-gray-600 dark:text-slate-300 mt-1">{option.description}</p>
+                     <p className="text-xs text-gray-600 dark:text-slate-300 mt-0.5">{option.description}</p>
                   </div>
                </div>
 
                {/* Conditional Warning */}
                {option.conditionalWarning && (
-                  <div className="mt-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
-                     <div className="flex items-start gap-2">
-                        <AlertTriangle className="w-4 h-4 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
-                        <p className="text-sm text-yellow-800 dark:text-yellow-300">{option.conditionalWarning}</p>
+                  <div className="mt-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded p-2">
+                     <div className="flex items-start gap-1.5">
+                        <AlertTriangle className="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
+                        <p className="text-xs text-yellow-800 dark:text-yellow-300">{option.conditionalWarning}</p>
                      </div>
                   </div>
                )}
 
                {/* Contact Field (for communications) */}
                {option.contactField && isSelected && (
-                  <div className="mt-3 bg-gray-50 dark:bg-slate-800/50 rounded-lg p-3">
-                     <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-1">
+                  <div className="mt-2 bg-gray-50 dark:bg-slate-800/50 rounded p-2">
+                     <label className="block text-xs font-medium text-gray-700 dark:text-slate-200 mb-0.5">
                         {option.contactField.label}
                      </label>
                      <input
                         type={option.contactField.type === 'email' ? 'email' : 'tel'}
                         defaultValue={option.contactField.value}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100"
+                        className="w-full px-2 py-1 border border-gray-300 dark:border-slate-600 rounded text-xs focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100"
                         onClick={(e) => e.stopPropagation()}
                         readOnly={!option.contactField.editable}
                      />
@@ -125,7 +125,7 @@ const ConsentOptionCard = ({
                         e.stopPropagation();
                         onToggleExpand(option.id);
                      }}
-                     className="mt-3 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 flex items-center gap-1"
+                     className="mt-2 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 flex items-center gap-0.5"
                   >
                      {isExpanded ? (
                         <>

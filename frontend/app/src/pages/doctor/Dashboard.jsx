@@ -56,11 +56,11 @@ const DoctorDashboard = () => {
    const todaysAppointments = appointments.filter(a => a.date === '2023-12-15');
 
    return (
-      <div className="space-y-8">
-         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="space-y-4">
+         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
             <div>
-               <h2 className="text-2xl font-bold text-gray-800 dark:text-slate-100 tracking-tight">Doctor Dashboard</h2>
-               <p className="text-gray-500 dark:text-slate-400 mt-1">Welcome back, Dr. Smith. Here's your daily overview.</p>
+               <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100 tracking-tight">Doctor Dashboard</h2>
+               <p className="text-gray-500 dark:text-slate-400 text-sm">Welcome back, Dr. Smith. Here's your daily overview.</p>
             </div>
             <div className="flex gap-3">
                <Button variant="outline" className="text-gray-600 dark:text-slate-300 border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700">View Schedule</Button>
@@ -69,54 +69,54 @@ const DoctorDashboard = () => {
          </div>
 
          {/* Metrics */}
-         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="p-6 border border-gray-100 dark:border-slate-700 shadow-soft hover:shadow-lg transition-shadow duration-300 flex items-center justify-between group dark:bg-slate-800">
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            <Card className="p-3 border border-gray-100 dark:border-slate-700 shadow-soft hover:shadow-lg transition-shadow duration-300 flex items-center justify-between group dark:bg-slate-800">
                <div>
-                  <h3 className="text-gray-500 dark:text-slate-400 text-sm font-medium">Total Patients</h3>
-                  <p className="text-3xl font-bold text-gray-800 dark:text-slate-100 mt-2 group-hover:text-brand-medium transition-colors">{patients.length}</p>
+                  <h3 className="text-gray-500 dark:text-slate-400 text-xs font-medium">Total Patients</h3>
+                  <p className="text-xl font-bold text-gray-800 dark:text-slate-100 mt-1 group-hover:text-brand-medium transition-colors">{patients.length}</p>
                </div>
-               <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center text-brand-medium group-hover:scale-110 transition-transform">
-                  <Users className="w-6 h-6" />
+               <div className="w-8 h-8 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center text-brand-medium group-hover:scale-110 transition-transform">
+                  <Users className="w-4 h-4" />
                </div>
             </Card>
-            <Card className="p-6 border border-gray-100 dark:border-slate-700 shadow-soft hover:shadow-lg transition-shadow duration-300 flex items-center justify-between group dark:bg-slate-800">
+            <Card className="p-3 border border-gray-100 dark:border-slate-700 shadow-soft hover:shadow-lg transition-shadow duration-300 flex items-center justify-between group dark:bg-slate-800">
                <div>
-                  <h3 className="text-gray-500 dark:text-slate-400 text-sm font-medium">Appointments</h3>
-                  <p className="text-3xl font-bold text-gray-800 dark:text-slate-100 mt-2 group-hover:text-brand-medium transition-colors">{todaysAppointments.length}</p>
+                  <h3 className="text-gray-500 dark:text-slate-400 text-xs font-medium">Appointments</h3>
+                  <p className="text-xl font-bold text-gray-800 dark:text-slate-100 mt-1 group-hover:text-brand-medium transition-colors">{todaysAppointments.length}</p>
                </div>
-               <div className="w-12 h-12 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center text-green-600 group-hover:scale-110 transition-transform">
-                  <FileText className="w-6 h-6" />
+               <div className="w-8 h-8 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center text-green-600 group-hover:scale-110 transition-transform">
+                  <FileText className="w-4 h-4" />
                </div>
             </Card>
-            <Card className="p-6 border border-gray-100 dark:border-slate-700 shadow-soft hover:shadow-lg transition-shadow duration-300 flex items-center justify-between group dark:bg-slate-800">
+            <Card className="p-3 border border-gray-100 dark:border-slate-700 shadow-soft hover:shadow-lg transition-shadow duration-300 flex items-center justify-between group dark:bg-slate-800">
                <div>
-                  <h3 className="text-gray-500 dark:text-slate-400 text-sm font-medium">Pending Labs</h3>
-                  <p className="text-3xl font-bold text-gray-800 dark:text-slate-100 mt-2 group-hover:text-brand-medium transition-colors">5</p>
+                  <h3 className="text-gray-500 dark:text-slate-400 text-xs font-medium">Pending Labs</h3>
+                  <p className="text-xl font-bold text-gray-800 dark:text-slate-100 mt-1 group-hover:text-brand-medium transition-colors">5</p>
                </div>
-               <div className="w-12 h-12 bg-yellow-50 dark:bg-yellow-900/20 rounded-full flex items-center justify-center text-yellow-600 group-hover:scale-110 transition-transform">
-                  <Activity className="w-6 h-6" />
+               <div className="w-8 h-8 bg-yellow-50 dark:bg-yellow-900/20 rounded-full flex items-center justify-center text-yellow-600 group-hover:scale-110 transition-transform">
+                  <Activity className="w-4 h-4" />
                </div>
             </Card>
-            <Card className="p-6 border border-gray-100 dark:border-slate-700 shadow-soft hover:shadow-lg transition-shadow duration-300 flex items-center justify-between group dark:bg-slate-800">
+            <Card className="p-3 border border-gray-100 dark:border-slate-700 shadow-soft hover:shadow-lg transition-shadow duration-300 flex items-center justify-between group dark:bg-slate-800">
                <div>
-                  <h3 className="text-gray-500 dark:text-slate-400 text-sm font-medium">Active Rx</h3>
-                  <p className="text-3xl font-bold text-gray-800 dark:text-slate-100 mt-2 group-hover:text-brand-medium transition-colors">12</p>
+                  <h3 className="text-gray-500 dark:text-slate-400 text-xs font-medium">Active Rx</h3>
+                  <p className="text-xl font-bold text-gray-800 dark:text-slate-100 mt-1 group-hover:text-brand-medium transition-colors">12</p>
                </div>
-               <div className="w-12 h-12 bg-purple-50 dark:bg-purple-900/20 rounded-full flex items-center justify-center text-purple-600 group-hover:scale-110 transition-transform">
-                  <Pill className="w-6 h-6" />
+               <div className="w-8 h-8 bg-purple-50 dark:bg-purple-900/20 rounded-full flex items-center justify-center text-purple-600 group-hover:scale-110 transition-transform">
+                  <Pill className="w-4 h-4" />
                </div>
             </Card>
          </div>
 
-         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Left Column (Charts & Lists) */}
-            <div className="lg:col-span-2 space-y-8">
+            <div className="lg:col-span-2 space-y-4">
 
 
                {/* Patient List */}
                <Card className="overflow-hidden border border-gray-100 dark:border-slate-700 shadow-soft dark:bg-slate-800">
-                  <div className="px-6 py-5 border-b border-gray-100 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-center bg-white dark:bg-slate-800 gap-4">
-                     <h3 className="text-lg font-bold text-gray-800 dark:text-slate-100">Recent Patients</h3>
+                  <div className="px-4 py-3 border-b border-gray-100 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-center bg-white dark:bg-slate-800 gap-2">
+                     <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100">Recent Patients</h3>
 
                      <div className="relative w-full sm:w-64">
                         <input
@@ -135,36 +135,36 @@ const DoctorDashboard = () => {
                         <table className="min-w-full divide-y divide-gray-100 dark:divide-slate-700">
                            <thead className="bg-gray-50/50 dark:bg-slate-700/50">
                               <tr>
-                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider">Patient</th>
-                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider">Age/Gender</th>
-                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider">Condition</th>
-                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider">Status</th>
-                                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider">Last Visit</th>
-                                 <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider">Action</th>
+                                 <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider">Patient</th>
+                                 <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider">Age/Gender</th>
+                                 <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider">Condition</th>
+                                 <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider">Status</th>
+                                 <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider">Last Visit</th>
+                                 <th className="px-4 py-2 text-right text-xs font-semibold text-gray-500 dark:text-slate-300 uppercase tracking-wider">Action</th>
                               </tr>
                            </thead>
                            <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-100 dark:divide-slate-700">
                               {filteredPatients.map((patient) => (
                                  <tr key={patient.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-700/50 transition-colors duration-150 group">
-                                    <td className="px-6 py-4 whitespace-nowrap">
+                                    <td className="px-4 py-2 whitespace-nowrap">
                                        <div className="flex items-center">
-                                          <div className="flex-shrink-0 h-10 w-10 rounded-full bg-brand-light dark:bg-brand-medium/20 flex items-center justify-center text-brand-deep dark:text-brand-light font-bold border border-brand-medium/10">
+                                          <div className="flex-shrink-0 h-8 w-8 rounded-full bg-brand-light dark:bg-brand-medium/20 flex items-center justify-center text-brand-deep dark:text-brand-light text-xs font-bold border border-brand-medium/10">
                                              {patient.avatar}
                                           </div>
-                                          <div className="ml-4">
-                                             <div className="text-sm font-semibold text-gray-900 dark:text-slate-100 group-hover:text-brand-deep dark:group-hover:text-brand-light transition-colors">{patient.name}</div>
+                                          <div className="ml-2">
+                                             <div className="text-xs font-semibold text-gray-900 dark:text-slate-100 group-hover:text-brand-deep dark:group-hover:text-brand-light transition-colors">{patient.name}</div>
                                              <div className="text-xs text-gray-500 dark:text-slate-400">ID: {patient.id}</div>
                                           </div>
                                        </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                       <div className="text-sm text-gray-900 dark:text-slate-100">{patient.age} yrs</div>
+                                    <td className="px-4 py-2 whitespace-nowrap">
+                                       <div className="text-xs text-gray-900 dark:text-slate-100">{patient.age} yrs</div>
                                        <div className="text-xs text-gray-500 dark:text-slate-400">{patient.gender}</div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                       <span className="text-sm text-gray-700 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 px-2 py-1 rounded-md">{patient.condition}</span>
+                                    <td className="px-4 py-2 whitespace-nowrap">
+                                       <span className="text-xs text-gray-700 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{patient.condition}</span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
+                                    <td className="px-4 py-2 whitespace-nowrap">
                                        <Badge type={patient.status === 'Needs Review' ? 'red' : 'green'}>
                                           {patient.status}
                                        </Badge>
@@ -186,42 +186,42 @@ const DoctorDashboard = () => {
                         </table>
                      </div>
                   ) : (
-                     <div className="p-12 text-center">
-                        <Users className="w-12 h-12 text-gray-300 dark:text-slate-600 mx-auto mb-3" />
-                        <h3 className="text-lg font-medium text-gray-900 dark:text-slate-100">No patients found</h3>
-                        <p className="text-gray-500 dark:text-slate-400">Try adjusting your search terms.</p>
+                     <div className="p-6 text-center">
+                        <Users className="w-8 h-8 text-gray-300 dark:text-slate-600 mx-auto mb-2" />
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-slate-100">No patients found</h3>
+                        <p className="text-xs text-gray-500 dark:text-slate-400">Try adjusting your search terms.</p>
                      </div>
                   )}
                </Card>
             </div>
 
             {/* Right Column (Side Panel) */}
-            <div className="space-y-8">
+            <div className="space-y-4">
                {/* Mini Calendar */}
                <MiniCalendar appointments={appointments} />
 
                {/* Upcoming Appointments */}
-               <Card className="p-6 border border-gray-100 dark:border-slate-700 shadow-soft h-fit dark:bg-slate-800">
-                  <div className="flex justify-between items-center mb-6">
-                     <h3 className="text-lg font-bold text-gray-800 dark:text-slate-100">Upcoming List</h3>
-                     <button className="text-sm text-brand-medium hover:underline font-medium bg-transparent border-none cursor-pointer">See all</button>
+               <Card className="p-3 border border-gray-100 dark:border-slate-700 shadow-soft h-fit dark:bg-slate-800">
+                  <div className="flex justify-between items-center mb-3">
+                     <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100">Upcoming List</h3>
+                     <button className="text-xs text-brand-medium hover:underline font-medium bg-transparent border-none cursor-pointer">See all</button>
                   </div>
                   <AppointmentList appointments={appointments.slice(0, 5)} />
                </Card>
 
                {/* Notifications/Alerts (Simplified) */}
-               <div className="bg-brand-deep rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-16 -mt-16"></div>
-                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-10 rounded-full -ml-12 -mb-12"></div>
+               <div className="bg-brand-deep rounded-lg p-4 text-white shadow-lg relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-white opacity-10 rounded-full -mr-12 -mt-12"></div>
+                  <div className="absolute bottom-0 left-0 w-16 h-16 bg-white opacity-10 rounded-full -ml-8 -mb-8"></div>
 
                   <div className="relative z-10">
-                     <div className="flex items-center mb-4">
-                        <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                           <Bell className="w-5 h-5 text-white" />
+                     <div className="flex items-center mb-2">
+                        <div className="w-7 h-7 bg-white/20 rounded flex items-center justify-center backdrop-blur-sm">
+                           <Bell className="w-3.5 h-3.5 text-white" />
                         </div>
-                        <h3 className="ml-3 font-bold text-lg">Daily Briefing</h3>
+                        <h3 className="ml-2 font-bold text-sm">Daily Briefing</h3>
                      </div>
-                     <p className="text-blue-100 text-sm mb-4 leading-relaxed">
+                     <p className="text-blue-100 text-xs mb-3 leading-relaxed">
                         You have 3 high-priority lab results to review and 2 patient inquiries pending from yesterday.
                      </p>
                      <Button className="w-full bg-white text-brand-deep hover:bg-blue-50 border-none">

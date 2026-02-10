@@ -66,56 +66,56 @@ export default function CreateAccount() {
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-slate-900 font-sans">
       {/* Left Panel - Completely new design */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 text-white p-12 flex-col justify-between">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 text-white p-8 flex-col justify-between">
         <div>
-          <h1 className="text-5xl font-bold tracking-tight mb-6">
+          <h1 className="text-3xl font-bold tracking-tight mb-4">
             Your Health,<br />Your Control
           </h1>
-          <p className="text-xl opacity-90 max-w-lg leading-relaxed">
+          <p className="text-base opacity-90 max-w-lg leading-relaxed">
             Join a secure, patient-centered platform that puts you at the center of your care — with full visibility, privacy controls, and direct access to your healthcare team.
           </p>
         </div>
 
-        <div className="space-y-8">
-          <div className="grid grid-cols-2 gap-6">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <div className="text-3xl mb-2">🔒</div>
-              <h3 className="font-semibold text-lg">Bank-grade Security</h3>
-              <p className="text-sm opacity-80 mt-1">End-to-end encryption & HIPAA compliant</p>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+              <div className="text-2xl mb-1">🔒</div>
+              <h3 className="font-semibold text-sm">Bank-grade Security</h3>
+              <p className="text-xs opacity-80 mt-0.5">End-to-end encryption & HIPAA compliant</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <div className="text-3xl mb-2">📱</div>
-              <h3 className="font-semibold text-lg">Always Connected</h3>
-              <p className="text-sm opacity-80 mt-1">Access records & communicate 24/7</p>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+              <div className="text-2xl mb-1">📱</div>
+              <h3 className="font-semibold text-sm">Always Connected</h3>
+              <p className="text-xs opacity-80 mt-0.5">Access records & communicate 24/7</p>
             </div>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-            <p className="text-sm opacity-90 italic">
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+            <p className="text-xs opacity-90 italic">
               "Your medical data belongs to you. We only facilitate secure, consented access."
             </p>
-            <p className="text-xs mt-3 opacity-70">— Our Privacy Promise</p>
+            <p className="text-xs mt-2 opacity-70">— Our Privacy Promise</p>
           </div>
         </div>
 
-        <div className="text-sm opacity-70">
+        <div className="text-xs opacity-70">
           © 2026 SecureCare Platform • All rights reserved
         </div>
       </div>
 
       {/* Right Panel - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-white dark:bg-slate-800">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 bg-white dark:bg-slate-800">
         <div className="w-full max-w-md">
-          <div className="mb-10">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-slate-100">Create Your Patient Account</h2>
-            <p className="mt-3 text-gray-600 dark:text-slate-400">
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">Create Your Patient Account</h2>
+            <p className="mt-2 text-xs text-gray-600 dark:text-slate-400">
               Get started with secure access to your health records and care team
             </p>
           </div>
 
-          <form onSubmit={handleSignUp} className="space-y-6">
+          <form onSubmit={handleSignUp} className="space-y-3">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-1.5">
+              <label htmlFor="name" className="block text-xs font-medium text-gray-700 dark:text-slate-200 mb-1">
                 Full Name
               </label>
               <input
@@ -123,7 +123,7 @@ export default function CreateAccount() {
                 type="text"
                 autoComplete="name"
                 required
-                className="block w-full rounded-lg border border-gray-300 dark:border-slate-600 px-4 py-3 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 bg-white dark:bg-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                className="block w-full rounded-lg border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 bg-white dark:bg-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
                 placeholder="Enter your full name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -131,7 +131,7 @@ export default function CreateAccount() {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-1.5">
+              <label htmlFor="email" className="block text-xs font-medium text-gray-700 dark:text-slate-200 mb-1">
                 Email Address
               </label>
               <input
@@ -139,7 +139,7 @@ export default function CreateAccount() {
                 type="email"
                 autoComplete="email"
                 required
-                className="block w-full rounded-lg border border-gray-300 dark:border-slate-600 px-4 py-3 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 bg-white dark:bg-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                className="block w-full rounded-lg border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 bg-white dark:bg-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -147,7 +147,7 @@ export default function CreateAccount() {
             </div>
 
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-1.5">
+              <label htmlFor="phone" className="block text-xs font-medium text-gray-700 dark:text-slate-200 mb-1">
                 Mobile Number
               </label>
               <input
@@ -155,7 +155,7 @@ export default function CreateAccount() {
                 type="tel"
                 autoComplete="tel"
                 required
-                className="block w-full rounded-lg border border-gray-300 dark:border-slate-600 px-4 py-3 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 bg-white dark:bg-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                className="block w-full rounded-lg border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 bg-white dark:bg-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
                 placeholder="10-digit mobile number"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
@@ -163,7 +163,7 @@ export default function CreateAccount() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-1.5">
+              <label htmlFor="password" className="block text-xs font-medium text-gray-700 dark:text-slate-200 mb-1">
                 Password
               </label>
               <input
@@ -171,7 +171,7 @@ export default function CreateAccount() {
                 type="password"
                 autoComplete="new-password"
                 required
-                className="block w-full rounded-lg border border-gray-300 dark:border-slate-600 px-4 py-3 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 bg-white dark:bg-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                className="block w-full rounded-lg border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 bg-white dark:bg-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
                 placeholder="At least 12 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -179,7 +179,7 @@ export default function CreateAccount() {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-1.5">
+              <label htmlFor="confirmPassword" className="block text-xs font-medium text-gray-700 dark:text-slate-200 mb-1">
                 Confirm Password
               </label>
               <input
@@ -187,7 +187,7 @@ export default function CreateAccount() {
                 type="password"
                 autoComplete="new-password"
                 required
-                className="block w-full rounded-lg border border-gray-300 dark:border-slate-600 px-4 py-3 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 bg-white dark:bg-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                className="block w-full rounded-lg border border-gray-300 dark:border-slate-600 px-3 py-2 text-sm text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 bg-white dark:bg-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
                 placeholder="Re-enter password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -195,13 +195,14 @@ export default function CreateAccount() {
             </div>
 
             {error && (
-              <div className="rounded-md bg-red-50 dark:bg-red-900/30 p-3 text-sm text-red-700 dark:text-red-300">
+              <div className="rounded-md bg-red-50 dark:bg-red-900/30 p-2 text-xs text-red-700 dark:text-red-300">
                 {error}
               </div>
             )}
+            )}
 
             {success && (
-              <div className="rounded-md bg-green-50 dark:bg-green-900/30 p-3 text-sm text-green-700 dark:text-green-300">
+              <div className="rounded-md bg-green-50 dark:bg-green-900/30 p-2 text-xs text-green-700 dark:text-green-300">
                 {success}
               </div>
             )}
@@ -209,12 +210,12 @@ export default function CreateAccount() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-3.5 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-blue-600 text-white py-2.5 px-4 rounded-lg text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Creating Account...' : 'Create Account'}
             </button>
 
-            <div className="text-center text-sm text-gray-500 dark:text-slate-400 mt-6">
+            <div className="text-center text-xs text-gray-500 dark:text-slate-400 mt-4">
               Already have an account?{' '}
               <button
                 type="button"
@@ -225,7 +226,7 @@ export default function CreateAccount() {
               </button>
             </div>
 
-            <p className="text-center text-xs text-gray-400 dark:text-slate-500 mt-8">
+            <p className="text-center text-[10px] text-gray-400 dark:text-slate-500 mt-4">
               By creating an account, you agree to our{' '}
               <button className="text-gray-500 dark:text-slate-400 underline hover:text-gray-700 dark:hover:text-slate-300 bg-transparent border-none cursor-pointer p-0 font-inherit">
                 Terms of Service
