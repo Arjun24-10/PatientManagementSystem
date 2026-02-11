@@ -1,10 +1,12 @@
 package com.securehealth.backend.service;
 
+import com.securehealth.backend.model.AuditLog;
 import com.securehealth.backend.model.Login;
 import com.securehealth.backend.model.PasswordHistory;
 import com.securehealth.backend.model.PasswordResetToken;
 import com.securehealth.backend.model.Role;
 import com.securehealth.backend.model.Session;
+import com.securehealth.backend.repository.AuditLogRepository;
 import com.securehealth.backend.repository.LoginRepository;
 import com.securehealth.backend.repository.PasswordHistoryRepository;
 import com.securehealth.backend.repository.PasswordResetTokenRepository;
@@ -74,6 +76,9 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private AuditLogRepository auditLogRepository;
+
     @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
 
@@ -83,6 +88,7 @@ public class AuthService {
     @Transactional // Now this will work!
     public Login registerUser(String email, String rawPassword, Role role) {
         if (loginRepository.existsByEmail(email)) {
+            logEvent(email, "REGISTRATION_FAILED", "UNKNOWN", "UNKNOWN", "Email already taken");
             throw new RuntimeException("Email already taken");
         }
 
@@ -93,7 +99,9 @@ public class AuthService {
         newUser.setPasswordHash(hash);
         newUser.setRole(role);
         
-        return loginRepository.save(newUser);
+        Login savedUser = loginRepository.save(newUser);
+        logEvent(email, "USER_REGISTERED", "UNKNOWN", "UNKNOWN", "User registered with role: " + role);
+        return savedUser;
     }
 
     /**
@@ -103,11 +111,18 @@ public class AuthService {
     public LoginResponse login(String email, String rawPassword, String ipAddress, String userAgent) {
         // 1. Verify User
         Login user = loginRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+                .orElseThrow(() -> {
+            logEvent(email, "LOGIN_FAILED", ipAddress, userAgent, "User not found");
+            return new RuntimeException("Invalid credentials");
+        });
 
-        if (user.isLocked()) throw new RuntimeException("Account locked");
+        if (user.isLocked()) {
+            logEvent(email, "LOGIN_FAILED", ipAddress, userAgent, "Account locked");
+            throw new RuntimeException("Account locked");
+        }
 
         if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
+            logEvent(email, "LOGIN_FAILED", ipAddress, userAgent, "Invalid password");
             throw new RuntimeException("Invalid credentials");
         }
 
@@ -124,6 +139,7 @@ public class AuthService {
 
             emailService.sendOtp(user.getEmail(), otp);
 
+            logEvent(email, "OTP_REQUIRED", ipAddress, userAgent, "OTP sent to email");
             // Return "OTP_REQUIRED" status with NULL tokens
             return new LoginResponse(null, null, null, "OTP_REQUIRED");
         }
@@ -144,6 +160,8 @@ public class AuthService {
         session.setUserAgent(userAgent);
         session.setExpiresAt(LocalDateTime.now().plusDays(7)); 
         sessionRepository.save(session);
+
+        logEvent(email, "LOGIN_SUCCESS", ipAddress, userAgent, "Standard login");
 
         return new LoginResponse(accessToken, refreshToken, user.getRole().name(), "LOGIN_SUCCESS");
     }
@@ -176,9 +194,13 @@ public class AuthService {
             session.setUserAgent(userAgent);
             session.setExpiresAt(LocalDateTime.now().plusDays(7)); 
             sessionRepository.save(session);
+            
+            logEvent(email, "LOGIN_SUCCESS", ipAddress, userAgent, "2FA Verified");
 
             return new LoginResponse(accessToken, refreshToken, user.getRole().name(), "LOGIN_SUCCESS");
         }
+
+        logEvent(email, "LOGIN_FAILED", ipAddress, userAgent, "Invalid/Expired OTP");
 
         throw new RuntimeException("Invalid or expired OTP");
     }
@@ -196,6 +218,7 @@ public class AuthService {
             .ifPresent(session -> {
                 session.setRevoked(true);
                 sessionRepository.save(session);
+                logEvent(session.getUser().getEmail(), "LOGOUT", session.getIpAddress(), session.getUserAgent(), "User initiated logout");
             });
     }
 
@@ -242,6 +265,7 @@ public class AuthService {
         if (userOpt.isEmpty()) {
             // For security, we don't reveal if email exists or not
             // Just log and return silently
+            logEvent(email, "PASSWORD_RESET_REQUEST", "UNKNOWN", "UNKNOWN", "User not found");
             return;
         }
 
@@ -262,6 +286,7 @@ public class AuthService {
         // Build reset link and send email
         String resetLink = frontendUrl + "/reset-password?token=" + token;
         emailService.sendPasswordResetEmail(email, resetLink);
+        logEvent(email, "PASSWORD_RESET_INITIATED", "UNKNOWN", "UNKNOWN", "Reset link sent to email");
     }
 
     /**
@@ -307,6 +332,7 @@ public class AuthService {
 
         // Check for password reuse
         if (isPasswordPreviouslyUsed(user, newPassword)) {
+            logEvent(user.getEmail(), "PASSWORD_RESET_FAILED", "UNKNOWN", "UNKNOWN", "Password reuse attempt");
             throw new RuntimeException("Cannot reuse a recent password. Please choose a different password.");
         }
 
@@ -324,6 +350,7 @@ public class AuthService {
 
         // Invalidate all active sessions for security
         invalidateAllUserSessions(user);
+        logEvent(user.getEmail(), "PASSWORD_RESET_SUCCESS", "UNKNOWN", "UNKNOWN", "Password reset successfully");
     }
 
     /**
@@ -418,5 +445,15 @@ public class AuthService {
         byte[] randomBytes = new byte[32];
         new SecureRandom().nextBytes(randomBytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
+    }
+
+    private void logEvent(String email, String action, String ip, String agent, String details) {
+        try {
+            AuditLog log = new AuditLog(email, action, ip, agent, details);
+            auditLogRepository.save(log);
+        } catch (Exception e) {
+            // Failsafe: Logging should never break the actual login process
+            System.err.println("Failed to save audit log: " + e.getMessage());
+        }
     }
 }
