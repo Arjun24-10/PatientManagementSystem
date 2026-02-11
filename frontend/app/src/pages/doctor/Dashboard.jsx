@@ -210,23 +210,39 @@ const DoctorDashboard = () => {
                </Card>
 
                {/* Notifications/Alerts (Simplified) */}
-               <div className="bg-brand-deep rounded-lg p-4 text-white shadow-lg relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-white opacity-10 rounded-full -mr-12 -mt-12"></div>
-                  <div className="absolute bottom-0 left-0 w-16 h-16 bg-white opacity-10 rounded-full -ml-8 -mb-8"></div>
+               {/* Notifications/Alerts - Daily Briefing */}
+               <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 shadow-xl shadow-blue-900/20 group">
+                  {/* Decorative Background Elements */}
+                  <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-110 transition-transform duration-700"></div>
+                  <div className="absolute bottom-0 left-0 -ml-8 -mb-8 w-24 h-24 bg-purple-500/20 rounded-full blur-xl"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
 
-                  <div className="relative z-10">
-                     <div className="flex items-center mb-2">
-                        <div className="w-7 h-7 bg-white/20 rounded flex items-center justify-center backdrop-blur-sm">
-                           <Bell className="w-3.5 h-3.5 text-white" />
+                  <div className="relative z-10 p-5">
+                     <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-inner border border-white/10">
+                           <Bell className="w-5 h-5 text-white" />
                         </div>
-                        <h3 className="ml-2 font-bold text-sm">Daily Briefing</h3>
+                        <div>
+                           <h3 className="font-bold text-white text-lg leading-tight">Daily Briefing</h3>
+                           <p className="text-blue-100 text-xs font-medium">Tuesday, 24 Oct</p>
+                        </div>
                      </div>
-                     <p className="text-blue-100 text-xs mb-3 leading-relaxed">
-                        You have 3 high-priority lab results to review and 2 patient inquiries pending from yesterday.
-                     </p>
-                     <Button className="w-full bg-white text-brand-deep hover:bg-blue-50 border-none">
-                        Review Items
-                     </Button>
+
+                     <div className="space-y-3 mb-5">
+                        <div className="flex items-start gap-2 text-blue-50 text-sm">
+                           <div className="w-1.5 h-1.5 rounded-full bg-red-400 mt-1.5 shadow-[0_0_8px_rgba(248,113,113,0.6)]"></div>
+                           <p className="leading-snug"><span className="font-semibold text-white">3 High-priority</span> lab results require your immediate review.</p>
+                        </div>
+                        <div className="flex items-start gap-2 text-blue-50 text-sm">
+                           <div className="w-1.5 h-1.5 rounded-full bg-yellow-400 mt-1.5"></div>
+                           <p className="leading-snug">2 Patient inquiries pending from yesterday.</p>
+                        </div>
+                     </div>
+
+                     <button className="w-full py-2.5 px-4 bg-white/90 hover:bg-white text-blue-700 font-bold rounded-xl shadow-lg shadow-black/5 transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 active:scale-95 flex items-center justify-center gap-2">
+                        <span>Review Action Items</span>
+                        <ArrowRight className="w-4 h-4" />
+                     </button>
                   </div>
                </div>
             </div>

@@ -31,7 +31,6 @@ const Sidebar = ({ role, userName, isOpen, setIsOpen, isCollapsed, toggleCollaps
                     { icon: Activity, label: 'Lab Results', path: '/dashboard/doctor/labs' },
                     { icon: Pill, label: 'Prescriptions', path: '/dashboard/doctor/prescriptions' },
                     { icon: FileText, label: 'Reports', path: '/dashboard/doctor/reports' },
-                    { icon: MessageSquare, label: 'Messages', path: '/dashboard/doctor/messages' },
                 ];
             case 'patient':
                 return [
@@ -57,9 +56,8 @@ const Sidebar = ({ role, userName, isOpen, setIsOpen, isCollapsed, toggleCollaps
                 ];
             case 'admin':
                 return [
-                    ...common,
-                    { label: 'User Management', icon: Users, path: `/dashboard/${role}/users` },
-                    { label: 'System Logs', icon: Shield, path: `/dashboard/${role}/logs` },
+                    { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard/admin' },
+                    { label: 'Profile', icon: Users, path: '/dashboard/admin/profile' },
                 ];
             default:
                 return common;

@@ -1,26 +1,89 @@
-import React from 'react';
-import Card from '../../components/common/Card';
+import React, { useState } from 'react';
+import { Users, Shield, AlertCircle, FileText, Activity, LayoutDashboard } from 'lucide-react';
+
+import SystemOverview from './components/SystemOverview';
+import UserManagement from './components/UserManagement';
+import CompliancePanel from './components/CompliancePanel';
+import IncidentManagement from './components/IncidentManagement';
+import AuditLogs from './components/AuditLogs';
+import SystemHealth from './components/SystemHealth';
 
 const AdminDashboard = () => {
-   return (
-      <div className="space-y-3">
-         <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">Admin Dashboard</h2>
+   const [activeTab, setActiveTab] = useState('overview');
 
-         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <Card className="p-3 dark:bg-slate-800">
-               <h3 className="text-gray-500 dark:text-slate-400 text-xs font-medium">Total Users</h3>
-               <p className="text-xl font-bold text-gray-800 dark:text-slate-100 mt-1">5,432</p>
-            </Card>
-            <Card className="p-3 dark:bg-slate-800">
-               <h3 className="text-gray-500 dark:text-slate-400 text-xs font-medium">System Health</h3>
-               <p className="text-xl font-bold text-green-600 dark:text-green-400 mt-1">99.9%</p>
-            </Card>
+   const renderContent = () => {
+      switch (activeTab) {
+         case 'overview':
+            return (
+               <div className="space-y-6 animate-fade-in">
+                  <SystemOverview />
+                  <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                     <div className="xl:col-span-2">
+                        <CompliancePanel />
+                     </div>
+                     <div>
+                        <SystemHealth />
+                     </div>
+                  </div>
+               </div>
+            );
+         case 'users':
+            return <div className="animate-fade-in"><UserManagement /></div>;
+         case 'incidents':
+            return <div className="animate-fade-in"><IncidentManagement /></div>;
+         case 'audit':
+            return <div className="animate-fade-in"><AuditLogs /></div>;
+         default:
+            return <SystemOverview />;
+      }
+   };
+
+   const TabButton = ({ id, label, icon: Icon }) => (
+      <button
+         onClick={() => setActiveTab(id)}
+         className={`
+                flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all duration-200
+                ${activeTab === id
+               ? 'border-admin-primary text-admin-primary'
+               : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-200'
+            }
+            `}
+      >
+         <Icon size={18} />
+         {label}
+      </button>
+   );
+
+   return (
+      <div className="space-y-6 min-h-screen bg-slate-50/50 dark:bg-slate-900/50 pb-10">
+         {/* Header Section */}
+         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+               <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Admin Console</h1>
+               <p className="text-slate-500 dark:text-slate-400">Secure System Monitoring & Compliance Hub</p>
+            </div>
+            <div className="flex items-center gap-3">
+               <span className="px-3 py-1 rounded-full bg-admin-success/10 text-admin-success text-xs font-bold border border-admin-success/20">
+                  System Secure
+               </span>
+               <span className="text-sm text-slate-400">Last updated: Just now</span>
+            </div>
          </div>
 
-         <Card className="p-3 dark:bg-slate-800">
-            <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100 mb-2">Recent Activity Logs</h3>
-            <p className="text-xs text-gray-500 dark:text-slate-400">Logs will appear here...</p>
-         </Card>
+         {/* Navigation Tabs */}
+         <div className="border-b border-slate-200 dark:border-slate-700 overflow-x-auto">
+            <div className="flex space-x-2">
+               <TabButton id="overview" label="Overview" icon={LayoutDashboard} />
+               <TabButton id="users" label="User Management" icon={Users} />
+               <TabButton id="incidents" label="Incidents" icon={AlertCircle} />
+               <TabButton id="audit" label="Audit Logs" icon={FileText} />
+            </div>
+         </div>
+
+         {/* Content Area */}
+         <div className="mt-6">
+            {renderContent()}
+         </div>
       </div>
    );
 };

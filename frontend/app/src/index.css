@@ -103,7 +103,9 @@
 }
 
 /* Smooth theme transitions */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease;
 }
 
@@ -171,18 +173,21 @@ code {
 }
 
 ::-webkit-scrollbar-track {
-  background: #F1F5F9;
+  background: transparent;
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+  background: #cbd5e1;
+  /* slate-300 */
   border-radius: 10px;
-  border: 2px solid #F1F5F9;
+  border: 2px solid #F8FAFC;
+  /* Match body bg */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+  background: #94a3b8;
+  /* slate-400 */
 }
 
 /* Firefox scrollbar */
@@ -329,13 +334,24 @@ html.dark * {
 
   /* Shake Animation for Errors */
   @keyframes shake {
-    0%, 100% {
+
+    0%,
+    100% {
       transform: translateX(0);
     }
-    10%, 30%, 50%, 70%, 90% {
+
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
       transform: translateX(-4px);
     }
-    20%, 40%, 60%, 80% {
+
+    20%,
+    40%,
+    60%,
+    80% {
       transform: translateX(4px);
     }
   }
