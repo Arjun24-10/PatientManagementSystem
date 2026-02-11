@@ -18,7 +18,7 @@ public class AuditLogController {
 
     // 1. Get ALL Logs (For the Main Audit Table)
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')") // <--- CRITICAL SECURITY CHECK
+    @PreAuthorize("hasAuthority('ADMIN')") // <--- CRITICAL SECURITY CHECK
     public ResponseEntity<List<AuditLog>> getAllLogs() {
         // In a real app, you would use Pagination (PageRequest) here
         // forcing a limit to prevent crashing with 1 million logs.
@@ -28,7 +28,7 @@ public class AuditLogController {
 
     // 2. Get Logs for a Specific User (For detailed investigation)
     @GetMapping("/{email}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<List<AuditLog>> getUserLogs(@PathVariable String email) {
         return ResponseEntity.ok(auditLogRepository.findByEmailOrderByTimestampDesc(email));
     }
