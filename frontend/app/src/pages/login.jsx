@@ -118,7 +118,20 @@ export default function Login() {
       // If mock auth fails, try real backend
       const result = await login(email, password);
 
-      if (result.success) {
+      // Check for OTP Requirement from Real Backend
+      if (result.status === 'OTP_REQUIRED') {
+        // Store minimal info needed for the 2FA page
+        sessionStorage.setItem('2fa_temp_token', 'BACKEND_PENDING'); 
+        sessionStorage.setItem('2fa_user', JSON.stringify({ email: email }));
+        
+        setSuccess('Credentials verified! Redirecting to verification...');
+        setTimeout(() => {
+          navigate('/verify-2fa');
+        }, 1000);
+        return;
+      }
+
+      if (result.success || (result.user && !result.error)) {
         if (rememberMe) {
           localStorage.setItem('rememberMe', 'true');
           localStorage.setItem('rememberedEmail', email);

@@ -1,5 +1,6 @@
 // Authentication service for backend API
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+// Hardcoded to 8081 to ensure we hit the API, not Adminer (8080)
+const API_BASE_URL = 'http://localhost:8081/api';
 const AUTH_URL = `${API_BASE_URL}/auth`;
 const STORAGE_KEY = 'secure_health_user';
 
@@ -64,6 +65,7 @@ export const login = async (email, password) => {
       const response = await fetch(`${AUTH_URL}/login`, {
          method: 'POST',
          headers: { 'Content-Type': 'application/json' },
+         credentials: 'include',
          body: JSON.stringify({ email, password }),
       });
 
@@ -73,6 +75,12 @@ export const login = async (email, password) => {
       }
 
       let data = await response.json();
+      
+      // Handle OTP case - do not save session yet
+      if (data.status === 'OTP_REQUIRED') {
+         return data;
+      }
+
       // Expecting data to contain { message, email, role } based on backend
       const user = {
          email: data.email || email,
@@ -89,16 +97,30 @@ export const login = async (email, password) => {
 export const signIn = async (email, password) => {
    try {
       const result = await login(email, password);
+      
+      // Pass through OTP status
+      if (result.status === 'OTP_REQUIRED') {
+         return { success: true, ...result };
+      }
+
       // Construct session object matching what AuthContext expects
       const session = { user: result.user };
-      return { success: true, user: result.user, session };
+      return { success: true, user: result.user, session, ...result };
    } catch (error) {
       return { success: false, error: error.message };
    }
 };
 
 export const logout = async () => {
-   // Client-side logout only since backend has no logout endpoint
+   try {
+      // Call backend to clear cookies
+      await fetch(`${AUTH_URL}/logout`, {
+         method: 'POST',
+         credentials: 'include'
+      });
+   } catch (error) {
+      console.warn('Backend logout failed', error);
+   }
    clearSession();
    return { message: 'Logged out successfully' };
 };
@@ -144,4 +166,3 @@ export const onAuthStateChange = (callback) => {
 const notifyAuthStateChange = (session) => {
    authStateListeners.forEach(listener => listener(session));
 };
-
