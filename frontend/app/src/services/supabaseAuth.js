@@ -1,9 +1,5 @@
 // Authentication service for backend API
-const envApiUrl = process.env.REACT_APP_API_URL;
-const normalizedApiUrl = envApiUrl
-   ? envApiUrl.replace('://localhost:8080/', '://localhost:8081/').replace('://127.0.0.1:8080/', '://127.0.0.1:8081/')
-   : null;
-const API_BASE_URL = normalizedApiUrl || `http://localhost:8081/api`;
+const API_BASE_URL = 'http://localhost:8081/api';
 const AUTH_URL = `${API_BASE_URL}/auth`;
 const STORAGE_KEY = 'secure_health_user';
 const PROFILE_STORAGE_KEY = 'secure_health_profiles';

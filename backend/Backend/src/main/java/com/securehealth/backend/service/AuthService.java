@@ -141,7 +141,7 @@ public class AuthService {
 
             logEvent(email, "OTP_REQUIRED", ipAddress, userAgent, "OTP sent to email");
             // Return "OTP_REQUIRED" status with NULL tokens
-            return new LoginResponse(null, null, null, "OTP_REQUIRED");
+            return new LoginResponse(null, null, user.getRole().name(), "OTP_REQUIRED");
         }
 
         // --- 2. GENERATE TOKENS (Standard Login) ---
