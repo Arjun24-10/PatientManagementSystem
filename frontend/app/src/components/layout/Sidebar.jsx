@@ -100,6 +100,26 @@ const Sidebar = ({ role, userName, isOpen, setIsOpen, isCollapsed, toggleCollaps
                             )}
                         </div>
 
+
+
+                        {/* Desktop Expand Toggle (When Collapsed - Centered below logo conceptually, but here typically we just toggle) 
+                             Actually, if collapsed, the header justifies center, so the logo is there. 
+                             We need a way to un-collapse. Usually strictly clicking the toggle.
+                             Let's place the toggle strictly to the right if open, or maybe overlay?
+                             The design request: "collapse sidebar put a small close sidebar type arrow at top right... removing the collapse sidebar to close it"
+                             
+                             If collapsed, we need a button to open it. 
+                         */}
+                        {isCollapsed && (
+                            <button
+                                onClick={toggleCollapse}
+                                className="hidden lg:flex absolute -right-3 top-6 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-full p-1 shadow-sm text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-white"
+                            >
+                                <ChevronRight size={14} />
+                            </button>
+                        )}
+
+
                         {/* Mobile Close */}
                         <button
                             onClick={() => setIsOpen(false)}
@@ -112,10 +132,17 @@ const Sidebar = ({ role, userName, isOpen, setIsOpen, isCollapsed, toggleCollaps
                     {/* Navigation */}
                     <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto custom-scrollbar overflow-x-hidden">
                         {!isCollapsed && (
-                            <div className="px-3 mb-3">
+                            <div className="px-3 mb-3 flex items-center justify-between group">
                                 <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">
                                     Menu
                                 </p>
+                                <button
+                                    onClick={toggleCollapse}
+                                    className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700/50 rounded-lg transition-colors"
+                                    title="Collapse Sidebar"
+                                >
+                                    <ChevronLeft size={16} />
+                                </button>
                             </div>
                         )}
 
@@ -169,22 +196,11 @@ const Sidebar = ({ role, userName, isOpen, setIsOpen, isCollapsed, toggleCollaps
 
                     {/* Footer / User Profile */}
                     <div className="p-4 border-t border-gray-100 dark:border-slate-700">
-                        {/* Collapse Toggle Button (Desktop) */}
-                        <button
-                            onClick={toggleCollapse}
-                            className={`
-                                hidden lg:flex items-center w-full mb-4 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700/50 rounded-lg transition-colors
-                                ${isCollapsed ? 'justify-center' : 'justify-start'}
-                            `}
-                        >
-                            {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-                            {!isCollapsed && <span className="ml-2 text-sm font-medium">Collapse Sidebar</span>}
-                        </button>
-
+                        {/* Profile Section with Shadow */}
                         <div
                             onClick={() => navigate(`/dashboard/${role}/profile`)}
                             className={`
-                                flex items-center p-2 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors
+                                flex items-center p-2 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors shadow-sm ring-1 ring-gray-100 dark:ring-slate-700
                                 ${isCollapsed ? 'justify-center' : ''}
                             `}
                         >

@@ -102,10 +102,18 @@ const LabDashboard = () => {
 
                 {/* Quick Actions / Tips */}
                 <div className="space-y-3">
-                    <Card className="p-3 bg-gradient-to-br from-brand-deep to-brand-medium text-white">
-                        <h3 className="font-bold text-sm mb-1">Priority Attention</h3>
-                        <p className="text-blue-100 text-xs mb-2">You have 2 urgent samples that need processing within the next hour.</p>
-                        <Button className="w-full bg-white text-brand-deep hover:bg-blue-50 border-none text-xs" onClick={() => navigate('/dashboard/lab/orders')}>
+                    <Card className="p-4 bg-gradient-to-br from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/30 border-none">
+                        <h3 className="font-bold text-sm mb-1.5 flex items-center">
+                            <div className="w-2 h-2 rounded-full bg-red-400 mr-2 animate-pulse"></div>
+                            Priority Attention
+                        </h3>
+                        <p className="text-blue-100 text-xs mb-3 leading-relaxed">
+                            You have <span className="font-bold text-white">2 urgent samples</span> that need processing within the next hour.
+                        </p>
+                        <Button
+                            className="w-full !bg-white !text-blue-900 hover:!bg-gray-50 border-none text-xs font-bold shadow-sm"
+                            onClick={() => navigate('/dashboard/lab/orders')}
+                        >
                             View Urgent Orders
                         </Button>
                     </Card>
