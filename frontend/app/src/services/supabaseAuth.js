@@ -153,9 +153,14 @@ export const signIn = async (email, password) => {
 };
 
 export const logout = async () => {
-   // Client-side logout only since backend has no logout endpoint
-   clearSession();
-   return { message: 'Logged out successfully' };
+   try {
+      await fetchWithTimeout(`${AUTH_URL}/logout`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+   } catch (e) {
+      // Ignore network errors; still clear local session
+   } finally {
+      clearSession();
+      return { message: 'Logged out successfully' };
+   }
 };
 
 export const signOut = async () => {

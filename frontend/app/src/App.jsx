@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext.jsx';
 
 import Login from './pages/login.jsx';
@@ -35,9 +35,25 @@ import AdminDashboard from './pages/admin/Dashboard.jsx';
 function App() {
   const { user } = useAuth();
   const displayName = user?.fullName || user?.full_name || user?.email || 'User';
-  const roleFromUser = user?.role ? user.role.toLowerCase() : null;
-  const allowedRoles = new Set(['doctor', 'patient', 'nurse', 'lab', 'admin']);
-  const resolveRole = (fallback) => (allowedRoles.has(roleFromUser) ? roleFromUser : fallback);
+  const roleMap = {
+    PATIENT: 'patient',
+    DOCTOR: 'doctor',
+    NURSE: 'nurse',
+    ADMIN: 'admin',
+    LAB_TECH: 'lab',
+  };
+
+  const RoleGuard = ({ expectedRole, children }) => {
+    const userRole = (user?.role || '').toLowerCase();
+    if (!user) {
+      return <Navigate to="/login" replace />;
+    }
+    if (userRole !== expectedRole) {
+      const routeRole = roleMap[(user?.role || 'PATIENT').toUpperCase()] || 'patient';
+      return <Navigate to={`/dashboard/${routeRole}`} replace />;
+    }
+    return children;
+  };
 
   return (
     <BrowserRouter>
@@ -50,7 +66,11 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* Doctor Dashboard */}
-        <Route path="/dashboard/doctor/*" element={<DashboardLayout role={resolveRole('doctor')} userName={displayName} />}>
+        <Route path="/dashboard/doctor/*" element={
+          <RoleGuard expectedRole="doctor">
+            <DashboardLayout role="doctor" userName={displayName} />
+          </RoleGuard>
+        }>
 
           <Route path="" element={<DoctorDashboard />} />
           <Route path="patients" element={<Patients />} />
@@ -63,7 +83,11 @@ function App() {
         </Route>
 
         {/* Patient Dashboard */}
-        <Route path="/dashboard/patient/*" element={<DashboardLayout role={resolveRole('patient')} userName={displayName} />}>
+        <Route path="/dashboard/patient/*" element={
+          <RoleGuard expectedRole="patient">
+            <DashboardLayout role="patient" userName={displayName} />
+          </RoleGuard>
+        }>
           <Route path="" element={<PatientDashboard />} />
           <Route path="appointments" element={<PatientAppointments />} />
           <Route path="labs" element={<PatientLabResults />} />
@@ -73,13 +97,21 @@ function App() {
         </Route>
 
         {/* Nurse Dashboard */}
-        <Route path="/dashboard/nurse/*" element={<DashboardLayout role={resolveRole('nurse')} userName={displayName} />}>
+        <Route path="/dashboard/nurse/*" element={
+          <RoleGuard expectedRole="nurse">
+            <DashboardLayout role="nurse" userName={displayName} />
+          </RoleGuard>
+        }>
           <Route path="" element={<NurseDashboard />} />
           <Route path="vitals" element={<NurseVitals />} />
         </Route>
 
         {/* Lab Dashboard */}
-        <Route path="/dashboard/lab/*" element={<DashboardLayout role={resolveRole('lab')} userName={displayName} />}>
+        <Route path="/dashboard/lab/*" element={
+          <RoleGuard expectedRole="lab">
+            <DashboardLayout role="lab" userName={displayName} />
+          </RoleGuard>
+        }>
           <Route path="" element={<LabDashboard />} />
           <Route path="orders" element={<LabOrders />} />
           <Route path="orders/:id" element={<LabOrderDetail />} />
@@ -88,7 +120,11 @@ function App() {
         </Route>
 
         {/* Admin Dashboard */}
-        <Route path="/dashboard/admin/*" element={<DashboardLayout role={resolveRole('admin')} userName={displayName} />}>
+        <Route path="/dashboard/admin/*" element={
+          <RoleGuard expectedRole="admin">
+            <DashboardLayout role="admin" userName={displayName} />
+          </RoleGuard>
+        }>
           <Route path="" element={<AdminDashboard />} />
         </Route>
       </Routes>
