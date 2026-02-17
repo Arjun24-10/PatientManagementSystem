@@ -89,7 +89,6 @@ public class AuthService {
     /**
      * Registers a new user.
      */
-    @Transactional // Now this will work!
     public Login registerUser(String email, String rawPassword, Role role) {
         if (loginRepository.existsByEmail(email)) {
             logEvent(email, "REGISTRATION_FAILED", "UNKNOWN", "UNKNOWN", "Email already taken");
@@ -115,7 +114,6 @@ public class AuthService {
     /**
      * Authenticates user and generates tokens.
      */
-    @Transactional
     public LoginResponse login(String email, String rawPassword, String ipAddress, String userAgent) {
         
         rateLimiterService.checkLoginAttempts(email);
