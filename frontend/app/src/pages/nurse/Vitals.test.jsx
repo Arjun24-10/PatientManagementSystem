@@ -79,20 +79,73 @@ jest.mock('recharts', () => ({
 describe('Nurse Vitals Page', () => {
     test('renders vitals page', () => {
         render(<NurseVitals />);
-
+        
         expect(screen.getAllByText(/patient vitals/i).length).toBeGreaterThan(0);
+    });
+
+    test('renders assigned patients section', () => {
+        render(<NurseVitals />);
+        
+        expect(screen.getByText(/my assigned patients/i)).toBeInTheDocument();
     });
 
     test('displays patient list', () => {
         render(<NurseVitals />);
-
+        
         expect(screen.getByText('John Smith')).toBeInTheDocument();
         expect(screen.getByText('Jane Doe')).toBeInTheDocument();
     });
 
-    test('displays room information for patients', () => {
+    test('displays vitals overview section', () => {
         render(<NurseVitals />);
+        
+        expect(screen.getByText(/current vitals overview/i)).toBeInTheDocument();
+    });
 
+    test('displays vital signs data', () => {
+        render(<NurseVitals />);
+        
+        expect(screen.getAllByText(/blood pressure/i).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/heart rate/i).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/temperature/i).length).toBeGreaterThan(0);
+    });
+
+    test('displays vitals entry form section', () => {
+        render(<NurseVitals />);
+        
+        expect(screen.getAllByText(/vitals entry/i).length).toBeGreaterThan(0);
+    });
+
+    test('displays vitals trend chart section', () => {
+        render(<NurseVitals />);
+        
+        expect(screen.getAllByText(/vitals trend/i).length).toBeGreaterThan(0);
+    });
+
+    test('displays vitals log table section', () => {
+        render(<NurseVitals />);
+        
+        expect(screen.getByText(/time-stamped vitals log/i)).toBeInTheDocument();
+    });
+
+    test('renders view mode toggle buttons', () => {
+        render(<NurseVitals />);
+        
+        expect(screen.getAllByText(/grid/i).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/list/i).length).toBeGreaterThan(0);
+    });
+
+    test('renders export and print buttons', () => {
+        render(<NurseVitals />);
+        
+        expect(screen.getAllByText(/export/i).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/print/i).length).toBeGreaterThan(0);
+    });
+
+    test('displays room and age information for selected patient', () => {
+        render(<NurseVitals />);
+        
         expect(screen.getAllByText(/room/i).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/age/i).length).toBeGreaterThan(0);
     });
 });

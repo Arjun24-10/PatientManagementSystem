@@ -2,6 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthContext } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 // Default mock auth state
 const defaultAuthValue = {
@@ -17,11 +18,13 @@ const defaultAuthValue = {
 
 const AllTheProviders = ({ children, authValue }) => {
    return (
-      <AuthContext.Provider value={{ ...defaultAuthValue, ...authValue }}>
-         <MemoryRouter>
-            {children}
-         </MemoryRouter>
-      </AuthContext.Provider>
+      <ThemeProvider>
+         <AuthContext.Provider value={{ ...defaultAuthValue, ...authValue }}>
+            <MemoryRouter>
+               {children}
+            </MemoryRouter>
+         </AuthContext.Provider>
+      </ThemeProvider>
    );
 };
 

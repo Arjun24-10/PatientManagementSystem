@@ -51,16 +51,16 @@ const TreatmentModal = ({ isOpen, onClose, onAdd }) => {
                 </div>
 
                 <div className="space-y-1">
-                    <label className="block text-sm font-medium text-gray-700">Clinical Notes</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">Clinical Notes</label>
                     <textarea
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none h-24"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none h-24 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500"
                         value={treatment.notes}
                         onChange={e => setTreatment({ ...treatment, notes: e.target.value })}
                         placeholder="Specific instructions, goals, or precautions..."
                     />
                 </div>
 
-                <div className="pt-4 flex justify-end space-x-3 border-t border-gray-100">
+                <div className="pt-4 flex justify-end space-x-3 border-t border-gray-100 dark:border-slate-700">
                     <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
                     <Button type="submit">Add Treatment</Button>
                 </div>
