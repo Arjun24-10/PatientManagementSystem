@@ -79,6 +79,10 @@ public class AuthService {
     @Autowired
     private AuditLogRepository auditLogRepository;
 
+    @Autowired
+    private RateLimiterService rateLimiterService;
+
+
     @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
 
@@ -109,10 +113,14 @@ public class AuthService {
      */
     @Transactional
     public LoginResponse login(String email, String rawPassword, String ipAddress, String userAgent) {
+        
+        rateLimiterService.checkLoginAttempts(email);
+
         // 1. Verify User
         Login user = loginRepository.findByEmail(email)
                 .orElseThrow(() -> {
             logEvent(email, "LOGIN_FAILED", ipAddress, userAgent, "User not found");
+            rateLimiterService.registerFailedLogin(email);
             return new RuntimeException("Invalid credentials");
         });
 
@@ -122,6 +130,8 @@ public class AuthService {
         }
 
         if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
+            rateLimiterService.registerFailedLogin(email);
+
             logEvent(email, "LOGIN_FAILED", ipAddress, userAgent, "Invalid password");
             throw new RuntimeException("Invalid credentials");
         }
@@ -162,7 +172,7 @@ public class AuthService {
         sessionRepository.save(session);
 
         logEvent(email, "LOGIN_SUCCESS", ipAddress, userAgent, "Standard login");
-
+        rateLimiterService.resetLoginAttempts(email);
         return new LoginResponse(accessToken, refreshToken, user.getRole().name(), "LOGIN_SUCCESS");
     }
 
@@ -170,6 +180,9 @@ public class AuthService {
      * Verifies OTP and Completes Login (Generates Tokens).
      */
     public LoginResponse verifyOtp(String email, String otp, String ipAddress, String userAgent) {
+
+        rateLimiterService.checkOtpAttempts(email);
+
         Login user = loginRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -180,6 +193,8 @@ public class AuthService {
             // 1. Clear OTP to prevent reuse
             user.setOtp(null);
             loginRepository.save(user);
+
+            rateLimiterService.resetOtpAttempts(email);
 
             // 2. Generate Tokens (Login is now successful!)
             String accessToken = jwtUtil.generateAccessToken(user.getEmail(), user.getRole().name(), user.getUserId());
@@ -199,7 +214,8 @@ public class AuthService {
 
             return new LoginResponse(accessToken, refreshToken, user.getRole().name(), "LOGIN_SUCCESS");
         }
-
+        rateLimiterService.registerFailedOtp(email);
+        
         logEvent(email, "LOGIN_FAILED", ipAddress, userAgent, "Invalid/Expired OTP");
 
         throw new RuntimeException("Invalid or expired OTP");
@@ -445,6 +461,67 @@ public class AuthService {
         byte[] randomBytes = new byte[32];
         new SecureRandom().nextBytes(randomBytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
+    }
+
+
+    /**
+     * ROTATION LOGIC:
+     * 1. Validate the old Refresh Token.
+     * 2. Security: If it's already revoked? ALARM! Revoke everything (Theft detected).
+     * 3. If valid: Kill the old one, create a NEW one.
+     */
+    @Transactional
+    public LoginResponse refreshToken(String oldRefreshToken, String ipAddress, String userAgent) {
+        // 1. Hash the incoming token to find it in DB
+        String hash = hashToken(oldRefreshToken);
+        
+        Session session = sessionRepository.findByRefreshTokenHash(hash)
+                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+
+        // 2. SECURITY CHECK: Reuse Detection (Theft)
+        if (session.isRevoked()) {
+            // ALARM: Someone is trying to use a dead token! 
+            // This means the legitimate user likely already rotated it, and now a hacker is trying the old one.
+            logEvent(session.getUser().getEmail(), "TOKEN_THEFT_DETECTED", ipAddress, userAgent, "Reuse of revoked token attempted");
+            
+            // Nuclear Option: Kill ALL sessions for this user to force re-login
+            sessionRepository.revokeAllUserSessions(session.getUser().getUserId());
+            
+            throw new RuntimeException("Security Alert: Session revoked due to suspected theft.");
+        }
+
+        // 3. Check Expiry
+        if (session.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Refresh token expired. Please login again.");
+        }
+
+        // 4. ROTATE: Revoke the old token
+        session.setRevoked(true);
+        sessionRepository.save(session);
+
+        // 5. Generate NEW Tokens
+        Login user = session.getUser();
+        String newAccessToken = jwtUtil.generateAccessToken(user.getEmail(), user.getRole().name(), user.getUserId());
+        String newRefreshToken = jwtUtil.generateRefreshToken(); // UUID
+        
+        // 6. Save NEW Session
+        createSession(user, newRefreshToken, ipAddress, userAgent);
+
+        // Log the success
+        logEvent(user.getEmail(), "TOKEN_REFRESHED", ipAddress, userAgent, "Token rotated successfully");
+
+        return new LoginResponse(newAccessToken, newRefreshToken, user.getRole().name(), "SUCCESS");
+    }
+
+    private void createSession(Login user, String refreshToken, String ipAddress, String userAgent) {
+        String refreshTokenHash = hashToken(refreshToken);
+        Session session = new Session();
+        session.setUser(user);
+        session.setRefreshTokenHash(refreshTokenHash);
+        session.setIpAddress(ipAddress);
+        session.setUserAgent(userAgent);
+        session.setExpiresAt(LocalDateTime.now().plusDays(7)); 
+        sessionRepository.save(session);
     }
 
     private void logEvent(String email, String action, String ip, String agent, String details) {

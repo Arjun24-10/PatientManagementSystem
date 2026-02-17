@@ -321,4 +321,48 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resp);
         }
     }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(
+            @CookieValue(name = "refreshToken", required = false) String oldRefreshToken,
+            HttpServletResponse response,
+            HttpServletRequest request) {
+
+        // 1. Basic Check
+        if (oldRefreshToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No refresh token provided");
+        }
+
+        try {
+            // 2. Call Service (Perform Rotation)
+            LoginResponse loginData = authService.refreshToken(
+                oldRefreshToken,
+                request.getRemoteAddr(),
+                request.getHeader("User-Agent")
+            );
+
+            // 3. Set the NEW Cookie (HttpOnly)
+            Cookie newCookie = new Cookie("refreshToken", loginData.getRefreshToken());
+            newCookie.setHttpOnly(true);
+            newCookie.setSecure(false); // Set to TRUE in Production (HTTPS)
+            newCookie.setPath("/api/auth");
+            newCookie.setMaxAge(7 * 24 * 60 * 60); // 7 Days
+
+            response.addCookie(newCookie);
+
+            // 4. Return Access Token (Hide Refresh Token from JSON)
+            loginData.setRefreshToken(null); 
+            
+            return ResponseEntity.ok(loginData);
+
+        } catch (RuntimeException e) {
+            // If theft detected or expired, clear the cookie immediately
+            Cookie cookie = new Cookie("refreshToken", null);
+            cookie.setPath("/api/auth");
+            cookie.setMaxAge(0);
+            response.addCookie(cookie);
+            
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        }
+    }
 }
