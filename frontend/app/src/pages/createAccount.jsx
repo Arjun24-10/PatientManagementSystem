@@ -64,178 +64,178 @@ export default function CreateAccount() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50 font-sans">
-      {/* Left Panel - Completely new design */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 text-white p-12 flex-col justify-between">
-        <div>
-          <h1 className="text-5xl font-bold tracking-tight mb-6">
-            Your Health,<br />Your Control
-          </h1>
-          <p className="text-xl opacity-90 max-w-lg leading-relaxed">
-            Join a secure, patient-centered platform that puts you at the center of your care — with full visibility, privacy controls, and direct access to your healthcare team.
-          </p>
-        </div>
-
-        <div className="space-y-8">
-          <div className="grid grid-cols-2 gap-6">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <div className="text-3xl mb-2">🔒</div>
-              <h3 className="font-semibold text-lg">Bank-grade Security</h3>
-              <p className="text-sm opacity-80 mt-1">End-to-end encryption & HIPAA compliant</p>
-            </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <div className="text-3xl mb-2">📱</div>
-              <h3 className="font-semibold text-lg">Always Connected</h3>
-              <p className="text-sm opacity-80 mt-1">Access records & communicate 24/7</p>
-            </div>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-            <p className="text-sm opacity-90 italic">
-              "Your medical data belongs to you. We only facilitate secure, consented access."
-            </p>
-            <p className="text-xs mt-3 opacity-70">— Our Privacy Promise</p>
-          </div>
-        </div>
-
-        <div className="text-sm opacity-70">
-          © 2026 SecureCare Platform • All rights reserved
-        </div>
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-cyan-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      {/* Animated Background Gradients */}
+      <div className="absolute top-0 left-0 w-full h-full">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-cyan-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float" style={{ animationDelay: '4s' }}></div>
       </div>
 
-      {/* Right Panel - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-white">
-        <div className="w-full max-w-md">
-          <div className="mb-10">
-            <h2 className="text-3xl font-bold text-gray-900">Create Your Patient Account</h2>
-            <p className="mt-3 text-gray-600">
-              Get started with secure access to your health records and care team
-            </p>
+      <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
+        <div className="w-full max-w-4xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+
+            {/* Left Panel - Branding (copied from Login) */}
+            <div className="hidden lg:block space-y-4 animate-fade-in">
+              <div className="space-y-2">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm rounded-full border border-white/20 dark:border-slate-700/50">
+                  {/* Heart icon and branding text */}
+                  {/* Import Heart from lucide-react if not already */}
+                  <span className="text-xs font-semibold text-gray-700 dark:text-slate-200">Premium Healthcare Platform</span>
+                </div>
+
+                <h1 className="text-3xl font-bold leading-tight">
+                  <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    Expert Care,
+                  </span>
+                  <br />
+                  <span className="text-gray-800 dark:text-slate-100">Always Available</span>
+                </h1>
+
+                  <div className="mt-2 space-y-1">
+                    <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">Your Health, Your Data, Your Control.</p>
+                    <p className="text-sm text-gray-600 dark:text-slate-400">Secure Access to Personalized Care.</p>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-slate-400 max-w-md">
+                    {/* Minimal description or slogan can go here */}
+                  </p>
+              </div>
+              {/* Stats Cards intentionally omitted for minimal UI */}
+            </div>
+
+            {/* Right Panel - Create Account Form (replaces Login form) */}
+            <div className="glass-card dark:bg-slate-800/80 dark:border-slate-700/50 p-6 md:p-8 rounded-2xl animate-fade-in-delay-1 relative z-20">
+              <div className="space-y-4 relative z-20">
+                <div className="space-y-1">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">Create Account</h2>
+                  <p className="text-xs text-gray-600 dark:text-slate-400">Sign up to access your healthcare dashboard</p>
+                </div>
+                <form onSubmit={handleSignUp} className="space-y-3 relative z-20">
+                  <div className="space-y-1">
+                    <label htmlFor="name" className="block text-xs font-semibold text-gray-700 dark:text-slate-200">Full Name</label>
+                    <input
+                      id="name"
+                      type="text"
+                      autoComplete="name"
+                      required
+                      className="w-full border-2 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 transition-all bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 placeholder-gray-500 dark:placeholder-slate-500 border-gray-300 dark:border-slate-600 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter your full name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label htmlFor="email" className="block text-xs font-semibold text-gray-700 dark:text-slate-200">Email Address</label>
+                    <input
+                      id="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      className="w-full border-2 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 transition-all bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 placeholder-gray-500 dark:placeholder-slate-500 border-gray-300 dark:border-slate-600 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label htmlFor="phone" className="block text-xs font-semibold text-gray-700 dark:text-slate-200">Mobile Number</label>
+                    <input
+                      id="phone"
+                      type="tel"
+                      autoComplete="tel"
+                      required
+                      className="w-full border-2 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 transition-all bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 placeholder-gray-500 dark:placeholder-slate-500 border-gray-300 dark:border-slate-600 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="10-digit mobile number"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label htmlFor="password" className="block text-xs font-semibold text-gray-700 dark:text-slate-200">Password</label>
+                    <input
+                      id="password"
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                      className="w-full border-2 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 transition-all bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 placeholder-gray-500 dark:placeholder-slate-500 border-gray-300 dark:border-slate-600 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="At least 12 characters"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label htmlFor="confirmPassword" className="block text-xs font-semibold text-gray-700 dark:text-slate-200">Confirm Password</label>
+                    <input
+                      id="confirmPassword"
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                      className="w-full border-2 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 transition-all bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 placeholder-gray-500 dark:placeholder-slate-500 border-gray-300 dark:border-slate-600 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Re-enter password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                  </div>
+                  {error && (
+                    <div className="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-3 py-2 rounded-lg text-xs font-medium flex items-center justify-between animate-shake">
+                      <span>{error}</span>
+                    </div>
+                  )}
+                  {success && (
+                    <div className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 px-3 py-2 rounded-lg text-xs font-medium flex items-center gap-1.5">
+                      <span>{success}</span>
+                    </div>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2.5 rounded-lg text-sm font-semibold hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                  >
+                    {loading ? 'Creating Account...' : 'Create Account'}
+                  </button>
+
+                  <div className="relative my-4">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-300 dark:border-slate-600"></div>
+                    </div>
+                    <div className="relative flex justify-center text-xs">
+                      <span className="px-3 bg-white dark:bg-slate-800 text-gray-500 dark:text-slate-400 font-medium">Already have an account?</span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="w-full bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 text-blue-700 dark:text-blue-300 py-2.5 rounded-lg text-sm font-semibold border-2 border-blue-200 dark:border-blue-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md transition-all duration-200"
+                    onClick={() => navigate('/')}
+                  >
+                    Sign In
+                  </button>
+                </form>
+
+                <p className="text-center text-[10px] text-gray-500 dark:text-slate-400 mt-4">
+                  By creating an account, you agree to our{' '}
+                  <button className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">Terms of Service</button>
+                  {' '}and{' '}
+                  <button className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">Privacy Policy</button>
+                </p>
+
+                {/* Footer Links */}
+                <div className="pt-3 border-t border-gray-200 dark:border-slate-700 mt-4">
+                  <div className="flex items-center justify-center gap-3 text-[10px] text-gray-500 dark:text-slate-400">
+                    <button className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Privacy Policy</button>
+                    <span>•</span>
+                    <button className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Terms of Service</button>
+                    <span>•</span>
+                    <button className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Help</button>
+                  </div>
+                  <p className="text-center text-[10px] text-gray-400 dark:text-slate-500 mt-2">
+                    © 2026 Healthcare Management System. All rights reserved.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-
-          <form onSubmit={handleSignUp} className="space-y-6">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Full Name
-              </label>
-              <input
-                id="name"
-                type="text"
-                autoComplete="name"
-                required
-                className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
-                placeholder="Enter your full name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Email Address
-              </label>
-              <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Mobile Number
-              </label>
-              <input
-                id="phone"
-                type="tel"
-                autoComplete="tel"
-                required
-                className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
-                placeholder="10-digit mobile number"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
-                placeholder="At least 12 characters"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1.5">
-                Confirm Password
-              </label>
-              <input
-                id="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                required
-                className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
-                placeholder="Re-enter password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-            </div>
-
-            {error && (
-              <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
-                {error}
-              </div>
-            )}
-
-            {success && (
-              <div className="rounded-md bg-green-50 p-3 text-sm text-green-700">
-                {success}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 text-white py-3.5 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Creating Account...' : 'Create Account'}
-            </button>
-
-            <div className="text-center text-sm text-gray-500 mt-6">
-              Already have an account?{' '}
-              <button
-                type="button"
-                className="font-medium text-blue-600 hover:text-blue-500 transition"
-                onClick={() => navigate('/')}
-              >
-                Sign in
-              </button>
-            </div>
-
-            <p className="text-center text-xs text-gray-400 mt-8">
-              By creating an account, you agree to our{' '}
-              <button className="text-gray-500 underline hover:text-gray-700 bg-transparent border-none cursor-pointer p-0 font-inherit">
-                Terms of Service
-              </button>{' '}
-              and{' '}
-              <button className="text-gray-500 underline hover:text-gray-700 bg-transparent border-none cursor-pointer p-0 font-inherit">
-                Privacy Policy
-              </button>
-            </p>
-          </form>
         </div>
       </div>
     </div>

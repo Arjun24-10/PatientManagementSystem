@@ -11,7 +11,6 @@ import {
    ChevronUp,
    CheckCircle,
    AlertTriangle,
-   XCircle,
    User,
    Clock,
    X
@@ -66,31 +65,31 @@ const LabResults = () => {
             return {
                icon: <CheckCircle className="w-5 h-5" />,
                text: 'All Normal',
-               color: 'text-green-600 bg-green-50 border-green-200'
+               color: 'text-green-600 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700'
             };
          case 'abnormal':
             return {
                icon: <AlertCircle className="w-5 h-5" />,
                text: 'Abnormal Values',
-               color: 'text-red-600 bg-red-50 border-red-200'
+               color: 'text-red-600 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700'
             };
          case 'borderline':
             return {
                icon: <AlertTriangle className="w-5 h-5" />,
                text: 'Some Borderline',
-               color: 'text-orange-600 bg-orange-50 border-orange-200'
+               color: 'text-orange-600 bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-700'
             };
          case 'pending':
             return {
                icon: <Clock className="w-5 h-5" />,
                text: 'Pending',
-               color: 'text-blue-600 bg-blue-50 border-blue-200'
+               color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700'
             };
          default:
             return {
                icon: <FileText className="w-5 h-5" />,
                text: 'Unknown',
-               color: 'text-gray-600 bg-gray-50 border-gray-200'
+               color: 'text-gray-600 dark:text-slate-300 bg-gray-50 dark:bg-slate-800/50 border-gray-200 dark:border-slate-700'
             };
       }
    };
@@ -142,74 +141,74 @@ const LabResults = () => {
    };
 
    return (
-      <div className="space-y-6">
+      <div className="space-y-4">
          {/* Header */}
-         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
             <div>
-               <h2 className="text-2xl font-bold text-gray-800">Lab Results</h2>
-               <p className="text-gray-500">View and download your laboratory test results</p>
+               <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">Lab Results</h2>
+               <p className="text-xs text-gray-500 dark:text-slate-400">View and download your laboratory test results</p>
             </div>
-            <Button variant="outline" className="whitespace-nowrap">
-               <Download className="w-4 h-4 mr-2" />
+            <Button variant="outline" className="whitespace-nowrap text-sm">
+               <Download className="w-3.5 h-3.5 mr-1.5" />
                Download All
             </Button>
          </div>
 
          {/* Summary Stats */}
-         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="p-6 hover:shadow-md transition-shadow">
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <Card className="p-3 hover:shadow-sm transition-shadow">
                <div className="flex items-center justify-between">
                   <div>
-                     <p className="text-sm text-gray-500 mb-1">Total Tests</p>
-                     <p className="text-3xl font-bold text-gray-800">{mockLabStats.totalTests}</p>
+                     <p className="text-xs text-gray-500 dark:text-slate-400 mb-0.5">Total Tests</p>
+                     <p className="text-xl font-bold text-gray-800 dark:text-slate-100">{mockLabStats.totalTests}</p>
                   </div>
-                  <div className="p-3 bg-blue-50 rounded-lg">
-                     <FileText className="w-6 h-6 text-blue-600" />
+                  <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
+                     <FileText className="w-4 h-4 text-blue-600" />
                   </div>
                </div>
             </Card>
 
-            <Card className="p-6 hover:shadow-md transition-shadow">
+            <Card className="p-3 hover:shadow-sm transition-shadow">
                <div className="flex items-center justify-between">
                   <div>
-                     <p className="text-sm text-gray-500 mb-1">Pending Results</p>
-                     <p className="text-3xl font-bold text-gray-800">{mockLabStats.pendingResults}</p>
+                     <p className="text-xs text-gray-500 dark:text-slate-400 mb-0.5">Pending Results</p>
+                     <p className="text-xl font-bold text-gray-800 dark:text-slate-100">{mockLabStats.pendingResults}</p>
                   </div>
-                  <div className="p-3 bg-yellow-50 rounded-lg">
-                     <Clock className="w-6 h-6 text-yellow-600" />
+                  <div className="p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded">
+                     <Clock className="w-4 h-4 text-yellow-600" />
                   </div>
                </div>
             </Card>
 
-            <Card className="p-6 hover:shadow-md transition-shadow">
+            <Card className="p-3 hover:shadow-sm transition-shadow">
                <div className="flex items-center justify-between">
                   <div>
-                     <p className="text-sm text-gray-500 mb-1">Recent Abnormal</p>
-                     <p className="text-3xl font-bold text-gray-800">{mockLabStats.recentAbnormal}</p>
+                     <p className="text-xs text-gray-500 dark:text-slate-400 mb-0.5">Recent Abnormal</p>
+                     <p className="text-xl font-bold text-gray-800 dark:text-slate-100">{mockLabStats.recentAbnormal}</p>
                   </div>
-                  <div className="p-3 bg-red-50 rounded-lg">
-                     <AlertCircle className="w-6 h-6 text-red-600" />
+                  <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded">
+                     <AlertCircle className="w-4 h-4 text-red-600" />
                   </div>
                </div>
             </Card>
          </div>
 
          {/* Search and Filter Bar */}
-         <div className="flex flex-col md:flex-row gap-4">
+         <div className="flex flex-col md:flex-row gap-2">
             <div className="flex-1 relative">
-               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+               <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-slate-500 w-4 h-4" />
                <input
                   type="text"
                   placeholder="Search lab results..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 dark:border-slate-600 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100"
                />
             </div>
             <select
                value={filterStatus}
                onChange={(e) => setFilterStatus(e.target.value)}
-               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+               className="px-3 py-1.5 text-sm border border-gray-300 dark:border-slate-600 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100"
             >
                <option value="all">All Results</option>
                <option value="normal">Normal Only</option>
@@ -219,7 +218,7 @@ const LabResults = () => {
             <select
                value={sortBy}
                onChange={(e) => setSortBy(e.target.value)}
-               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+               className="px-3 py-1.5 text-sm border border-gray-300 dark:border-slate-600 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100"
             >
                <option value="recent">Most Recent</option>
                <option value="name">Test Name A-Z</option>
@@ -228,27 +227,27 @@ const LabResults = () => {
          </div>
 
          {/* Results List */}
-         <div className="space-y-4">
+         <div className="space-y-2">
             {filteredResults.length > 0 ? (
                filteredResults.map((result) => {
                   const statusDisplay = getStatusDisplay(result.overallStatus);
                   const isExpanded = expandedResults[result.id];
 
                   return (
-                     <Card key={result.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                     <Card key={result.id} className="overflow-hidden hover:shadow-sm transition-shadow">
                         {/* Collapsed View */}
-                        <div className="p-6">
-                           <div className="flex flex-col md:flex-row justify-between md:items-start gap-4">
+                        <div className="p-3">
+                           <div className="flex flex-col md:flex-row justify-between md:items-start gap-3">
                               <div className="flex-1">
-                                 <div className="flex items-start gap-4">
-                                    <div className="p-3 bg-blue-50 rounded-lg text-blue-600">
-                                       <FileText className="w-6 h-6" />
+                                 <div className="flex items-start gap-3">
+                                    <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-blue-600">
+                                       <FileText className="w-4 h-4" />
                                     </div>
                                     <div className="flex-1">
-                                       <h3 className="font-bold text-gray-800 text-lg mb-1">{result.testName}</h3>
-                                       <div className="flex flex-wrap gap-4 text-sm text-gray-500 mb-2">
+                                       <h3 className="font-semibold text-gray-800 dark:text-slate-100 text-sm mb-0.5">{result.testName}</h3>
+                                       <div className="flex flex-wrap gap-3 text-xs text-gray-500 dark:text-slate-400 mb-1.5">
                                           <span className="flex items-center">
-                                             <Calendar className="w-4 h-4 mr-1" />
+                                             <Calendar className="w-3.5 h-3.5 mr-1" />
                                              {new Date(result.testDate).toLocaleDateString('en-US', {
                                                 year: 'numeric',
                                                 month: 'long',
@@ -256,17 +255,17 @@ const LabResults = () => {
                                              })}
                                           </span>
                                           <span className="flex items-center">
-                                             <User className="w-4 h-4 mr-1" />
+                                             <User className="w-3.5 h-3.5 mr-1" />
                                              {result.orderingPhysician}
                                           </span>
                                        </div>
-                                       <div className="flex items-center gap-2">
+                                       <div className="flex items-center gap-1.5">
                                           <Badge type={result.status === 'completed' ? 'green' : 'yellow'}>
                                              {result.status === 'completed' ? 'Results Ready' : 'Pending'}
                                           </Badge>
-                                          <div className={`flex items-center gap-2 px-3 py-1 rounded-full border ${statusDisplay.color}`}>
-                                             {statusDisplay.icon}
-                                             <span className="text-sm font-medium">{statusDisplay.text}</span>
+                                          <div className={`flex items-center gap-1 px-2 py-0.5 text-xs rounded-full border ${statusDisplay.color}`}>
+                                             {React.cloneElement(statusDisplay.icon, { className: 'w-3.5 h-3.5' })}
+                                             <span className="font-medium">{statusDisplay.text}</span>
                                           </div>
                                        </div>
                                     </div>
@@ -274,38 +273,38 @@ const LabResults = () => {
                               </div>
 
                               {/* Action Buttons */}
-                              <div className="flex gap-2">
+                              <div className="flex gap-1.5">
                                  {result.status === 'completed' && (
                                     <>
                                        <button
                                           onClick={() => toggleExpand(result.id)}
-                                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium inline-flex items-center whitespace-nowrap"
+                                          className="px-2.5 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-xs font-medium inline-flex items-center whitespace-nowrap"
                                        >
                                           {isExpanded ? (
                                              <>
-                                                <ChevronUp className="w-4 h-4 mr-1" />
-                                                Hide Results
+                                                <ChevronUp className="w-3.5 h-3.5 mr-1" />
+                                                Hide
                                              </>
                                           ) : (
                                              <>
-                                                <ChevronDown className="w-4 h-4 mr-1" />
-                                                View Results
+                                                <ChevronDown className="w-3.5 h-3.5 mr-1" />
+                                                View
                                              </>
                                           )}
                                        </button>
                                        <button
                                           onClick={() => handleDownload(result)}
-                                          className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition text-sm font-medium inline-flex items-center whitespace-nowrap"
+                                          className="px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 rounded hover:bg-gray-50 dark:hover:bg-slate-700/50 transition text-xs font-medium inline-flex items-center whitespace-nowrap"
                                        >
-                                          <Download className="w-4 h-4 mr-1" />
+                                          <Download className="w-3.5 h-3.5 mr-1" />
                                           PDF
                                        </button>
                                        {result.canCompare && (
                                           <button
                                              onClick={() => handleViewTrend(result)}
-                                             className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition text-sm font-medium inline-flex items-center whitespace-nowrap"
+                                             className="px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 rounded hover:bg-gray-50 dark:hover:bg-slate-700/50 transition text-xs font-medium inline-flex items-center whitespace-nowrap"
                                           >
-                                             <TrendingUp className="w-4 h-4 mr-1" />
+                                             <TrendingUp className="w-3.5 h-3.5 mr-1" />
                                              Trend
                                           </button>
                                        )}
@@ -316,37 +315,37 @@ const LabResults = () => {
 
                            {/* Expanded View */}
                            {isExpanded && result.results && (
-                              <div className="mt-6 pt-6 border-t border-gray-200">
-                                 <h4 className="font-semibold text-gray-700 mb-4">Test Results</h4>
+                              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-slate-700">
+                                 <h4 className="font-semibold text-gray-700 dark:text-slate-200 text-sm mb-2">Test Results</h4>
                                  <div className="overflow-x-auto">
                                     <table className="w-full">
                                        <thead>
-                                          <tr className="bg-gray-50">
-                                             <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                          <tr className="bg-gray-50 dark:bg-slate-800/50">
+                                             <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase tracking-wider">
                                                 Parameter
                                              </th>
-                                             <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                             <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase tracking-wider">
                                                 Your Result
                                              </th>
-                                             <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                             <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase tracking-wider">
                                                 Normal Range
                                              </th>
-                                             <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                             <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase tracking-wider">
                                                 Status
                                              </th>
                                           </tr>
                                        </thead>
-                                       <tbody className="divide-y divide-gray-200">
+                                       <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                                           {result.results.map((param, idx) => (
-                                             <tr key={idx} className={param.flag ? 'bg-red-50/30' : ''}>
-                                                <td className="px-4 py-3 text-sm font-medium text-gray-800">
+                                             <tr key={idx} className={param.flag ? 'bg-red-50/30 dark:bg-red-900/10' : ''}>
+                                                <td className="px-4 py-3 text-sm font-medium text-gray-800 dark:text-slate-100">
                                                    {param.parameter}
                                                 </td>
-                                                <td className={`px-4 py-3 text-sm font-bold ${param.flag ? 'text-red-600' : 'text-gray-800'
+                                                <td className={`px-4 py-3 text-sm font-bold ${param.flag ? 'text-red-600' : 'text-gray-800 dark:text-slate-100'
                                                    }`}>
                                                    {param.value} {param.unit}
                                                 </td>
-                                                <td className="px-4 py-3 text-sm text-gray-600">
+                                                <td className="px-4 py-3 text-sm text-gray-600 dark:text-slate-300">
                                                    {param.normalRange} {param.unit}
                                                 </td>
                                                 <td className="px-4 py-3 text-sm">
@@ -360,12 +359,12 @@ const LabResults = () => {
 
                                  {/* Notes */}
                                  {result.notes && (
-                                    <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                    <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
                                        <div className="flex items-start gap-2">
                                           <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                                           <div>
-                                             <h5 className="font-semibold text-blue-900 mb-1">Clinical Notes</h5>
-                                             <p className="text-sm text-blue-800">{result.notes}</p>
+                                             <h5 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">Clinical Notes</h5>
+                                             <p className="text-sm text-blue-800 dark:text-blue-200">{result.notes}</p>
                                           </div>
                                        </div>
                                     </div>
@@ -373,14 +372,14 @@ const LabResults = () => {
 
                                  {/* Download Full Report */}
                                  <div className="mt-4 flex gap-2">
-                                    <Button variant="outline" onClick={() => handleDownload(result)}>
-                                       <Download className="w-4 h-4 mr-2" />
-                                       Download Full Report
+                                    <Button variant="outline" size="sm" onClick={() => handleDownload(result)}>
+                                       <Download className="w-3.5 h-3.5 mr-1" />
+                                       Download Report
                                     </Button>
                                     {result.canCompare && (
-                                       <Button variant="outline" onClick={() => handleViewTrend(result)}>
-                                          <TrendingUp className="w-4 h-4 mr-2" />
-                                          View Trend Analysis
+                                       <Button variant="outline" size="sm" onClick={() => handleViewTrend(result)}>
+                                          <TrendingUp className="w-3.5 h-3.5 mr-1" />
+                                          Trend Analysis
                                        </Button>
                                     )}
                                  </div>
@@ -391,9 +390,9 @@ const LabResults = () => {
                   );
                })
             ) : (
-               <div className="p-12 text-center text-gray-400">
-                  <Filter className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p>No lab results found matching your search.</p>
+               <div className="p-8 text-center text-gray-400 dark:text-slate-500">
+                  <Filter className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No lab results found matching your search.</p>
                </div>
             )}
          </div>
@@ -401,30 +400,30 @@ const LabResults = () => {
          {/* Trend Analysis Modal */}
          {showTrendModal && selectedTrendData && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-               <Card className="max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                  <div className="p-6">
+               <Card className="max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+                  <div className="p-4">
                      {/* Modal Header */}
-                     <div className="flex justify-between items-start mb-6">
+                     <div className="flex justify-between items-start mb-4">
                         <div>
-                           <h3 className="text-xl font-bold text-gray-800 mb-1">Trend Analysis</h3>
-                           <p className="text-gray-600">{selectedTrendData.testName}</p>
+                           <h3 className="text-lg font-bold text-gray-800 dark:text-slate-100 mb-0.5">Trend Analysis</h3>
+                           <p className="text-sm text-gray-600 dark:text-slate-300">{selectedTrendData.testName}</p>
                         </div>
                         <button
                            onClick={() => setShowTrendModal(false)}
-                           className="p-2 hover:bg-gray-100 rounded-lg transition"
+                           className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-700 rounded transition"
                         >
-                           <X className="w-5 h-5 text-gray-500" />
+                           <X className="w-4 h-4 text-gray-500 dark:text-slate-400" />
                         </button>
                      </div>
 
                      {/* Chart Visualization */}
-                     <div className="mb-6">
-                        <h4 className="font-semibold text-gray-700 mb-4">Value Trend Over Time</h4>
+                     <div className="mb-4">
+                        <h4 className="font-semibold text-gray-700 dark:text-slate-200 text-sm mb-2">Value Trend Over Time</h4>
 
                         {/* Simple Line Chart using SVG */}
-                        <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                           <div className="relative" style={{ height: '300px' }}>
-                              <svg className="w-full h-full" viewBox="0 0 800 300" preserveAspectRatio="none">
+                        <div className="bg-gray-50 dark:bg-slate-800/50 p-4 rounded border border-gray-200 dark:border-slate-700">
+                           <div className="relative" style={{ height: '220px' }}>
+                              <svg className="w-full h-full" viewBox="0 0 800 220" preserveAspectRatio="none">
                                  {/* Grid lines */}
                                  <line x1="50" y1="0" x2="50" y2="250" stroke="#e5e7eb" strokeWidth="2" />
                                  <line x1="50" y1="250" x2="800" y2="250" stroke="#e5e7eb" strokeWidth="2" />
@@ -473,7 +472,7 @@ const LabResults = () => {
                               </svg>
 
                               {/* Legend */}
-                              <div className="absolute top-2 right-2 bg-white p-2 rounded shadow-sm border border-gray-200 text-xs">
+                              <div className="absolute top-2 right-2 bg-white dark:bg-slate-800 p-2 rounded shadow-sm border border-gray-200 dark:border-slate-700 text-xs text-gray-700 dark:text-slate-200">
                                  <div className="flex items-center gap-2 mb-1">
                                     <div className="w-3 h-3 rounded-full bg-green-500"></div>
                                     <span>Normal</span>
@@ -486,7 +485,7 @@ const LabResults = () => {
                            </div>
 
                            {/* X-axis labels */}
-                           <div className="flex justify-between mt-2 px-12 text-xs text-gray-600">
+                           <div className="flex justify-between mt-2 px-12 text-xs text-gray-600 dark:text-slate-300">
                               {selectedTrendData.data.map((point, idx) => (
                                  <span key={idx}>
                                     {new Date(point.date).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })}
@@ -498,43 +497,43 @@ const LabResults = () => {
 
                      {/* Data Table */}
                      <div>
-                        <h4 className="font-semibold text-gray-700 mb-4">Historical Values</h4>
+                        <h4 className="font-semibold text-gray-700 dark:text-slate-200 text-sm mb-2">Historical Values</h4>
                         <div className="overflow-x-auto">
                            <table className="w-full">
                               <thead>
-                                 <tr className="bg-gray-50">
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Date</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Value</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Trend</th>
+                                 <tr className="bg-gray-50 dark:bg-slate-800/50">
+                                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase">Date</th>
+                                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase">Value</th>
+                                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase">Status</th>
+                                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 dark:text-slate-300 uppercase">Trend</th>
                                  </tr>
                               </thead>
-                              <tbody className="divide-y divide-gray-200">
+                              <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                                  {selectedTrendData.data.map((point, idx) => {
                                     const prevValue = idx > 0 ? selectedTrendData.data[idx - 1].value : null;
                                     const trend = prevValue ? (point.value > prevValue ? '↑' : point.value < prevValue ? '↓' : '→') : '-';
-                                    const trendColor = prevValue ? (point.value > prevValue ? 'text-red-600' : point.value < prevValue ? 'text-green-600' : 'text-gray-600') : 'text-gray-600';
+                                    const trendColor = prevValue ? (point.value > prevValue ? 'text-red-600' : point.value < prevValue ? 'text-green-600' : 'text-gray-600 dark:text-slate-300') : 'text-gray-600 dark:text-slate-300';
 
                                     return (
-                                       <tr key={idx} className={!point.normal ? 'bg-red-50/30' : ''}>
-                                          <td className="px-4 py-3 text-sm text-gray-800">
+                                       <tr key={idx} className={!point.normal ? 'bg-red-50/30 dark:bg-red-900/10' : ''}>
+                                          <td className="px-3 py-2 text-xs text-gray-800 dark:text-slate-100">
                                              {new Date(point.date).toLocaleDateString('en-US', {
                                                 year: 'numeric',
                                                 month: 'short',
                                                 day: 'numeric'
                                              })}
                                           </td>
-                                          <td className={`px-4 py-3 text-sm font-bold ${!point.normal ? 'text-red-600' : 'text-gray-800'}`}>
+                                          <td className={`px-3 py-2 text-xs font-bold ${!point.normal ? 'text-red-600' : 'text-gray-800 dark:text-slate-100'}`}>
                                              {point.value}
                                           </td>
-                                          <td className="px-4 py-3 text-sm">
+                                          <td className="px-3 py-2 text-xs">
                                              {point.normal ? (
                                                 <Badge type="green">Normal</Badge>
                                              ) : (
                                                 <Badge type="red">Abnormal</Badge>
                                              )}
                                           </td>
-                                          <td className={`px-4 py-3 text-lg font-bold ${trendColor}`}>
+                                          <td className={`px-3 py-2 text-sm font-bold ${trendColor}`}>
                                              {trend}
                                           </td>
                                        </tr>
@@ -546,8 +545,8 @@ const LabResults = () => {
                      </div>
 
                      {/* Close Button */}
-                     <div className="mt-6 flex justify-end">
-                        <Button onClick={() => setShowTrendModal(false)}>
+                     <div className="mt-4 flex justify-end">
+                        <Button size="sm" onClick={() => setShowTrendModal(false)}>
                            Close
                         </Button>
                      </div>

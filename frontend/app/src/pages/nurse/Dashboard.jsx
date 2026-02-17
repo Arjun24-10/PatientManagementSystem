@@ -1,12 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
    Activity,
-   AlertCircle,
    AlertTriangle,
    Calendar,
    Check,
    CheckSquare,
-   ChevronDown,
    ChevronRight,
    ClipboardList,
    Clock,
@@ -19,7 +17,6 @@ import {
    Minus,
    Pill,
    Plus,
-   Search,
    Smile,
    Trash2,
    TrendingDown,
@@ -318,6 +315,7 @@ const NurseDashboard = () => {
       painLevel: mockNurseOverview.vitals?.current?.painLevel ?? 0,
    }));
    const [vitalsNotes, setVitalsNotes] = useState('');
+   // eslint-disable-next-line no-unused-vars
    const [showCriticalModal, setShowCriticalModal] = useState(false);
    const [pendingAction, setPendingAction] = useState(null);
    const [toast, setToast] = useState(null);
@@ -466,6 +464,7 @@ const NurseDashboard = () => {
    }), [vitalsForm, temperatureInFahrenheit]);
 
    const formHasCritical = useMemo(() => Object.values(formStatuses).some((status) => status === 'critical'), [formStatuses]);
+   // eslint-disable-next-line no-unused-vars
    const formHasAbnormal = useMemo(() => Object.values(formStatuses).some((status) => status === 'abnormal'), [formStatuses]);
 
    const currentVitalsStatuses = useMemo(() => {
@@ -499,7 +498,8 @@ const NurseDashboard = () => {
       return alerts;
    }, [currentHasAbnormal, currentVitalsStatuses, vitalsData]);
 
-   const vitalsHistory = vitalsData?.history || [];
+   // eslint-disable-next-line react-hooks/exhaustive-deps
+   const vitalsHistory = useMemo(() => vitalsData?.history || [], [vitalsData?.history]);
 
    const computeTrend = (currentValue, previousValue) => {
       if (currentValue == null || previousValue == null || Number.isNaN(currentValue) || Number.isNaN(previousValue)) return 'flat';
@@ -724,15 +724,18 @@ const NurseDashboard = () => {
       executeVitalsSave(action);
    };
 
+   // eslint-disable-next-line no-unused-vars
    const handleCriticalCancel = () => {
       setShowCriticalModal(false);
       setPendingAction(null);
    };
 
+   // eslint-disable-next-line no-unused-vars
    const handleCriticalProceed = () => {
       executeVitalsSave(pendingAction || 'save');
    };
 
+   // eslint-disable-next-line no-unused-vars
    const handleCriticalNotify = () => {
       executeVitalsSave('notify');
    };
@@ -873,50 +876,50 @@ const NurseDashboard = () => {
    const shiftStyles = shiftTypeStyles[overview.shift.type] || shiftTypeStyles.day;
 
    return (
-      <div className="space-y-10" aria-label="Nurse dashboard overview">
-         <header className="bg-white rounded-2xl shadow-soft border border-gray-100 overflow-hidden">
-            <div className="p-6 sm:p-8 flex flex-col lg:flex-row gap-6 lg:gap-8 lg:items-center justify-between">
+      <div className="space-y-4" aria-label="Nurse dashboard overview">
+         <header className="bg-white dark:bg-slate-800 rounded-lg shadow-soft border border-gray-100 dark:border-slate-700 overflow-hidden">
+            <div className="p-4 sm:p-5 flex flex-col lg:flex-row gap-3 lg:gap-4 lg:items-center justify-between">
                <div>
-                  <p className="text-sm font-medium text-brand-medium uppercase tracking-wide">{overview.nurse.unit}</p>
-                  <h1 className="text-3xl font-bold text-gray-900 mt-2">
+                  <p className="text-xs font-medium text-brand-medium uppercase tracking-wide">{overview.nurse.unit}</p>
+                  <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100 mt-1">
                      {`${greeting}, Nurse ${nurseName.split(' ')[0]}`}
                   </h1>
-                  <p className="text-gray-500 mt-3 flex items-center gap-2" aria-live="polite">
-                     <Clock className="w-4 h-4 text-brand-medium" aria-hidden="true" />
+                  <p className="text-gray-500 dark:text-slate-400 mt-1.5 flex items-center gap-1.5 text-sm" aria-live="polite">
+                     <Clock className="w-3.5 h-3.5 text-brand-medium" aria-hidden="true" />
                      <span>{formattedDate}</span>
                   </p>
                </div>
 
-               <div className="flex flex-col md:flex-row gap-4 w-full lg:w-auto">
-                  <Card className="p-4 md:p-5 border border-gray-100 shadow-soft flex-1">
+               <div className="flex flex-col md:flex-row gap-2 w-full lg:w-auto">
+                  <Card className="p-3 border border-gray-100 dark:border-slate-700 shadow-soft flex-1 dark:bg-slate-800">
                      <div className="flex items-center justify-between">
                         <div>
-                           <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${shiftStyles.classes}`}>
+                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${shiftStyles.classes}`}>
                               {shiftStyles.label}
                            </span>
-                           <p className="text-base font-semibold text-gray-900 mt-3">{overview.shift.startTime} - {overview.shift.endTime}</p>
+                           <p className="text-sm font-semibold text-gray-900 dark:text-slate-100 mt-1.5">{overview.shift.startTime} - {overview.shift.endTime}</p>
                         </div>
-                        <Calendar className="w-10 h-10 text-brand-medium bg-brand-light rounded-xl p-2" aria-hidden="true" />
+                        <Calendar className="w-8 h-8 text-brand-medium bg-brand-light rounded-lg p-1.5" aria-hidden="true" />
                      </div>
-                     <div className="mt-6 space-y-2" aria-hidden="true">
-                        <div className="relative h-2 bg-gray-100 rounded-full overflow-hidden">
+                     <div className="mt-3 space-y-1" aria-hidden="true">
+                        <div className="relative h-2 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
                            <div
                               className="absolute inset-y-0 left-0 bg-gradient-to-r from-brand-medium to-brand-deep rounded-full transition-all duration-700"
                               style={{ width: `${shiftProgress.percentage}%` }}
                            />
                         </div>
-                        <p className="text-sm text-gray-500">{shiftProgress.percentage}% of shift completed</p>
-                        <p className="text-sm font-medium text-gray-700" aria-live="polite">{shiftProgress.remainingLabel}</p>
+                        <p className="text-sm text-gray-500 dark:text-slate-400">{shiftProgress.percentage}% of shift completed</p>
+                        <p className="text-sm font-medium text-gray-700 dark:text-slate-300" aria-live="polite">{shiftProgress.remainingLabel}</p>
                      </div>
                   </Card>
 
                   <button
                      type="button"
-                     className="min-w-[200px] md:min-w-[220px] rounded-2xl border-2 border-red-200 bg-red-50 text-red-600 font-semibold shadow-soft hover:shadow-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 transition-all duration-200 flex items-center justify-center gap-2 px-4 py-4"
+                     className="min-w-[160px] md:min-w-[180px] rounded-lg border-2 border-red-200 bg-red-50 text-red-600 font-semibold shadow-soft hover:shadow-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 transition-all duration-200 flex items-center justify-center gap-1.5 px-3 py-2.5 text-sm"
                      aria-label="Call code team"
                      onClick={() => alert('Escalation protocol initiated. (placeholder)')}
                   >
-                     <AlertTriangle className="w-5 h-5" aria-hidden="true" />
+                     <AlertTriangle className="w-4 h-4" aria-hidden="true" />
                      Call Code Team
                   </button>
                </div>
@@ -944,20 +947,20 @@ const NurseDashboard = () => {
             </div>
          )}
 
-         <section aria-labelledby="quick-stats" className="space-y-4">
+         <section aria-labelledby="quick-stats" className="space-y-2">
             <div className="flex items-center justify-between">
-               <h2 id="quick-stats" className="text-xl font-bold text-gray-900">Shift Snapshot</h2>
-               <Button variant="link" className="text-brand-medium text-sm font-semibold" aria-label="Refresh dashboard snapshot">
+               <h2 id="quick-stats" className="text-sm font-bold text-gray-900 dark:text-slate-100">Shift Snapshot</h2>
+               <Button variant="link" className="text-brand-medium text-xs font-semibold" aria-label="Refresh dashboard snapshot">
                   Refresh Data
                </Button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
                {stats.map((stat) => {
                   const Icon = stat.icon;
                   return (
                      <Card
                         key={stat.id}
-                        className={`p-6 border-l-4 ${stat.border} shadow-soft hover:shadow-lg transition-shadow cursor-pointer focus-within:ring-2 focus-within:ring-brand-medium focus-within:ring-offset-2`}
+                        className={`p-3 border-l-4 ${stat.border} shadow-soft hover:shadow-lg transition-shadow cursor-pointer focus-within:ring-2 focus-within:ring-brand-medium focus-within:ring-offset-2 dark:bg-slate-800`}
                         hover
                         role="button"
                         tabIndex={0}
@@ -972,12 +975,12 @@ const NurseDashboard = () => {
                      >
                         <div className="flex items-start justify-between">
                            <div>
-                              <p className="text-sm text-gray-500 font-medium">{stat.label}</p>
-                              <p className="text-4xl font-bold text-gray-900 mt-2">{stat.value}</p>
-                              {stat.badge && <p className={`text-sm mt-3 ${stat.badge.classes}`}>{stat.badge.text}</p>}
+                              <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">{stat.label}</p>
+                              <p className="text-xl font-bold text-gray-900 dark:text-slate-100 mt-1">{stat.value}</p>
+                              {stat.badge && <p className={`text-xs mt-1.5 ${stat.badge.classes}`}>{stat.badge.text}</p>}
                            </div>
-                           <div className="w-12 h-12 bg-brand-light rounded-xl flex items-center justify-center text-brand-medium">
-                              <Icon className="w-6 h-6" aria-hidden="true" />
+                           <div className="w-8 h-8 bg-brand-light rounded-lg flex items-center justify-center text-brand-medium">
+                              <Icon className="w-4 h-4" aria-hidden="true" />
                            </div>
                         </div>
                      </Card>
@@ -986,28 +989,28 @@ const NurseDashboard = () => {
             </div>
          </section>
 
-         <section aria-labelledby="vitals-schedule" className="space-y-6">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-               <div className="flex items-center gap-3">
-                  <Heart className="w-6 h-6 text-brand-medium" aria-hidden="true" />
-                  <h2 id="vitals-schedule" className="text-xl font-bold text-gray-900">Vitals Schedule</h2>
-                  <span className="text-sm text-gray-500">Today&apos;s Schedule</span>
+         <section aria-labelledby="vitals-schedule" className="space-y-3">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
+               <div className="flex items-center gap-2">
+                  <Heart className="w-5 h-5 text-brand-medium" aria-hidden="true" />
+                  <h2 id="vitals-schedule" className="text-sm font-bold text-gray-900 dark:text-slate-100">Vitals Schedule</h2>
+                  <span className="text-xs text-gray-500 dark:text-slate-400">Today&apos;s Schedule</span>
                </div>
-               <div className="flex items-center gap-3">
+               <div className="flex items-center gap-2">
                   {overview.stats.overdueVitals > 0 && (
-                     <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-full text-sm" role="alert">
-                        <AlertTriangle className="w-4 h-4" aria-hidden="true" />
+                     <div className="flex items-center gap-1.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-2.5 py-1 rounded-full text-xs" role="alert">
+                        <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />
                         {overview.stats.overdueVitals} overdue vitals checks
                      </div>
                   )}
-                  <Button variant="link" className="text-brand-medium text-sm font-semibold">
+                  <Button variant="link" className="text-brand-medium text-xs font-semibold">
                      View Full Schedule
                   </Button>
                </div>
             </div>
 
-            <div className="overflow-x-auto pb-2">
-               <div className="flex min-w-full gap-5">
+            <div className="overflow-x-auto pb-1">
+               <div className="flex min-w-full gap-3">
                   {overview.vitalsSchedule.map((slot) => {
                      const isCurrent = slot.status === 'current';
                      const borderColor =
@@ -1031,22 +1034,22 @@ const NurseDashboard = () => {
                      const completion = Math.round((slot.completed / slot.totalPatients) * 100);
 
                      return (
-                        <Card key={slot.time} className={`w-72 flex-shrink-0 border-2 ${borderColor} ${bgColor} p-6 space-y-4`}>
+                        <Card key={slot.time} className={`w-60 flex-shrink-0 border-2 ${borderColor} ${bgColor} dark:bg-slate-800 p-3 space-y-2`}>
                            <div className="flex items-start justify-between">
                               <div>
-                                 <p className="text-xs font-semibold uppercase text-gray-500">Time</p>
-                                 <p className="text-2xl font-bold text-gray-900 mt-1">{slot.time}</p>
+                                 <p className="text-xs font-semibold uppercase text-gray-500 dark:text-slate-400">Time</p>
+                                 <p className="text-lg font-bold text-gray-900 dark:text-slate-100 mt-0.5">{slot.time}</p>
                               </div>
-                              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white text-brand-medium border border-brand-medium/20">
+                              <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-white dark:bg-slate-700 text-brand-medium border border-brand-medium/20">
                                  {slot.totalPatients} patients
                               </span>
                            </div>
-                           <div className="space-y-3">
+                           <div className="space-y-1.5">
                               {slot.patients.map((patient) => (
-                                 <div key={patient.id} className="bg-white/80 border border-white rounded-lg px-3 py-2 flex items-center justify-between text-sm">
+                                 <div key={patient.id} className="bg-white/80 dark:bg-slate-700/80 border border-white dark:border-slate-600 rounded-lg px-3 py-2 flex items-center justify-between text-sm">
                                     <div className="space-y-1">
-                                       <p className="font-semibold text-gray-800">{patient.name}</p>
-                                       <p className="text-xs text-gray-500">Room {patient.room}</p>
+                                       <p className="font-semibold text-gray-800 dark:text-slate-100">{patient.name}</p>
+                                       <p className="text-xs text-gray-500 dark:text-slate-400">Room {patient.room}</p>
                                     </div>
                                     <div className="flex items-center gap-2 text-xs font-semibold">
                                        {patient.status === 'completed' && <Check className="w-4 h-4 text-green-500" aria-hidden="true" />}
@@ -1067,12 +1070,12 @@ const NurseDashboard = () => {
                                  </div>
                               ))}
                            </div>
-                           <div className="space-y-2">
-                              <div className="flex items-center justify-between text-xs text-gray-500">
+                           <div className="space-y-1">
+                              <div className="flex items-center justify-between text-xs text-gray-500 dark:text-slate-400">
                                  <span>{slot.completed}/{slot.totalPatients} completed</span>
                                  <span>{completion}%</span>
                               </div>
-                              <div className="relative h-2 bg-white/60 rounded-full overflow-hidden">
+                              <div className="relative h-1.5 bg-white/60 dark:bg-slate-600/60 rounded-full overflow-hidden">
                                  <div
                                     className={`absolute inset-y-0 left-0 rounded-full ${
                                        slot.status === 'overdue'
@@ -1085,11 +1088,11 @@ const NurseDashboard = () => {
                                  />
                               </div>
                            </div>
-                           <div className="flex items-center justify-between gap-2">
-                              <Button className="flex-1 bg-brand-medium hover:bg-brand-deep text-white text-sm py-2">
+                           <div className="flex items-center justify-between gap-1.5">
+                              <Button className="flex-1 bg-brand-medium hover:bg-brand-deep text-white text-xs py-1.5">
                                  Record All
                               </Button>
-                              <Button variant="outline" className="flex-1 text-sm py-2 border-brand-medium text-brand-medium">
+                              <Button variant="outline" className="flex-1 text-xs py-1.5 border-brand-medium text-brand-medium">
                                  View
                               </Button>
                            </div>
@@ -1100,7 +1103,7 @@ const NurseDashboard = () => {
             </div>
          </section>
 
-         <section aria-labelledby="patient-vitals" className="space-y-6">
+         <section aria-labelledby="patient-vitals" className="space-y-3">
             <VitalsSectionHeader
                patient={vitalsPatient}
                onExportPdf={() => triggerToast('info', 'Export to PDF coming soon. (mock)')}
@@ -1117,8 +1120,8 @@ const NurseDashboard = () => {
                onNotify={handleNotifyPhysician}
             />
 
-            <div className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-6">
-               <Card className="p-6 border border-gray-100 shadow-soft">
+            <div className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-3">
+               <Card className="p-3 border border-gray-100 dark:border-slate-700 shadow-soft dark:bg-slate-800">
                   <VitalsEntryForm
                      form={vitalsForm}
                      formStatuses={formStatuses}
@@ -1202,40 +1205,40 @@ const NurseDashboard = () => {
             />
          </section>
 
-         <section aria-labelledby="tasks-reminders" className="space-y-6">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-               <div className="flex items-center gap-3">
-                  <ClipboardList className="w-6 h-6 text-brand-medium" aria-hidden="true" />
-                  <h2 id="tasks-reminders" className="text-xl font-bold text-gray-900">Tasks &amp; Reminders</h2>
-                  <span className="text-sm text-gray-500">{overview.stats.pendingTasks} active</span>
+         <section aria-labelledby="tasks-reminders" className="space-y-3">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
+               <div className="flex items-center gap-2">
+                  <ClipboardList className="w-5 h-5 text-brand-medium" aria-hidden="true" />
+                  <h2 id="tasks-reminders" className="text-sm font-bold text-gray-900 dark:text-slate-100">Tasks &amp; Reminders</h2>
+                  <span className="text-xs text-gray-500 dark:text-slate-400">{overview.stats.pendingTasks} active</span>
                </div>
-               <div className="flex items-center gap-3">
-                  <div className="flex gap-2 text-sm text-gray-500">
-                     <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500" /> Critical</span>
-                     <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-orange-500" /> High</span>
-                     <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500" /> Medium</span>
-                     <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-gray-400" /> Low</span>
+               <div className="flex items-center gap-2">
+                  <div className="flex gap-1.5 text-xs text-gray-500 dark:text-slate-400">
+                     <span className="flex items-center gap-0.5"><span className="w-1.5 h-1.5 rounded-full bg-red-500" /> Critical</span>
+                     <span className="flex items-center gap-0.5"><span className="w-1.5 h-1.5 rounded-full bg-orange-500" /> High</span>
+                     <span className="flex items-center gap-0.5"><span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Medium</span>
+                     <span className="flex items-center gap-0.5"><span className="w-1.5 h-1.5 rounded-full bg-gray-400" /> Low</span>
                   </div>
-                  <Button className="flex items-center gap-2 text-sm font-semibold" onClick={() => alert('Add task modal (placeholder)')}>
-                     <Plus className="w-4 h-4" />
+                  <Button className="flex items-center gap-1.5 text-xs font-semibold" onClick={() => alert('Add task modal (placeholder)')}>
+                     <Plus className="w-3.5 h-3.5" />
                      Add Task
                   </Button>
                </div>
             </div>
 
             {overdueTasks.length > 0 && (
-               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                     <AlertTriangle className="w-5 h-5" aria-hidden="true" />
-                     <p className="text-sm font-semibold">{overdueTasks.length} overdue task(s) need immediate attention</p>
+               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-3 py-2 rounded-lg flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                     <AlertTriangle className="w-4 h-4" aria-hidden="true" />
+                     <p className="text-xs font-semibold">{overdueTasks.length} overdue task(s) need immediate attention</p>
                   </div>
-                  <Button variant="outline" className="border-red-200 text-red-600" onClick={() => setActiveFilter('needs-attention')}>
+                  <Button variant="outline" className="border-red-200 text-red-600 dark:border-red-700 dark:text-red-400 text-xs py-1" onClick={() => setActiveFilter('needs-attention')}>
                      View Patients
                   </Button>
                </div>
             )}
 
-            <div className="space-y-4">
+            <div className="space-y-2">
                {visibleTasks.slice(0, 6).map((task) => {
                   const priority = taskPriorityMap[task.priority] || taskPriorityMap.medium;
                   const categoryLabel = taskCategoryMap[task.category] || 'Task';
@@ -1250,27 +1253,27 @@ const NurseDashboard = () => {
                               : 'text-red-600';
 
                   return (
-                     <Card key={task.id} className={`p-4 md:p-5 shadow-soft border ${isOverdue ? 'border-red-200 bg-red-50/40' : 'border-gray-100'}`}>
-                        <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
-                           <label className="flex items-center gap-3 cursor-pointer select-none">
+                     <Card key={task.id} className={`p-3 shadow-soft border ${isOverdue ? 'border-red-200 dark:border-red-800 bg-red-50/40 dark:bg-red-900/10' : 'border-gray-100 dark:border-slate-700'} dark:bg-slate-800`}>
+                        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
+                           <label className="flex items-center gap-2 cursor-pointer select-none">
                               <input
                                  type="checkbox"
-                                 className="form-checkbox w-5 h-5 rounded border-gray-300 text-brand-medium focus:ring-brand-medium"
+                                 className="form-checkbox w-4 h-4 rounded border-gray-300 dark:border-slate-600 text-brand-medium focus:ring-brand-medium dark:bg-slate-700"
                                  checked={task.completed}
                                  onChange={() => handleTaskToggle(task.id)}
                                  aria-label={`Mark task ${task.title} as complete`}
                               />
-                              <span className={`w-2.5 h-2.5 rounded-full ${priority.dot}`} aria-hidden="true" />
+                              <span className={`w-2 h-2 rounded-full ${priority.dot}`} aria-hidden="true" />
                            </label>
 
-                           <div className="flex-1 space-y-2">
-                              <div className="flex flex-wrap items-center gap-2">
-                                 <h3 className="font-semibold text-gray-900">{task.title}</h3>
+                           <div className="flex-1 space-y-1">
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                 <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{task.title}</h3>
                                  <Badge type={isOverdue ? 'red' : 'blue'}>{categoryLabel}</Badge>
-                                 {isOverdue && <span className="text-xs font-semibold uppercase text-red-600 bg-red-100 px-2 py-1 rounded-full">Overdue</span>}
+                                 {isOverdue && <span className="text-xs font-semibold uppercase text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 px-1.5 py-0.5 rounded-full">Overdue</span>}
                               </div>
                               {task.patient && (
-                                 <p className="text-sm text-gray-600">for {task.patient.name}, Room {task.patient.room}</p>
+                                 <p className="text-xs text-gray-600 dark:text-slate-400">for {task.patient.name}, Room {task.patient.room}</p>
                               )}
                               <p className={`text-xs font-semibold ${statusColor}`}>
                                  Due: {new Date(task.dueTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
@@ -1278,15 +1281,15 @@ const NurseDashboard = () => {
                               </p>
                            </div>
 
-                           <div className="flex items-center gap-3 self-start">
-                              <button type="button" className="p-2 rounded-full hover:bg-gray-100 text-gray-500" aria-label="View task info">
-                                 <Info className="w-4 h-4" />
+                           <div className="flex items-center gap-1.5 self-start">
+                              <button type="button" className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-500 dark:text-slate-400" aria-label="View task info">
+                                 <Info className="w-3.5 h-3.5" />
                               </button>
-                              <button type="button" className="p-2 rounded-full hover:bg-gray-100 text-gray-500" aria-label="Edit task">
-                                 <Edit3 className="w-4 h-4" />
+                              <button type="button" className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-500 dark:text-slate-400" aria-label="Edit task">
+                                 <Edit3 className="w-3.5 h-3.5" />
                               </button>
-                              <button type="button" className="p-2 rounded-full hover:bg-gray-100 text-gray-500" aria-label="Delete task">
-                                 <Trash2 className="w-4 h-4" />
+                              <button type="button" className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-500 dark:text-slate-400" aria-label="Delete task">
+                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
                            </div>
                         </div>
@@ -1295,48 +1298,48 @@ const NurseDashboard = () => {
                })}
 
                {visibleTasks.length > 6 && (
-                  <Button variant="outline" className="w-full text-sm" onClick={() => alert('Navigate to full task list (placeholder)')}>
+                  <Button variant="outline" className="w-full text-xs" onClick={() => alert('Navigate to full task list (placeholder)')}>
                      View All Tasks
                   </Button>
                )}
             </div>
 
-            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-soft">
-               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Task Categories</h3>
-               <dl className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4 text-sm text-gray-600">
+            <div className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg p-3 shadow-soft">
+               <h3 className="text-xs font-semibold text-gray-700 dark:text-slate-300 uppercase tracking-wide">Task Categories</h3>
+               <dl className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 text-xs text-gray-600 dark:text-slate-400">
                   <div>
-                     <dt className="font-semibold text-gray-800">Medication</dt>
+                     <dt className="font-semibold text-gray-800 dark:text-slate-200">Medication</dt>
                      <dd>3</dd>
                   </div>
                   <div>
-                     <dt className="font-semibold text-gray-800">Assessments</dt>
+                     <dt className="font-semibold text-gray-800 dark:text-slate-200">Assessments</dt>
                      <dd>2</dd>
                   </div>
                   <div>
-                     <dt className="font-semibold text-gray-800">Care Activities</dt>
+                     <dt className="font-semibold text-gray-800 dark:text-slate-200">Care Activities</dt>
                      <dd>1</dd>
                   </div>
                   <div>
-                     <dt className="font-semibold text-gray-800">Documentation</dt>
+                     <dt className="font-semibold text-gray-800 dark:text-slate-200">Documentation</dt>
                      <dd>1</dd>
                   </div>
                </dl>
 
-               <div className="mt-6">
+               <div className="mt-3">
                   <button
                      type="button"
-                     className="text-sm text-brand-medium font-semibold flex items-center gap-2"
+                     className="text-xs text-brand-medium font-semibold flex items-center gap-1.5"
                      onClick={() => setExpandedCompleted((prev) => !prev)}
                      aria-expanded={expandedCompleted}
                   >
                      {expandedCompleted ? 'Hide Completed (12)' : 'Show Completed (12)'}
-                     <ChevronRight className={`w-4 h-4 transition-transform ${expandedCompleted ? 'rotate-90' : ''}`} aria-hidden="true" />
+                     <ChevronRight className={`w-3.5 h-3.5 transition-transform ${expandedCompleted ? 'rotate-90' : ''}`} aria-hidden="true" />
                   </button>
                   {expandedCompleted && (
-                     <ul className="mt-3 space-y-2 text-sm text-gray-500">
+                     <ul className="mt-2 space-y-1 text-xs text-gray-500 dark:text-slate-400">
                         {(completedTasks.length > 0 ? completedTasks : [{ id: 'stub', title: 'Example completed task' }]).map((task) => (
-                           <li key={task.id} className="flex items-center gap-2">
-                              <Check className="w-4 h-4 text-green-500" aria-hidden="true" />
+                           <li key={task.id} className="flex items-center gap-1.5">
+                              <Check className="w-3.5 h-3.5 text-green-500" aria-hidden="true" />
                               <span className="line-through">{task.title || 'Task completed'}</span>
                            </li>
                         ))}
@@ -1346,17 +1349,17 @@ const NurseDashboard = () => {
             </div>
          </section>
 
-         <section aria-labelledby="shift-handover" className="space-y-6">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-               <div className="flex items-center gap-3">
-                  <MessageSquare className="w-6 h-6 text-brand-medium" aria-hidden="true" />
-                  <h2 id="shift-handover" className="text-xl font-bold text-gray-900">Shift Handover</h2>
+         <section aria-labelledby="shift-handover" className="space-y-3">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
+               <div className="flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5 text-brand-medium" aria-hidden="true" />
+                  <h2 id="shift-handover" className="text-sm font-bold text-gray-900 dark:text-slate-100">Shift Handover</h2>
                </div>
-               <div className="inline-flex rounded-full border border-gray-200 overflow-hidden" role="tablist">
+               <div className="inline-flex rounded-full border border-gray-200 dark:border-slate-600 overflow-hidden" role="tablist">
                   <button
                      type="button"
                      role="tab"
-                     className={`px-4 py-2 text-sm font-semibold transition ${handoverTab === 'from' ? 'bg-brand-medium text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+                     className={`px-3 py-1.5 text-xs font-semibold transition ${handoverTab === 'from' ? 'bg-brand-medium text-white' : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'}`}
                      onClick={() => setHandoverTab('from')}
                      aria-selected={handoverTab === 'from'}
                   >
@@ -1365,7 +1368,7 @@ const NurseDashboard = () => {
                   <button
                      type="button"
                      role="tab"
-                     className={`px-4 py-2 text-sm font-semibold transition ${handoverTab === 'to' ? 'bg-brand-medium text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+                     className={`px-3 py-1.5 text-xs font-semibold transition ${handoverTab === 'to' ? 'bg-brand-medium text-white' : 'text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'}`}
                      onClick={() => setHandoverTab('to')}
                      aria-selected={handoverTab === 'to'}
                   >
@@ -1375,21 +1378,21 @@ const NurseDashboard = () => {
             </div>
 
             {handoverTab === 'from' ? (
-               <Card className="p-6 space-y-6 border border-gray-100 shadow-soft" role="tabpanel">
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+               <Card className="p-3 space-y-3 border border-gray-100 dark:border-slate-700 shadow-soft dark:bg-slate-800" role="tabpanel">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                      <div>
-                        <p className="text-sm text-gray-500">Last updated: Feb 9, 7:00 AM by Nurse Sarah Chen</p>
-                        <p className="text-sm font-semibold text-brand-medium">3 unread notes</p>
+                        <p className="text-xs text-gray-500 dark:text-slate-400">Last updated: Feb 9, 7:00 AM by Nurse Sarah Chen</p>
+                        <p className="text-xs font-semibold text-brand-medium">3 unread notes</p>
                      </div>
-                     <div className="flex gap-3">
-                        <Button variant="outline" className="border-brand-medium text-brand-medium" onClick={handleMarkAllNotesRead}>
+                     <div className="flex gap-2">
+                        <Button variant="outline" className="border-brand-medium text-brand-medium text-xs py-1" onClick={handleMarkAllNotesRead}>
                            Mark All as Read
                         </Button>
-                        <Button className="bg-brand-medium text-white">View History</Button>
+                        <Button className="bg-brand-medium text-white text-xs py-1">View History</Button>
                      </div>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-2">
                      {overview.handoverNotes.fromPreviousShift.map((note) => {
                         const isUrgent = note.priority === 'urgent';
                         const isRead = note.read;
@@ -1397,36 +1400,36 @@ const NurseDashboard = () => {
                         return (
                            <div
                               key={note.id}
-                              className={`rounded-xl border ${isUrgent ? 'border-red-200 bg-red-50/50' : 'border-blue-100 bg-blue-50/40'} p-4 md:p-5 flex flex-col gap-4 ${isRead ? 'opacity-75' : ''}`}
+                              className={`rounded-lg border ${isUrgent ? 'border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/20' : 'border-blue-100 dark:border-blue-800 bg-blue-50/40 dark:bg-blue-900/20'} p-3 flex flex-col gap-2 ${isRead ? 'opacity-75' : ''}`}
                            >
-                              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-                                 <div className="space-y-1">
-                                    <div className="flex items-center gap-2 text-xs uppercase font-semibold tracking-wide">
-                                       <span className={`px-2.5 py-1 rounded-full ${isUrgent ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'}`}>
+                              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2">
+                                 <div className="space-y-0.5">
+                                    <div className="flex items-center gap-1.5 text-xs uppercase font-semibold tracking-wide">
+                                       <span className={`px-2 py-0.5 rounded-full ${isUrgent ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'}`}>
                                           {isUrgent ? 'Urgent' : 'Info'}
                                        </span>
-                                       <span className="px-2.5 py-1 rounded-full bg-white/80 text-gray-700">
+                                       <span className="px-2 py-0.5 rounded-full bg-white/80 dark:bg-slate-700 text-gray-700 dark:text-slate-300">
                                           {note.type === 'general' ? 'General' : 'Patient Specific'}
                                        </span>
                                     </div>
                                     {note.patient && (
-                                       <p className="text-sm font-semibold text-gray-800">
+                                       <p className="text-xs font-semibold text-gray-800 dark:text-slate-200">
                                           {note.patient.name}, Room {note.patient.room}
                                        </p>
                                     )}
                                  </div>
-                                 <div className="text-xs text-gray-500 text-right">
+                                 <div className="text-xs text-gray-500 dark:text-slate-400 text-right">
                                     <p>{new Date(note.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</p>
                                     <p>{note.author}</p>
                                  </div>
                               </div>
-                              <p className="text-sm text-gray-700 leading-relaxed">{note.content}</p>
-                              <label className="flex items-center gap-2 text-sm font-medium text-gray-600 cursor-pointer">
+                              <p className="text-xs text-gray-700 dark:text-slate-300 leading-relaxed">{note.content}</p>
+                              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-600 dark:text-slate-400 cursor-pointer">
                                  <input
                                     type="checkbox"
                                     checked={note.read}
                                     onChange={() => handleMarkNoteRead(note.id)}
-                                    className="form-checkbox w-4 h-4 text-brand-medium"
+                                    className="form-checkbox w-3.5 h-3.5 text-brand-medium dark:bg-slate-700 dark:border-slate-600"
                                  />
                                  Mark as read
                               </label>
@@ -1436,43 +1439,43 @@ const NurseDashboard = () => {
                   </div>
 
                   {overview.handoverNotes.fromPreviousShift.length === 0 && (
-                     <div className="text-center text-gray-500 py-10">
-                        <CheckSquare className="w-12 h-12 mx-auto text-gray-300 mb-3" aria-hidden="true" />
+                     <div className="text-center text-gray-500 dark:text-slate-400 py-6">
+                        <CheckSquare className="w-8 h-8 mx-auto text-gray-300 dark:text-slate-600 mb-2" aria-hidden="true" />
                         No handover notes from previous shift
                      </div>
                   )}
                </Card>
             ) : (
-               <Card className="p-6 space-y-6 border border-gray-100 shadow-soft" role="tabpanel">
-                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+               <Card className="p-3 space-y-3 border border-gray-100 dark:border-slate-700 shadow-soft dark:bg-slate-800" role="tabpanel">
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
                      <div>
-                        <h3 className="text-lg font-bold text-gray-900">Notes for Next Shift</h3>
-                        <p className="text-sm text-gray-500">Auto-save every 30 seconds</p>
+                        <h3 className="text-sm font-bold text-gray-900 dark:text-slate-100">Notes for Next Shift</h3>
+                        <p className="text-xs text-gray-500 dark:text-slate-400">Auto-save every 30 seconds</p>
                         {overview.handoverNotes.forNextShift.lastSaved && (
-                           <p className="text-xs text-gray-400 mt-1">
+                           <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">
                               Last saved: {new Date(overview.handoverNotes.forNextShift.lastSaved).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
                            </p>
                         )}
                      </div>
-                     <div className="flex gap-3">
-                        <Button variant="outline" className="border-brand-medium text-brand-medium" onClick={handleSaveHandover}>
+                     <div className="flex gap-2">
+                        <Button variant="outline" className="border-brand-medium text-brand-medium text-xs py-1" onClick={handleSaveHandover}>
                            Save Draft
                         </Button>
-                        <Button className="bg-brand-medium text-white" disabled>
+                        <Button className="bg-brand-medium text-white text-xs py-1" disabled>
                            Submit Handover
                         </Button>
                      </div>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-2">
                      <div>
-                        <label htmlFor="general-notes" className="block text-sm font-medium text-gray-700 mb-2">
+                        <label htmlFor="general-notes" className="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">
                            General Notes
                         </label>
                         <textarea
                            id="general-notes"
-                           rows={4}
-                           className="w-full rounded-xl border border-gray-200 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-medium"
+                           rows={3}
+                           className="w-full rounded-lg border border-gray-200 dark:border-slate-600 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-medium bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 dark:placeholder-slate-400"
                            placeholder="Enter general shift notes..."
                            value={overview.handoverNotes.forNextShift.generalNotes}
                            onChange={(event) => setOverview((prev) => ({
@@ -1487,38 +1490,38 @@ const NurseDashboard = () => {
                            }))}
                            maxLength={2000}
                         />
-                        <div className="flex justify-between text-xs text-gray-400 mt-1">
+                        <div className="flex justify-between text-xs text-gray-400 dark:text-slate-500 mt-1">
                            <span>Quick templates: Staffing changes · Equipment issues · Unit updates</span>
                            <span>{overview.handoverNotes.forNextShift.generalNotes.length}/2000</span>
                         </div>
                      </div>
 
-                     <div className="space-y-3">
+                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                           <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Patient-Specific Notes</h3>
-                           <Button variant="outline" className="text-sm flex items-center gap-2" onClick={handleAddPatientNote}>
-                              <Plus className="w-4 h-4" />
+                           <h3 className="text-xs font-semibold text-gray-700 dark:text-slate-300 uppercase tracking-wide">Patient-Specific Notes</h3>
+                           <Button variant="outline" className="text-xs flex items-center gap-1.5" onClick={handleAddPatientNote}>
+                              <Plus className="w-3.5 h-3.5" />
                               Add Patient Note
                            </Button>
                         </div>
 
                         {overview.handoverNotes.forNextShift.patientNotes.length === 0 && (
-                           <div className="border border-dashed border-gray-300 rounded-xl p-6 text-center text-sm text-gray-500">
-                              <MessageSquare className="w-6 h-6 mx-auto text-gray-300 mb-2" aria-hidden="true" />
+                           <div className="border border-dashed border-gray-300 dark:border-slate-600 rounded-lg p-4 text-center text-xs text-gray-500 dark:text-slate-400">
+                              <MessageSquare className="w-5 h-5 mx-auto text-gray-300 dark:text-slate-600 mb-1.5" aria-hidden="true" />
                               No patient-specific notes yet.
                            </div>
                         )}
 
-                        <div className="space-y-4">
+                        <div className="space-y-2">
                            {overview.handoverNotes.forNextShift.patientNotes.map((note) => (
-                              <div key={note.id} className="border border-gray-200 rounded-xl p-4 space-y-3">
-                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              <div key={note.id} className="border border-gray-200 dark:border-slate-600 rounded-lg p-3 space-y-2 dark:bg-slate-700/50">
+                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                     <div>
-                                       <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Patient</label>
+                                       <label className="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1">Patient</label>
                                        <select
                                           value={note.patientId}
                                           onChange={(event) => handleUpdatePatientNote(note.id, { patientId: event.target.value })}
-                                          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-medium"
+                                          className="w-full rounded-lg border border-gray-200 dark:border-slate-600 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-medium bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100"
                                        >
                                           <option value="">Select patient</option>
                                           {overview.assignedPatients.map((patient) => (
@@ -1529,11 +1532,11 @@ const NurseDashboard = () => {
                                        </select>
                                     </div>
                                     <div>
-                                       <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Priority</label>
+                                       <label className="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1">Priority</label>
                                        <select
                                           value={note.priority}
                                           onChange={(event) => handleUpdatePatientNote(note.id, { priority: event.target.value })}
-                                          className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-medium"
+                                          className="w-full rounded-lg border border-gray-200 dark:border-slate-600 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-medium bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100"
                                        >
                                           <option value="normal">Normal</option>
                                           <option value="urgent">Urgent</option>
@@ -1541,10 +1544,10 @@ const NurseDashboard = () => {
                                     </div>
                                  </div>
                                  <div>
-                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Note</label>
+                                    <label className="block text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-1">Note</label>
                                     <textarea
                                        rows={3}
-                                       className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-medium"
+                                       className="w-full rounded-lg border border-gray-200 dark:border-slate-600 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-medium bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-100 dark:placeholder-slate-400"
                                        value={note.note}
                                        onChange={(event) => handleUpdatePatientNote(note.id, { note: event.target.value })}
                                        placeholder="Enter patient note..."

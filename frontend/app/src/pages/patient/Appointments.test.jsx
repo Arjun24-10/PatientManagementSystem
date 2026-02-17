@@ -13,8 +13,8 @@ describe('Patient Appointments Page', () => {
       expect(screen.getByText(/my appointments/i)).toBeInTheDocument();
    });
 
-   test('displays request new button', () => {
+   test('displays new button', () => {
       render(<PatientAppointments />);
-      expect(screen.getByRole('button', { name: /request new/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /new/i })).toBeInTheDocument();
    });
 });

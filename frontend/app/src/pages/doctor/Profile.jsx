@@ -9,51 +9,51 @@ const Profile = () => {
     const [isEditing, setIsEditing] = useState(false);
 
     return (
-        <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800">Doctor Profile</h2>
+        <div className="space-y-3">
+            <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">Doctor Profile</h2>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
                 {/* Profile Card */}
-                <Card className="p-6 lg:col-span-1 text-center">
-                    <div className="w-32 h-32 rounded-full bg-blue-100 mx-auto flex items-center justify-center text-blue-600 font-bold text-4xl mb-4">
+                <Card className="p-4 lg:col-span-1 text-center dark:bg-slate-800">
+                    <div className="w-20 h-20 rounded-full bg-blue-100 dark:bg-blue-900/30 mx-auto flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-2xl mb-2">
                         DS
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900">Dr. Sarah Smith</h3>
-                    <p className="text-blue-600 font-medium">Cardiologist (MBBS, MD)</p>
-                    <p className="text-gray-500 text-sm mt-1">License #MD-12345-NY</p>
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-slate-100">Dr. Sarah Smith</h3>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">Cardiologist (MBBS, MD)</p>
+                    <p className="text-gray-500 dark:text-slate-400 text-xs">License #MD-12345-NY</p>
 
-                    <div className="mt-6 flex justify-center space-x-2">
+                    <div className="mt-3 flex justify-center space-x-1">
                         <Badge type="green">Active Status</Badge>
                         <Badge type="blue">Verified</Badge>
                     </div>
 
-                    <div className="mt-6 pt-6 border-t text-left space-y-3">
-                        <div className="flex items-center text-gray-600 text-sm">
-                            <Mail className="w-4 h-4 mr-3" /> sarah.smith@medicare.com
+                    <div className="mt-3 pt-3 border-t dark:border-slate-700 text-left space-y-1.5">
+                        <div className="flex items-center text-gray-600 dark:text-slate-400 text-xs">
+                            <Mail className="w-3.5 h-3.5 mr-2" /> sarah.smith@medicare.com
                         </div>
-                        <div className="flex items-center text-gray-600 text-sm">
-                            <Phone className="w-4 h-4 mr-3" /> +1 (555) 123-4567
+                        <div className="flex items-center text-gray-600 dark:text-slate-400 text-xs">
+                            <Phone className="w-3.5 h-3.5 mr-2" /> +1 (555) 123-4567
                         </div>
-                        <div className="flex items-center text-gray-600 text-sm">
-                            <Award className="w-4 h-4 mr-3" /> 15 Years Experience
+                        <div className="flex items-center text-gray-600 dark:text-slate-400 text-xs">
+                            <Award className="w-3.5 h-3.5 mr-2" /> 15 Years Experience
                         </div>
                     </div>
                 </Card>
 
                 {/* Settings & Schedule */}
-                <div className="lg:col-span-2 space-y-6">
-                    <Card className="p-6">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-lg font-bold text-gray-800 flex items-center">
-                                <User className="w-5 h-5 mr-2 text-blue-500" />
+                <div className="lg:col-span-2 space-y-3">
+                    <Card className="p-4 dark:bg-slate-800">
+                        <div className="flex justify-between items-center mb-3">
+                            <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100 flex items-center">
+                                <User className="w-4 h-4 mr-1.5 text-blue-500" />
                                 Personal Information
                             </h3>
-                            <Button variant="outline" onClick={() => setIsEditing(!isEditing)}>
+                            <Button variant="outline" className="text-xs" onClick={() => setIsEditing(!isEditing)}>
                                 {isEditing ? 'Cancel' : 'Edit Details'}
                             </Button>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                             <Input label="First Name" defaultValue="Sarah" disabled={!isEditing} />
                             <Input label="Last Name" defaultValue="Smith" disabled={!isEditing} />
                             <Input label="Email" defaultValue="sarah.smith@medicare.com" disabled={!isEditing} />
@@ -64,46 +64,46 @@ const Profile = () => {
                         </div>
 
                         {isEditing && (
-                            <div className="mt-6 flex justify-end">
-                                <Button onClick={() => setIsEditing(false)}>Save Changes</Button>
+                            <div className="mt-3 flex justify-end">
+                                <Button className="text-sm" onClick={() => setIsEditing(false)}>Save Changes</Button>
                             </div>
                         )}
                     </Card>
 
-                    <Card className="p-6">
-                        <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                            <Clock className="w-5 h-5 mr-2 text-blue-500" />
+                    <Card className="p-4 dark:bg-slate-800">
+                        <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100 mb-2 flex items-center">
+                            <Clock className="w-4 h-4 mr-1.5 text-blue-500" />
                             Availability Settings
                         </h3>
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-slate-700 rounded">
                                 <div>
-                                    <p className="font-medium text-gray-800">Accepting New Patients</p>
-                                    <p className="text-xs text-gray-500">Allow new patients to book appointments</p>
+                                    <p className="font-medium text-sm text-gray-800 dark:text-slate-100">Accepting New Patients</p>
+                                    <p className="text-xs text-gray-500 dark:text-slate-400">Allow new patients to book appointments</p>
                                 </div>
-                                <div className="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-blue-600 rounded-full cursor-pointer">
-                                    <span className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform transform translate-x-6"></span>
+                                <div className="relative inline-block w-10 h-5 transition duration-200 ease-in-out bg-blue-600 rounded-full cursor-pointer">
+                                    <span className="absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform transform translate-x-5"></span>
                                 </div>
                             </div>
-                            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-slate-700 rounded">
                                 <div>
-                                    <p className="font-medium text-gray-800">Show Phone Number</p>
-                                    <p className="text-xs text-gray-500">Display contact number on public profile</p>
+                                    <p className="font-medium text-sm text-gray-800 dark:text-slate-100">Show Phone Number</p>
+                                    <p className="text-xs text-gray-500 dark:text-slate-400">Display contact number on public profile</p>
                                 </div>
-                                <div className="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-gray-300 rounded-full cursor-pointer">
-                                    <span className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform transform translate-x-0"></span>
+                                <div className="relative inline-block w-10 h-5 transition duration-200 ease-in-out bg-gray-300 dark:bg-slate-600 rounded-full cursor-pointer">
+                                    <span className="absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform transform translate-x-0"></span>
                                 </div>
                             </div>
                         </div>
                     </Card>
 
-                    <Card className="p-6">
-                        <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                            <Shield className="w-5 h-5 mr-2 text-blue-500" />
+                    <Card className="p-4 dark:bg-slate-800">
+                        <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100 mb-2 flex items-center">
+                            <Shield className="w-4 h-4 mr-1.5 text-blue-500" />
                             Security
                         </h3>
-                        <Button variant="secondary" className="w-full justify-center">Change Password</Button>
-                        <Button variant="outline" className="w-full justify-center mt-3 text-red-600 border-red-200 hover:bg-red-50">Enable Two-Factor Authentication</Button>
+                        <Button variant="secondary" className="w-full justify-center text-sm">Change Password</Button>
+                        <Button variant="outline" className="w-full justify-center mt-2 text-xs text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20">Enable Two-Factor Authentication</Button>
                     </Card>
                 </div>
             </div>
