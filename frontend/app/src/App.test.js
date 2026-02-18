@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import App from './App';
 import { AuthContext } from './contexts/AuthContext';
 
@@ -21,7 +22,9 @@ test('renders learn react link', () => {
   // We wrap App in AuthContext.Provider because Login page calls useAuth
   const { debug } = render(
     <AuthContext.Provider value={mockAuthValue}>
-      <App />
+      <MemoryRouter>
+        <App />
+      </MemoryRouter>
     </AuthContext.Provider>
   );
 

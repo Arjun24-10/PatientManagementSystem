@@ -3,10 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { Activity, Clock, FileText, CheckCircle, Upload } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
+import { useAuth } from '../../contexts/AuthContext';
 import { mockLabOrders, mockLabActivity } from '../../mocks/labOrders';
 
 const LabDashboard = () => {
+    const { user } = useAuth();
     const navigate = useNavigate();
+
+    const techName = user?.fullName || user?.full_name || 'Tech';
 
     const pendingCount = mockLabOrders.filter(o => o.status === 'Pending').length;
     const collectedCount = mockLabOrders.filter(o => o.status === 'Collected').length;
@@ -18,7 +22,7 @@ const LabDashboard = () => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
                 <div>
                     <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">Lab Technician Dashboard</h2>
-                    <p className="text-xs text-gray-500 dark:text-slate-400">Welcome back, Tech Mike. Here's your daily overview.</p>
+                    <p className="text-xs text-gray-500 dark:text-slate-400">Welcome back, {techName}. Here's your daily overview.</p>
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline" onClick={() => navigate('/dashboard/lab/orders')}>View Orders</Button>

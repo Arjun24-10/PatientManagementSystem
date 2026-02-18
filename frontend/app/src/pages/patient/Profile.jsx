@@ -1,12 +1,18 @@
 import React, { useState } from 'react';
 import { User, Mail, Phone, Shield, Heart, Activity } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Badge from '../../components/common/Badge';
 
 const Profile = () => {
+    const { user } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
+
+    const displayName = user?.fullName || user?.full_name || 'Patient';
+    const email = user?.email || '';
+    const initials = displayName.charAt(0);
 
     return (
         <div className="space-y-3">
@@ -16,9 +22,9 @@ const Profile = () => {
                 {/* Profile Card */}
                 <Card className="p-4 lg:col-span-1 text-center dark:bg-slate-800">
                     <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 mx-auto flex items-center justify-center text-green-600 dark:text-green-400 font-bold text-2xl mb-2">
-                        JD
+                        {initials}
                     </div>
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-slate-100">John Doe</h3>
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-slate-100">{displayName}</h3>
                     <p className="text-green-600 dark:text-green-400 font-medium text-xs">Patient ID: PAT-2024-001</p>
                     <p className="text-gray-500 dark:text-slate-400 text-xs mt-0.5">Member since Jan 2024</p>
 
@@ -29,7 +35,7 @@ const Profile = () => {
 
                     <div className="mt-3 pt-3 border-t dark:border-slate-700 text-left space-y-2">
                         <div className="flex items-center text-gray-600 dark:text-slate-400 text-xs">
-                            <Mail className="w-3.5 h-3.5 mr-2" /> john.doe@example.com
+                            <Mail className="w-3.5 h-3.5 mr-2" /> {email}
                         </div>
                         <div className="flex items-center text-gray-600 dark:text-slate-400 text-xs">
                             <Phone className="w-3.5 h-3.5 mr-2" /> +1 (555) 987-6543
@@ -54,9 +60,8 @@ const Profile = () => {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            <Input label="First Name" defaultValue="John" disabled={!isEditing} />
-                            <Input label="Last Name" defaultValue="Doe" disabled={!isEditing} />
-                            <Input label="Email" defaultValue="john.doe@example.com" disabled={!isEditing} />
+                            <Input label="Name" defaultValue={displayName} disabled={!isEditing} />
+                            <Input label="Email" defaultValue={email} disabled={!isEditing} />
                             <Input label="Phone" defaultValue="+1 (555) 987-6543" disabled={!isEditing} />
                             <div className="md:col-span-2">
                                 <Input label="Address" defaultValue="456 Elm Street, Springfield, IL" disabled={!isEditing} />

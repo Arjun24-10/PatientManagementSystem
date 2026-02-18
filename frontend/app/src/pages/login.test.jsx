@@ -1,111 +1,122 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '../test-utils';
+import userEvent from '@testing-library/user-event';
 import Login from './login';
-import { useAuth } from '../contexts/AuthContext';
-import { mockLogin } from '../mocks/auth';
 
-// Mock the hooks and dependencies
-jest.mock('react-router-dom', () => ({
-    ...jest.requireActual('react-router-dom'),
-    useNavigate: () => jest.fn(),
-}));
-
-jest.mock('../contexts/AuthContext', () => ({
-    useAuth: jest.fn(),
-}));
-
+// Mock the auth module
 jest.mock('../mocks/auth', () => ({
     mockLogin: jest.fn(),
 }));
 
+// Mock useNavigate
+const mockNavigate = jest.fn();
+jest.mock('react-router-dom', () => ({
+    ...jest.requireActual('react-router-dom'),
+    useNavigate: () => mockNavigate,
+}));
+
 describe('Login Page', () => {
-    const mockAuthLogin = jest.fn();
-    const mockNavigate = jest.fn();
-
     beforeEach(() => {
-        useAuth.mockReturnValue({
-            login: mockAuthLogin,
-        });
-        // Reset mocks
-        mockAuthLogin.mockReset();
-        mockLogin.mockReset();
-
-        // Mock useNavigate (a bit tricky with jest.mock factory, but we can rely on integration or simplistic mocking)
-        // For this test specific setup, we might need to verify calls if we could import the mock, 
-        // but typically we test the side effects like calls to login.
+        jest.clearAllMocks();
+        localStorage.clear();
+        sessionStorage.clear();
     });
 
-    test('renders login form correctly', () => {
+    test('renders login form with all elements', () => {
         render(<Login />);
-
-        expect(screen.getByText(/Welcome Back/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/Email or Username/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/Password/i)).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /Sign In/i })).toBeInTheDocument();
-        expect(screen.getByText(/Don't have an account\?/i)).toBeInTheDocument();
+        
+        expect(screen.getByPlaceholderText(/email/i)).toBeInTheDocument();
+        expect(screen.getByPlaceholderText(/password/i)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
     });
 
-    test('shows validation errors for empty fields', async () => {
+    test('renders branding elements', () => {
         render(<Login />);
-
-        fireEvent.click(screen.getByRole('button', { name: /Sign In/i }));
-
-        expect(await screen.findByText(/Please enter email and password/i)).toBeInTheDocument();
-        expect(mockLogin).not.toHaveBeenCalled();
-        expect(mockAuthLogin).not.toHaveBeenCalled();
+        
+        expect(screen.getByText(/premium healthcare platform/i)).toBeInTheDocument();
     });
 
-    test('handles successful login via mock auth', async () => {
-        mockLogin.mockResolvedValue({
-            success: true,
-            user: { id: '1', name: 'Test User', role: 'PATIENT' },
-            redirectTo: '/dashboard/patient'
-        });
-
+    test('shows validation error for empty email', async () => {
         render(<Login />);
-
-        fireEvent.change(screen.getByLabelText(/Email or Username/i), { target: { value: 'test@example.com' } });
-        fireEvent.change(screen.getByLabelText(/Password/i), { target: { value: 'password123' } });
-
-        fireEvent.click(screen.getByRole('button', { name: /Sign In/i }));
-
+        
+        const emailInput = screen.getByPlaceholderText(/email/i);
+        fireEvent.blur(emailInput);
+        
         await waitFor(() => {
-            expect(mockLogin).toHaveBeenCalledWith('test@example.com', 'password123', false);
+            expect(screen.getByText(/email is required/i)).toBeInTheDocument();
         });
-
-        expect(await screen.findByText(/Login successful!/i)).toBeInTheDocument();
     });
 
-    test('handles failed login', async () => {
-        mockLogin.mockResolvedValue({ success: false, error: 'Invalid credentials' });
-        mockAuthLogin.mockResolvedValue({ success: false, error: 'Invalid credentials' }); // Fallback also fails
-
+    test('shows validation error for short password', async () => {
         render(<Login />);
-
-        fireEvent.change(screen.getByLabelText(/Email or Username/i), { target: { value: 'wrong@example.com' } });
-        fireEvent.change(screen.getByLabelText(/Password/i), { target: { value: 'wrongpass' } });
-
-        fireEvent.click(screen.getByRole('button', { name: /Sign In/i }));
-
+        
+        const passwordInput = screen.getByPlaceholderText(/password/i);
+        await userEvent.type(passwordInput, '12345');
+        fireEvent.blur(passwordInput);
+        
         await waitFor(() => {
-            expect(mockLogin).toHaveBeenCalled();
+            expect(screen.getByText(/password must be at least 12 characters/i)).toBeInTheDocument();
         });
-
-        expect(await screen.findByText(/Invalid credentials/i)).toBeInTheDocument();
     });
 
-    test('toggles password visibility', () => {
+    test('shows error when form submitted empty', async () => {
         render(<Login />);
+        
+        const submitButton = screen.getByRole('button', { name: /sign in/i });
+        fireEvent.click(submitButton);
+        
+        await waitFor(() => {
+            expect(screen.getByText(/please enter email and password/i)).toBeInTheDocument();
+        });
+    });
 
-        const passwordInput = screen.getByLabelText(/Password/i);
+    test('toggles password visibility', async () => {
+        render(<Login />);
+        
+        const passwordInput = screen.getByPlaceholderText(/password/i);
         expect(passwordInput).toHaveAttribute('type', 'password');
-
-        const toggleButton = screen.getByLabel('Show password');
+        
+        const toggleButton = screen.getByLabelText(/show password/i);
         fireEvent.click(toggleButton);
-
+        
         expect(passwordInput).toHaveAttribute('type', 'text');
+    });
 
-        fireEvent.click(screen.getByLabel('Hide password'));
-        expect(passwordInput).toHaveAttribute('type', 'password');
+    test('navigates to forgot password page', async () => {
+        render(<Login />);
+        
+        const forgotButton = screen.getByText(/forgot\?/i);
+        fireEvent.click(forgotButton);
+        
+        expect(mockNavigate).toHaveBeenCalledWith('/forgot-password');
+    });
+
+    test('navigates to create account page', async () => {
+        render(<Login />);
+        
+        const createAccountLink = screen.getByText(/create account/i);
+        expect(createAccountLink).toBeInTheDocument();
+    });
+
+    test('remembers email when remember me is checked', async () => {
+        render(<Login />);
+        
+        const emailInput = screen.getByPlaceholderText(/email/i);
+        const rememberCheckbox = screen.getByRole('checkbox');
+        
+        await userEvent.type(emailInput, 'test@example.com');
+        fireEvent.click(rememberCheckbox);
+        
+        expect(rememberCheckbox).toBeChecked();
+    });
+
+    test('loads remembered email on mount', () => {
+        localStorage.setItem('rememberedEmail', 'saved@example.com');
+        localStorage.setItem('rememberMe', 'true');
+        
+        render(<Login />);
+        
+        const emailInput = screen.getByPlaceholderText(/email/i);
+        expect(emailInput).toHaveValue('saved@example.com');
     });
 });

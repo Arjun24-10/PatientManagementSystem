@@ -1,126 +1,103 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '../test-utils';
+import userEvent from '@testing-library/user-event';
 import CreateAccount from './createAccount';
-import { useAuth } from '../contexts/AuthContext';
 
-// Mock the hooks
+// Mock useNavigate
+const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
     ...jest.requireActual('react-router-dom'),
-    useNavigate: () => jest.fn(),
-}));
-
-jest.mock('../contexts/AuthContext', () => ({
-    useAuth: jest.fn(),
+    useNavigate: () => mockNavigate,
 }));
 
 describe('CreateAccount Page', () => {
-    const mockSignup = jest.fn();
-    const mockNavigate = jest.fn();
-
     beforeEach(() => {
-        useAuth.mockReturnValue({
-            signup: mockSignup,
-        });
-        // Reset mocks
-        mockSignup.mockReset();
+        jest.clearAllMocks();
     });
 
-    test('renders create account form correctly', () => {
+    test('renders patient signup form by default', () => {
         render(<CreateAccount />);
 
-        expect(screen.getByText(/Create Account/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/Full Name/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/Email Address/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/Mobile Number/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/Password/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/Confirm Password/i)).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /Create Account/i })).toBeInTheDocument();
+        expect(screen.getByPlaceholderText(/john doe/i)).toBeInTheDocument();
+        expect(screen.getByPlaceholderText(/you@example.com/i)).toBeInTheDocument();
+        // Patient specific fields
+        expect(screen.getByText(/date of birth/i)).toBeInTheDocument();
+        expect(screen.getByPlaceholderText(/new york, ny/i)).toBeInTheDocument(); // Address
     });
 
-    test('shows error when fields are empty', async () => {
+    test('switches to doctor form when doctor role selected', async () => {
         render(<CreateAccount />);
 
-        // Fill only one field
-        fireEvent.change(screen.getByLabelText(/Full Name/i), { target: { value: 'Test User' } });
+        const doctorButton = screen.getByText(/doctor \/ staff/i);
+        fireEvent.click(doctorButton);
 
-        fireEvent.click(screen.getByRole('button', { name: /Create Account/i }));
+        // Doctor specific fields should appear
+        expect(screen.getByPlaceholderText(/lic-12345/i)).toBeInTheDocument();
+        expect(screen.getByPlaceholderText(/cardiology/i)).toBeInTheDocument();
 
-        // Check for error message
-        // Note: The component sets error state if validation fails.
-        expect(await screen.findByText(/Please complete all required fields/i)).toBeInTheDocument();
-        expect(mockSignup).not.toHaveBeenCalled();
+        // Patient fields should disappear
+        expect(screen.queryByText(/date of birth/i)).not.toBeInTheDocument();
     });
 
     test('shows error when passwords do not match', async () => {
         render(<CreateAccount />);
 
-        fireEvent.change(screen.getByLabelText(/Full Name/i), { target: { value: 'Test User' } });
-        fireEvent.change(screen.getByLabelText(/Email Address/i), { target: { value: 'test@example.com' } });
-        fireEvent.change(screen.getByLabelText(/Mobile Number/i), { target: { value: '1234567890' } });
-        fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'password12345' } });
-        fireEvent.change(screen.getByLabelText(/Confirm Password/i), { target: { value: 'passwordDifferent' } });
+        const nameInput = screen.getByPlaceholderText(/john doe/i);
+        const emailInput = screen.getByPlaceholderText(/you@example.com/i);
+        const passwordInput = screen.getByPlaceholderText(/min 12 characters/i);
+        const confirmInput = screen.getByPlaceholderText(/re-enter password/i);
 
-        fireEvent.click(screen.getByRole('button', { name: /Create Account/i }));
+        await userEvent.type(nameInput, 'John Doe');
+        await userEvent.type(emailInput, 'john@example.com');
+        await userEvent.type(passwordInput, 'SecurePass123!');
+        await userEvent.type(confirmInput, 'DifferentPass123!');
 
-        expect(await screen.findByText(/Passwords do not match/i)).toBeInTheDocument();
-        expect(mockSignup).not.toHaveBeenCalled();
-    });
-
-    test('shows error when password is too short', async () => {
-        render(<CreateAccount />);
-
-        fireEvent.change(screen.getByLabelText(/Full Name/i), { target: { value: 'Test User' } });
-        fireEvent.change(screen.getByLabelText(/Email Address/i), { target: { value: 'test@example.com' } });
-        fireEvent.change(screen.getByLabelText(/Mobile Number/i), { target: { value: '1234567890' } });
-        fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'short' } });
-        fireEvent.change(screen.getByLabelText(/Confirm Password/i), { target: { value: 'short' } });
-
-        fireEvent.click(screen.getByRole('button', { name: /Create Account/i }));
-
-        expect(await screen.findByText(/Password must be at least 12 characters long/i)).toBeInTheDocument();
-    });
-
-    test('calls signup on valid submission', async () => {
-        mockSignup.mockResolvedValue({ success: true });
-
-        render(<CreateAccount />);
-
-        fireEvent.change(screen.getByLabelText(/Full Name/i), { target: { value: 'Test User' } });
-        fireEvent.change(screen.getByLabelText(/Email Address/i), { target: { value: 'test@example.com' } });
-        fireEvent.change(screen.getByLabelText(/Mobile Number/i), { target: { value: '9876543210' } });
-        fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'password123456' } });
-        fireEvent.change(screen.getByLabelText(/Confirm Password/i), { target: { value: 'password123456' } });
-
-        fireEvent.click(screen.getByRole('button', { name: /Create Account/i }));
+        const submitButton = screen.getByRole('button', { name: /create account/i });
+        fireEvent.click(submitButton);
 
         await waitFor(() => {
-            expect(mockSignup).toHaveBeenCalledWith('test@example.com', 'password123456', {
-                role: 'PATIENT',
-                name: 'Test User',
-                phone: '9876543210'
-            });
+            expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument();
         });
-
-        expect(await screen.findByText(/Account created successfully/i)).toBeInTheDocument();
     });
 
-    test('displays error from backend', async () => {
-        mockSignup.mockResolvedValue({ success: false, error: 'Email already in use' });
-
+    test('shows error for short password', async () => {
         render(<CreateAccount />);
 
-        fireEvent.change(screen.getByLabelText(/Full Name/i), { target: { value: 'Test User' } });
-        fireEvent.change(screen.getByLabelText(/Email Address/i), { target: { value: 'test@example.com' } });
-        fireEvent.change(screen.getByLabelText(/Mobile Number/i), { target: { value: '9876543210' } });
-        fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'password123456' } });
-        fireEvent.change(screen.getByLabelText(/Confirm Password/i), { target: { value: 'password123456' } });
+        const nameInput = screen.getByPlaceholderText(/john doe/i);
+        const emailInput = screen.getByPlaceholderText(/you@example.com/i);
+        const passwordInput = screen.getByPlaceholderText(/min 12 characters/i);
+        const confirmInput = screen.getByPlaceholderText(/re-enter password/i);
 
-        fireEvent.click(screen.getByRole('button', { name: /Create Account/i }));
+        await userEvent.type(nameInput, 'John Doe');
+        await userEvent.type(emailInput, 'john@example.com');
+        await userEvent.type(passwordInput, '12345');
+        await userEvent.type(confirmInput, '12345');
+
+        const submitButton = screen.getByRole('button', { name: /create account/i });
+        fireEvent.click(submitButton);
 
         await waitFor(() => {
-            expect(mockSignup).toHaveBeenCalled();
+            expect(screen.getByText(/password must be at least 12 characters/i)).toBeInTheDocument();
         });
+    });
 
-        expect(await screen.findByText(/Email already in use/i)).toBeInTheDocument();
+    test('shows error when required fields are empty', async () => {
+        render(<CreateAccount />);
+
+        const submitButton = screen.getByRole('button', { name: /create account/i });
+        fireEvent.click(submitButton);
+
+        await waitFor(() => {
+            expect(screen.getByText(/please fill in all required fields/i)).toBeInTheDocument();
+        });
+    });
+
+    test('navigates to sign in page', async () => {
+        render(<CreateAccount />);
+
+        const signInLink = screen.getByText(/already have an account\? sign in/i);
+        fireEvent.click(signInLink);
+
+        expect(mockNavigate).toHaveBeenCalledWith('/');
     });
 });

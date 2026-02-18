@@ -1,6 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { render, screen } from '../../test-utils';
 import LabDashboard from './Dashboard';
 
 // Mock the mock data to have consistent tests
@@ -16,23 +15,19 @@ jest.mock('../../mocks/labOrders', () => ({
    ]
 }));
 
-const renderWithRouter = (component) => {
-   return render(
-      <BrowserRouter>
-         {component}
-      </BrowserRouter>
-   );
-};
-
 describe('LabDashboard Component', () => {
    test('renders dashboard title', () => {
-      renderWithRouter(<LabDashboard />);
+      render(<LabDashboard />, {
+         authValue: {
+            user: { fullName: 'Tech Mike' }
+         }
+      });
       expect(screen.getByText('Lab Technician Dashboard')).toBeInTheDocument();
       expect(screen.getByText(/Welcome back, Tech Mike/i)).toBeInTheDocument();
    });
 
    test('renders summary cards with correct counts', () => {
-      renderWithRouter(<LabDashboard />);
+      render(<LabDashboard />);
       // Based on mocked data: 1 of each status
       expect(screen.getByText('Pending Orders')).toBeInTheDocument();
       expect(screen.getByText('Samples Collected')).toBeInTheDocument();
@@ -45,14 +40,14 @@ describe('LabDashboard Component', () => {
    });
 
    test('renders recent activity feed', () => {
-      renderWithRouter(<LabDashboard />);
+      render(<LabDashboard />);
       expect(screen.getByText('Recent Lab Activity')).toBeInTheDocument();
       expect(screen.getByText('Result Uploaded')).toBeInTheDocument();
       expect(screen.getAllByText(/tech mike/i).length).toBeGreaterThan(0);
    });
 
    test('navigates to orders when "View Orders" is clicked', () => {
-      renderWithRouter(<LabDashboard />);
+      render(<LabDashboard />);
       const viewOrdersBtn = screen.getByText('View Orders');
       expect(viewOrdersBtn.closest('button')).toBeInTheDocument();
       // Navigation assertion would ideally use a mock navigator, but for this smoke test checking render is enough
