@@ -127,6 +127,9 @@ export const mockAuthUsers = {
     session: null,
     loading: false,
     error: null,
+    login: jest.fn(),
+    signup: jest.fn(),
+    logout: jest.fn(),
     isAuthenticated: false,
   },
 };

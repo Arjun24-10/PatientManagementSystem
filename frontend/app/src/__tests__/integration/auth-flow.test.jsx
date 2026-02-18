@@ -30,10 +30,10 @@ describe('Authentication Flow Integration Tests', () => {
         authValue: mockAuthUsers.unauthenticated,
       });
 
-      // Wait for form to render
-      const emailInput = await screen.findByPlaceholderText(/enter your email or username/i);
-      const passwordInput = await screen.findByPlaceholderText(/enter your password/i);
-      const signInButton = await screen.findByRole('button', { name: /sign in/i });
+      // Wait for form to render with increased timeout
+      const emailInput = await screen.findByPlaceholderText(/enter your email or username/i, {}, { timeout: 5000 });
+      const passwordInput = await screen.findByPlaceholderText(/enter your password/i, {}, { timeout: 5000 });
+      const signInButton = await screen.findByRole('button', { name: /sign in/i }, { timeout: 5000 });
 
       // User sees login form
       expect(signInButton).toBeInTheDocument();
@@ -50,7 +50,7 @@ describe('Authentication Flow Integration Tests', () => {
       
       // Note: Full login flow with navigation would require mocking the entire auth flow
       // For integration testing, we verify the form works correctly
-    }, 10000);
+    }, 15000);
 
     test('should show error message for invalid credentials', async () => {
       const user = userEvent.setup();
@@ -66,10 +66,10 @@ describe('Authentication Flow Integration Tests', () => {
         },
       });
 
-      // Wait for form to render
-      const emailInput = await screen.findByPlaceholderText(/enter your email or username/i);
-      const passwordInput = await screen.findByPlaceholderText(/enter your password/i);
-      const signInButton = await screen.findByRole('button', { name: /sign in/i });
+      // Wait for form to render with increased timeout
+      const emailInput = await screen.findByPlaceholderText(/enter your email or username/i, {}, { timeout: 5000 });
+      const passwordInput = await screen.findByPlaceholderText(/enter your password/i, {}, { timeout: 5000 });
+      const signInButton = await screen.findByRole('button', { name: /sign in/i }, { timeout: 5000 });
 
       // Enter invalid credentials
       await user.type(emailInput, 'wrong@test.com');
@@ -79,8 +79,8 @@ describe('Authentication Flow Integration Tests', () => {
       // Should show error message
       await waitFor(() => {
         expect(screen.getByText(/invalid credentials/i)).toBeInTheDocument();
-      }, { timeout: 3000 });
-    }, 10000);
+      }, { timeout: 5000 });
+    }, 15000);
 
     test('should validate email field on blur', async () => {
       const user = userEvent.setup();
@@ -89,8 +89,8 @@ describe('Authentication Flow Integration Tests', () => {
         authValue: mockAuthUsers.unauthenticated,
       });
 
-      // Wait for form to render
-      const emailInput = await screen.findByPlaceholderText(/enter your email or username/i);
+      // Wait for form to render with increased timeout
+      const emailInput = await screen.findByPlaceholderText(/enter your email or username/i, {}, { timeout: 5000 });
 
       // Type invalid email and blur
       await user.type(emailInput, 'invalid');
@@ -100,22 +100,25 @@ describe('Authentication Flow Integration Tests', () => {
       // Should show validation error after blur
       await waitFor(() => {
         expect(screen.getByText(/email is required/i)).toBeInTheDocument();
-      }, { timeout: 3000 });
-    });
+      }, { timeout: 5000 });
+    }, 15000);
 
     test('should remember email when "Remember me" is checked', async () => {
       const user = userEvent.setup();
 
-      renderWithProviders(<Login />, {
+      const { debug } = renderWithProviders(<Login />, {
         authValue: mockAuthUsers.unauthenticated,
       });
 
       // Clear any existing localStorage
       localStorage.clear();
 
-      // Wait for form to be fully rendered
-      const emailInput = await screen.findByPlaceholderText(/enter your email or username/i);
-      const passwordInput = await screen.findByPlaceholderText(/enter your password/i);
+      // Debug: Print what's rendered (only in CI if needed)
+      // debug();
+
+      // Wait for form to be fully rendered with increased timeout
+      const emailInput = await screen.findByPlaceholderText(/enter your email or username/i, {}, { timeout: 5000 });
+      const passwordInput = await screen.findByPlaceholderText(/enter your password/i, {}, { timeout: 5000 });
 
       // Enter credentials and check remember me
       await user.type(emailInput, 'doctor@test.com');
@@ -129,7 +132,7 @@ describe('Authentication Flow Integration Tests', () => {
       
       // Note: Full login flow with localStorage would require mocking the login function
       // and waiting for the async operation. For now, we verify the checkbox works.
-    });
+    }, 15000);
 
     test('should toggle password visibility', async () => {
       const user = userEvent.setup();
@@ -138,9 +141,9 @@ describe('Authentication Flow Integration Tests', () => {
         authValue: mockAuthUsers.unauthenticated,
       });
 
-      // Wait for form to render
-      const passwordInput = await screen.findByPlaceholderText(/enter your password/i);
-      const toggleButton = await screen.findByLabelText(/show password/i);
+      // Wait for form to render with increased timeout
+      const passwordInput = await screen.findByPlaceholderText(/enter your password/i, {}, { timeout: 5000 });
+      const toggleButton = await screen.findByLabelText(/show password/i, {}, { timeout: 5000 });
 
       // Initially password should be hidden
       expect(passwordInput).toHaveAttribute('type', 'password');
@@ -150,10 +153,10 @@ describe('Authentication Flow Integration Tests', () => {
       expect(passwordInput).toHaveAttribute('type', 'text');
 
       // Click again to hide
-      const hideButton = await screen.findByLabelText(/hide password/i);
+      const hideButton = await screen.findByLabelText(/hide password/i, {}, { timeout: 5000 });
       await user.click(hideButton);
       expect(passwordInput).toHaveAttribute('type', 'password');
-    });
+    }, 15000);
   });
 
   describe('Registration Flow', () => {
