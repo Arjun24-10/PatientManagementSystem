@@ -116,13 +116,13 @@ public class AuthService {
      */
     public LoginResponse login(String email, String rawPassword, String ipAddress, String userAgent) {
         
-        rateLimiterService.checkLoginAttempts(email);
+        rateLimiterService.checkLoginAttempts(email, ipAddress, userAgent);
 
         // 1. Verify User
         Login user = loginRepository.findByEmail(email)
                 .orElseThrow(() -> {
             logEvent(email, "LOGIN_FAILED", ipAddress, userAgent, "User not found");
-            rateLimiterService.registerFailedLogin(email);
+            rateLimiterService.registerFailedLogin(email, ipAddress, userAgent);
             return new RuntimeException("Invalid credentials");
         });
 
@@ -132,7 +132,7 @@ public class AuthService {
         }
 
         if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
-            rateLimiterService.registerFailedLogin(email);
+            rateLimiterService.registerFailedLogin(email, ipAddress, userAgent);
 
             logEvent(email, "LOGIN_FAILED", ipAddress, userAgent, "Invalid password");
             throw new RuntimeException("Invalid credentials");
@@ -183,7 +183,7 @@ public class AuthService {
      */
     public LoginResponse verifyOtp(String email, String otp, String ipAddress, String userAgent) {
 
-        rateLimiterService.checkOtpAttempts(email);
+        rateLimiterService.checkOtpAttempts(email, ipAddress, userAgent);
 
         Login user = loginRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -216,7 +216,7 @@ public class AuthService {
 
             return new LoginResponse(accessToken, refreshToken, user.getRole().name(), "LOGIN_SUCCESS");
         }
-        rateLimiterService.registerFailedOtp(email);
+        rateLimiterService.registerFailedOtp(email, ipAddress, userAgent);
         
         logEvent(email, "LOGIN_FAILED", ipAddress, userAgent, "Invalid/Expired OTP");
 
