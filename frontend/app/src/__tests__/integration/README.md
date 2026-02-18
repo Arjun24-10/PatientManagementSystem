@@ -28,7 +28,7 @@ __tests__/integration/
 └── README.md                    # This file
 ```
 
-## Setup Files Explained
+## Setup Files Explained[p,]
 
 ### msw-handlers.js
 - Defines how the mock server responds to API calls
