@@ -128,15 +128,12 @@ describe('Authentication Flow Integration Tests', () => {
     test('should remember email when "Remember me" is checked', async () => {
       const user = userEvent.setup();
 
-      const { debug } = renderWithProviders(<Login />, {
+      renderWithProviders(<Login />, {
         authValue: mockAuthUsers.unauthenticated,
       });
 
       // Clear any existing localStorage
       localStorage.clear();
-
-      // Debug: Print what's rendered (only in CI if needed)
-      // debug();
 
       // Wait for form to be fully rendered with increased timeout
       const emailInput = await screen.findByPlaceholderText(/enter your email or username/i, {}, { timeout: 5000 });
