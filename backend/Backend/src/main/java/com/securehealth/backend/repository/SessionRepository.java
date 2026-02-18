@@ -21,4 +21,8 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     @Modifying
     @Query("UPDATE Session s SET s.revoked = true WHERE s.user.userId = :userId")
     void revokeAllUserSessions(@Param("userId") Long userId);
+
+    // Add to SessionRepository.java
+    @Query("SELECT s FROM Session s WHERE s.user = :user AND s.revoked = false ORDER BY s.createdAt ASC")
+    List<Session> findActiveSessionsByUserOrderByCreatedAtAsc(@Param("user") Login user);
 }

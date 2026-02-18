@@ -82,6 +82,10 @@ public class AuthService {
     @Autowired
     private RateLimiterService rateLimiterService;
 
+    @Autowired
+    private TokenBlacklistService tokenBlacklistService;
+
+    private static final int MAX_ACTIVE_SESSIONS = 3;
 
     @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
@@ -105,7 +109,7 @@ public class AuthService {
         if (role == Role.DOCTOR || role == Role.ADMIN) {
             newUser.setTwoFactorEnabled(true);
         }
-        
+
         Login savedUser = loginRepository.save(newUser);
         logEvent(email, "USER_REGISTERED", "UNKNOWN", "UNKNOWN", "User registered with role: " + role);
         return savedUser;
@@ -115,16 +119,16 @@ public class AuthService {
      * Authenticates user and generates tokens.
      */
     public LoginResponse login(String email, String rawPassword, String ipAddress, String userAgent) {
-        
+
         rateLimiterService.checkLoginAttempts(email, ipAddress, userAgent);
 
         // 1. Verify User
         Login user = loginRepository.findByEmail(email)
                 .orElseThrow(() -> {
-            logEvent(email, "LOGIN_FAILED", ipAddress, userAgent, "User not found");
-            rateLimiterService.registerFailedLogin(email, ipAddress, userAgent);
-            return new RuntimeException("Invalid credentials");
-        });
+                    logEvent(email, "LOGIN_FAILED", ipAddress, userAgent, "User not found");
+                    rateLimiterService.registerFailedLogin(email, ipAddress, userAgent);
+                    return new RuntimeException("Invalid credentials");
+                });
 
         if (user.isLocked()) {
             logEvent(email, "LOGIN_FAILED", ipAddress, userAgent, "Account locked");
@@ -137,7 +141,6 @@ public class AuthService {
             logEvent(email, "LOGIN_FAILED", ipAddress, userAgent, "Invalid password");
             throw new RuntimeException("Invalid credentials");
         }
-
 
         // --- 1. 2FA CHECK (Priority) ---
         // If user is DOCTOR/ADMIN and has 2FA enabled, stop and send OTP.
@@ -170,7 +173,7 @@ public class AuthService {
         session.setRefreshTokenHash(refreshTokenHash);
         session.setIpAddress(ipAddress);
         session.setUserAgent(userAgent);
-        session.setExpiresAt(LocalDateTime.now().plusDays(7)); 
+        session.setExpiresAt(LocalDateTime.now().plusDays(7));
         sessionRepository.save(session);
 
         logEvent(email, "LOGIN_SUCCESS", ipAddress, userAgent, "Standard login");
@@ -209,15 +212,15 @@ public class AuthService {
             session.setRefreshTokenHash(refreshTokenHash);
             session.setIpAddress(ipAddress);
             session.setUserAgent(userAgent);
-            session.setExpiresAt(LocalDateTime.now().plusDays(7)); 
+            session.setExpiresAt(LocalDateTime.now().plusDays(7));
             sessionRepository.save(session);
-            
+
             logEvent(email, "LOGIN_SUCCESS", ipAddress, userAgent, "2FA Verified");
 
             return new LoginResponse(accessToken, refreshToken, user.getRole().name(), "LOGIN_SUCCESS");
         }
         rateLimiterService.registerFailedOtp(email, ipAddress, userAgent);
-        
+
         logEvent(email, "LOGIN_FAILED", ipAddress, userAgent, "Invalid/Expired OTP");
 
         throw new RuntimeException("Invalid or expired OTP");
@@ -227,17 +230,35 @@ public class AuthService {
      * Revokes a session (Logout).
      */
     @Transactional
-    public void logout(String refreshToken) {
-        if (refreshToken == null) return;
-        
-        String hash = hashToken(refreshToken);
-        
-        sessionRepository.findByRefreshTokenHash(hash)
-            .ifPresent(session -> {
+    public void logout(String accessToken, String refreshToken) {
+        // 1. Blacklist the Access Token (Task #19286)
+        if (accessToken != null && accessToken.startsWith("Bearer ")) {
+            String jwt = accessToken.substring(7);
+            try {
+                // Calculate remaining time
+                java.util.Date expiration = jwtUtil.extractExpiration(jwt);
+                long remainingMillis = expiration.getTime() - System.currentTimeMillis();
+
+                tokenBlacklistService.blacklistToken(jwt, remainingMillis);
+            } catch (Exception e) {
+                // Token might already be expired, which is fine
+            }
+        }
+
+        // 2. Revoke the Refresh Token
+        if (refreshToken != null) {
+            String hash = hashToken(refreshToken);
+            sessionRepository.findByRefreshTokenHash(hash).ifPresent(session -> {
                 session.setRevoked(true);
                 sessionRepository.save(session);
-                logEvent(session.getUser().getEmail(), "LOGOUT", session.getIpAddress(), session.getUserAgent(), "User initiated logout");
+
+                // Clear the idle tracker
+                tokenBlacklistService.clearIdleSession(session.getUser().getEmail());
+
+                logEvent(session.getUser().getEmail(), "LOGOUT", session.getIpAddress(), session.getUserAgent(),
+                        "User initiated logout");
             });
+        }
     }
 
     /**
@@ -250,7 +271,7 @@ public class AuthService {
 
         user.setTwoFactorEnabled(true);
         loginRepository.save(user);
-        
+
         logEvent(email, "2FA_ENABLED", "UNKNOWN", "UNKNOWN", "User manually enabled 2FA");
     }
 
@@ -263,7 +284,6 @@ public class AuthService {
             throw new RuntimeException("Error hashing token");
         }
     }
-
 
     /**
      * Generates a 6-digit numeric One-Time Password (OTP).
@@ -287,13 +307,14 @@ public class AuthService {
      * </p>
      *
      * @param email The email address of the user requesting password reset.
-     * @throws RuntimeException if email is not registered (for security, returns same message).
+     * @throws RuntimeException if email is not registered (for security, returns
+     *                          same message).
      */
     @Transactional
     public void initiatePasswordReset(String email) {
         // Find user by email - don't reveal if email exists for security
         Optional<Login> userOpt = loginRepository.findByEmail(email);
-        
+
         if (userOpt.isEmpty()) {
             // For security, we don't reveal if email exists or not
             // Just log and return silently
@@ -332,8 +353,8 @@ public class AuthService {
      */
     public boolean validateResetToken(String token) {
         String tokenHash = hashToken(token);
-        Optional<PasswordResetToken> resetTokenOpt = 
-            resetTokenRepository.findValidToken(tokenHash, LocalDateTime.now());
+        Optional<PasswordResetToken> resetTokenOpt = resetTokenRepository.findValidToken(tokenHash,
+                LocalDateTime.now());
         return resetTokenOpt.isPresent();
     }
 
@@ -346,16 +367,17 @@ public class AuthService {
      *
      * @param token       The raw token from the reset link.
      * @param newPassword The new password to set.
-     * @throws RuntimeException if token is invalid, expired, or password was previously used.
+     * @throws RuntimeException if token is invalid, expired, or password was
+     *                          previously used.
      */
     @Transactional
     public void resetPassword(String token, String newPassword) {
         String tokenHash = hashToken(token);
-        
+
         // Find and validate token
         PasswordResetToken resetToken = resetTokenRepository
-            .findValidToken(tokenHash, LocalDateTime.now())
-            .orElseThrow(() -> new RuntimeException("Invalid or expired reset token"));
+                .findValidToken(tokenHash, LocalDateTime.now())
+                .orElseThrow(() -> new RuntimeException("Invalid or expired reset token"));
 
         Login user = resetToken.getUser();
 
@@ -403,7 +425,7 @@ public class AuthService {
 
         // Check password history
         List<PasswordHistory> history = passwordHistoryRepository
-            .findRecentPasswords(user, PASSWORD_HISTORY_LIMIT);
+                .findRecentPasswords(user, PASSWORD_HISTORY_LIMIT);
 
         for (PasswordHistory entry : history) {
             if (passwordEncoder.matches(newPassword, entry.getPasswordHash())) {
@@ -443,8 +465,8 @@ public class AuthService {
 
         // Check for common weak patterns
         String lowerPassword = password.toLowerCase();
-        String[] weakPatterns = {"password", "123456", "qwerty", "admin", "letmein"};
-        
+        String[] weakPatterns = { "password", "123456", "qwerty", "admin", "letmein" };
+
         for (String pattern : weakPatterns) {
             if (lowerPassword.contains(pattern)) {
                 throw new RuntimeException("Password contains a common weak pattern");
@@ -479,30 +501,32 @@ public class AuthService {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
     }
 
-
     /**
      * ROTATION LOGIC:
      * 1. Validate the old Refresh Token.
-     * 2. Security: If it's already revoked? ALARM! Revoke everything (Theft detected).
+     * 2. Security: If it's already revoked? ALARM! Revoke everything (Theft
+     * detected).
      * 3. If valid: Kill the old one, create a NEW one.
      */
     @Transactional
     public LoginResponse refreshToken(String oldRefreshToken, String ipAddress, String userAgent) {
         // 1. Hash the incoming token to find it in DB
         String hash = hashToken(oldRefreshToken);
-        
+
         Session session = sessionRepository.findByRefreshTokenHash(hash)
                 .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
 
         // 2. SECURITY CHECK: Reuse Detection (Theft)
         if (session.isRevoked()) {
-            // ALARM: Someone is trying to use a dead token! 
-            // This means the legitimate user likely already rotated it, and now a hacker is trying the old one.
-            logEvent(session.getUser().getEmail(), "TOKEN_THEFT_DETECTED", ipAddress, userAgent, "Reuse of revoked token attempted");
-            
+            // ALARM: Someone is trying to use a dead token!
+            // This means the legitimate user likely already rotated it, and now a hacker is
+            // trying the old one.
+            logEvent(session.getUser().getEmail(), "TOKEN_THEFT_DETECTED", ipAddress, userAgent,
+                    "Reuse of revoked token attempted");
+
             // Nuclear Option: Kill ALL sessions for this user to force re-login
             sessionRepository.revokeAllUserSessions(session.getUser().getUserId());
-            
+
             throw new RuntimeException("Security Alert: Session revoked due to suspected theft.");
         }
 
@@ -519,7 +543,7 @@ public class AuthService {
         Login user = session.getUser();
         String newAccessToken = jwtUtil.generateAccessToken(user.getEmail(), user.getRole().name(), user.getUserId());
         String newRefreshToken = jwtUtil.generateRefreshToken(); // UUID
-        
+
         // 6. Save NEW Session
         createSession(user, newRefreshToken, ipAddress, userAgent);
 
@@ -530,14 +554,34 @@ public class AuthService {
     }
 
     private void createSession(Login user, String refreshToken, String ipAddress, String userAgent) {
+
+        List<Session> activeSessions = sessionRepository.findActiveSessionsByUserOrderByCreatedAtAsc(user);
+
+        // If they have 3 or more active sessions, revoke the oldest ones until they
+        // have 2 left
+        if (activeSessions.size() >= MAX_ACTIVE_SESSIONS) {
+            int sessionsToKill = (activeSessions.size() - MAX_ACTIVE_SESSIONS) + 1;
+            for (int i = 0; i < sessionsToKill; i++) {
+                Session oldestSession = activeSessions.get(i);
+                oldestSession.setRevoked(true);
+                sessionRepository.save(oldestSession);
+
+                logEvent(user.getEmail(), "SESSION_TERMINATED", oldestSession.getIpAddress(),
+                        oldestSession.getUserAgent(), "Max concurrent sessions exceeded. Oldest session revoked.");
+            }
+        }
+
         String refreshTokenHash = hashToken(refreshToken);
         Session session = new Session();
         session.setUser(user);
         session.setRefreshTokenHash(refreshTokenHash);
         session.setIpAddress(ipAddress);
         session.setUserAgent(userAgent);
-        session.setExpiresAt(LocalDateTime.now().plusDays(7)); 
+        session.setExpiresAt(LocalDateTime.now().plusDays(7));
         sessionRepository.save(session);
+
+        // Start the idle tracker for this new session
+        tokenBlacklistService.updateLastActive(user.getEmail());
     }
 
     private void logEvent(String email, String action, String ip, String agent, String details) {

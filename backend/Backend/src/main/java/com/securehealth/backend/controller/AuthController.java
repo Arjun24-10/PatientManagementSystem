@@ -193,24 +193,36 @@ public class AuthController {
 
 
     
-    // --- LOGOUT (NEW - TASK #12515) ---
+    /**
+     * Logout the user.
+     * <p>
+     * 1. Blacklists the Access Token in Redis.
+     * 2. Revokes the Refresh Token in the Database.
+     * 3. Commands the browser to delete the secure cookie.
+     * </p>
+     */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@CookieValue(name = "refreshToken", required = false) String refreshToken,
-                                    HttpServletResponse response) {
-        
-        // 1. Invalidate in DB
-        if(refreshToken != null) authService.logout(refreshToken);
+    public ResponseEntity<Map<String, String>> logout(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @CookieValue(name = "refreshToken", required = false) String refreshToken,
+            HttpServletResponse response) {
 
-        // 2. Kill the Cookie
+        // 1. Perform the backend logout (Blacklist & DB Revoke)
+        authService.logout(authHeader, refreshToken);
+
+        // 2. Destroy the cookie in the user's browser
         Cookie cookie = new Cookie("refreshToken", null);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false);
+        cookie.setSecure(false); // Make sure this is true in production (HTTPS)
         cookie.setPath("/api/auth");
-        cookie.setMaxAge(0); // Expires immediately
-        
+        cookie.setMaxAge(0); // MaxAge 0 tells the browser to delete it instantly
         response.addCookie(cookie);
+
+        // 3. Send success response
+        Map<String, String> resp = new HashMap<>();
+        resp.put("message", "Logged out successfully");
         
-        return ResponseEntity.ok("Logged out successfully");
+        return ResponseEntity.ok(resp);
     }
 
     /**
