@@ -35,6 +35,13 @@ import LabOrders from './pages/lab/Orders.jsx';
 import LabOrderDetail from './pages/lab/OrderDetail.jsx';
 import UploadResults from './pages/lab/UploadResults.jsx';
 import LabHistory from './pages/lab/History.jsx';
+// New Nurse Pages
+import NursePatients from './pages/nurse/Patients.jsx';
+import NursePatientDetail from './pages/nurse/PatientDetail.jsx';
+import NurseVitalsEntry from './pages/nurse/VitalsEntry.jsx';
+import NurseMedication from './pages/nurse/MedicationAdministration.jsx';
+import NurseTasks from './pages/nurse/Tasks.jsx';
+import NurseShiftHandover from './pages/nurse/ShiftHandover.jsx';
 import AdminDashboard from './pages/admin/Dashboard.jsx';
 
 function App() {
@@ -76,7 +83,13 @@ function App() {
       {/* Nurse Dashboard */}
       <Route path="/dashboard/nurse/*" element={<DashboardLayout role="nurse" userName="Nurse Joy" />}>
         <Route path="" element={<NurseDashboard />} />
+        <Route path="patients" element={<NursePatients />} />
+        <Route path="patient/:id" element={<NursePatientDetail />} />
+        <Route path="patient/:id/vitals" element={<NurseVitalsEntry />} />
+        <Route path="patient/:id/medication" element={<NurseMedication />} />
         <Route path="vitals" element={<NurseVitals />} />
+        <Route path="tasks" element={<NurseTasks />} />
+        <Route path="shift-notes" element={<NurseShiftHandover />} />
         <Route path="profile" element={<NurseProfile />} />
       </Route>
 

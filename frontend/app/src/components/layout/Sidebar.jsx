@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Home, Users, FileText, LogOut, Activity, Calendar, Shield,
     Upload, LayoutDashboard, MessageSquare, Heart, Clock, X, Pill,
-    ChevronLeft, ChevronRight, Settings
+    ChevronLeft, ChevronRight, Settings, CheckSquare
 } from 'lucide-react';
 
 const Sidebar = ({ role, userName, isOpen, setIsOpen, isCollapsed, toggleCollapse, onLogout }) => {
@@ -43,9 +43,11 @@ const Sidebar = ({ role, userName, isOpen, setIsOpen, isCollapsed, toggleCollaps
                 ];
             case 'nurse':
                 return [
-                    ...common,
-                    { label: 'Vitals', icon: Activity, path: `/dashboard/${role}/vitals` },
-                    { label: 'Schedule', icon: Calendar, path: `/dashboard/${role}/schedule` },
+                    { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard/nurse' },
+                    { label: 'My Patients', icon: Users, path: '/dashboard/nurse/patients' },
+                    { label: 'Tasks', icon: CheckSquare, path: '/dashboard/nurse/tasks' },
+                    { label: 'Shift Notes', icon: FileText, path: '/dashboard/nurse/shift-notes' },
+                    { label: 'Profile', icon: Users, path: '/dashboard/nurse/profile' },
                 ];
             case 'lab':
                 return [

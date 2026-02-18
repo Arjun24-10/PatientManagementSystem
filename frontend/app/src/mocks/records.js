@@ -11,9 +11,9 @@ export const mockDiagnoses = [
 ];
 
 export const mockPrescriptions = [
-    { id: 1, name: 'Lisinopril', dosage: '10mg', frequency: 'Daily', active: true, prescribedBy: 'Dr. Smith', date: '2023-11-20', refills: 2, nextRefill: '2023-12-20' },
-    { id: 2, name: 'Metformin', dosage: '500mg', frequency: '2x Daily', active: true, prescribedBy: 'Dr. Jones', date: '2023-10-10', refills: 0, nextRefill: '2023-11-10' },
-    { id: 3, name: 'Amoxicillin', dosage: '500mg', frequency: '3x Daily', active: false, prescribedBy: 'Dr. Jones', date: '2023-01-10', refills: 0, nextRefill: 'N/A' },
+    { id: 1, name: 'Lisinopril', dosage: '10mg', frequency: 'Daily', active: true, prescribedBy: 'Dr. Smith', date: '2023-11-20', refills: 2, nextRefill: '2023-12-20', patientName: 'John Doe', patientId: 'P-1001' },
+    { id: 2, name: 'Metformin', dosage: '500mg', frequency: '2x Daily', active: true, prescribedBy: 'Dr. Jones', date: '2023-10-10', refills: 0, nextRefill: '2023-11-10', patientName: 'Jane Smith', patientId: 'P-1002' },
+    { id: 3, name: 'Amoxicillin', dosage: '500mg', frequency: '3x Daily', active: false, prescribedBy: 'Dr. Jones', date: '2023-01-10', refills: 0, nextRefill: 'N/A', patientName: 'Alice Johnson', patientId: 'P-1003' },
 ];
 
 export const mockLabs = [

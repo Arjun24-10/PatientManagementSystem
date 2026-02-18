@@ -10,6 +10,7 @@ import AppointmentList from '../../components/AppointmentList';
 import MiniCalendar from '../../components/MiniCalendar';
 import { mockPatients } from '../../mocks/patients';
 import { mockAppointments } from '../../mocks/appointments';
+import { mockPrescriptions } from '../../mocks/records';
 import api from '../../services/api';
 
 const DoctorDashboard = () => {
@@ -54,6 +55,7 @@ const DoctorDashboard = () => {
    );
 
    const todaysAppointments = appointments.filter(a => a.date === '2023-12-15');
+   const activePrescriptionsCount = mockPrescriptions.filter(p => p.active).length;
 
    return (
       <div className="space-y-4">
@@ -63,13 +65,13 @@ const DoctorDashboard = () => {
                <p className="text-gray-500 dark:text-slate-400 text-sm">Welcome back, Dr. Smith. Here's your daily overview.</p>
             </div>
             <div className="flex gap-3">
-               <Button variant="outline" className="text-gray-600 dark:text-slate-300 border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700">View Schedule</Button>
-               <Button onClick={() => alert('Open Rx Modal')} className="bg-brand-medium hover:bg-brand-deep shadow-md shadow-brand-medium/20">+ New Prescription</Button>
+               <Button variant="outline" onClick={() => navigate('/dashboard/doctor/appointments')} className="text-gray-600 dark:text-slate-300 border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700">View Schedule</Button>
+               <Button onClick={() => navigate('/dashboard/doctor/prescriptions')} className="bg-brand-medium hover:bg-brand-deep shadow-md shadow-brand-medium/20">+ New Prescription</Button>
             </div>
          </div>
 
          {/* Metrics */}
-         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             <Card className="p-3 border border-gray-100 dark:border-slate-700 shadow-soft hover:shadow-lg transition-shadow duration-300 flex items-center justify-between group dark:bg-slate-800">
                <div>
                   <h3 className="text-gray-500 dark:text-slate-400 text-xs font-medium">Total Patients</h3>
@@ -97,15 +99,7 @@ const DoctorDashboard = () => {
                   <Activity className="w-4 h-4" />
                </div>
             </Card>
-            <Card className="p-3 border border-gray-100 dark:border-slate-700 shadow-soft hover:shadow-lg transition-shadow duration-300 flex items-center justify-between group dark:bg-slate-800">
-               <div>
-                  <h3 className="text-gray-500 dark:text-slate-400 text-xs font-medium">Active Rx</h3>
-                  <p className="text-xl font-bold text-gray-800 dark:text-slate-100 mt-1 group-hover:text-brand-medium transition-colors">12</p>
-               </div>
-               <div className="w-8 h-8 bg-purple-50 dark:bg-purple-900/20 rounded-full flex items-center justify-center text-purple-600 group-hover:scale-110 transition-transform">
-                  <Pill className="w-4 h-4" />
-               </div>
-            </Card>
+
          </div>
 
          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -204,7 +198,7 @@ const DoctorDashboard = () => {
                <Card className="p-3 border border-gray-100 dark:border-slate-700 shadow-soft h-fit dark:bg-slate-800">
                   <div className="flex justify-between items-center mb-3">
                      <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100">Upcoming List</h3>
-                     <button className="text-xs text-brand-medium hover:underline font-medium bg-transparent border-none cursor-pointer">See all</button>
+                     <button onClick={() => navigate('/dashboard/doctor/appointments')} className="text-xs text-brand-medium hover:underline font-medium bg-transparent border-none cursor-pointer">See all</button>
                   </div>
                   <AppointmentList appointments={appointments.slice(0, 5)} />
                </Card>
@@ -239,7 +233,7 @@ const DoctorDashboard = () => {
                         </div>
                      </div>
 
-                     <button className="w-full py-2.5 px-4 bg-white/90 hover:bg-white text-blue-700 font-bold rounded-xl shadow-lg shadow-black/5 transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 active:scale-95 flex items-center justify-center gap-2">
+                     <button onClick={() => navigate('/dashboard/doctor/labs')} className="w-full py-2.5 px-4 bg-white/90 hover:bg-white text-blue-700 font-bold rounded-xl shadow-lg shadow-black/5 transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 active:scale-95 flex items-center justify-center gap-2">
                         <span>Review Action Items</span>
                         <ArrowRight className="w-4 h-4" />
                      </button>
@@ -247,7 +241,7 @@ const DoctorDashboard = () => {
                </div>
             </div>
          </div>
-      </div>
+      </div >
    );
 };
 
