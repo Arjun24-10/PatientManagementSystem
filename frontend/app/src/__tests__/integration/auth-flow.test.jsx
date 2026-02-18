@@ -48,7 +48,7 @@ describe('Authentication Flow Integration Tests', () => {
       });
 
       // Wait for form to render with increased timeout
-      const emailInput = await screen.findByPlaceholderText(/enter your email or username/i, {}, { timeout: 5000 });
+      const emailInput = await screen.findByPlaceholderText(/enter your email address/i, {}, { timeout: 5000 });
       const passwordInput = await screen.findByPlaceholderText(/enter your password/i, {}, { timeout: 5000 });
       const signInButton = await screen.findByRole('button', { name: /sign in/i }, { timeout: 5000 });
 
@@ -83,7 +83,7 @@ describe('Authentication Flow Integration Tests', () => {
       });
 
       // Wait for form to render with increased timeout
-      const emailInput = await screen.findByPlaceholderText(/enter your email or username/i, {}, { timeout: 5000 });
+      const emailInput = await screen.findByPlaceholderText(/enter your email address/i, {}, { timeout: 5000 });
       const passwordInput = await screen.findByPlaceholderText(/enter your password/i, {}, { timeout: 5000 });
       const signInButton = await screen.findByRole('button', { name: /sign in/i }, { timeout: 5000 });
 
@@ -112,7 +112,7 @@ describe('Authentication Flow Integration Tests', () => {
       });
 
       // Wait for form to render with increased timeout
-      const emailInput = await screen.findByPlaceholderText(/enter your email or username/i, {}, { timeout: 5000 });
+      const emailInput = await screen.findByPlaceholderText(/enter your email address/i, {}, { timeout: 5000 });
 
       // Type invalid email and blur
       await user.type(emailInput, 'invalid');
@@ -136,7 +136,7 @@ describe('Authentication Flow Integration Tests', () => {
       localStorage.clear();
 
       // Wait for form to be fully rendered with increased timeout
-      const emailInput = await screen.findByPlaceholderText(/enter your email or username/i, {}, { timeout: 5000 });
+      const emailInput = await screen.findByPlaceholderText(/enter your email address/i, {}, { timeout: 5000 });
       const passwordInput = await screen.findByPlaceholderText(/enter your password/i, {}, { timeout: 5000 });
 
       // Enter credentials and check remember me
