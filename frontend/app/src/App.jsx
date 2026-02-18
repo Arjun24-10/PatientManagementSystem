@@ -17,20 +17,25 @@ import DoctorMessages from './pages/doctor/Messages.jsx';
 import DoctorLabResults from './pages/doctor/LabResults.jsx';
 import DoctorPrescriptions from './pages/doctor/Prescriptions.jsx';
 import DoctorReports from './pages/doctor/Reports.jsx';
+import DoctorProfile from './pages/doctor/Profile.jsx';
 import PatientDashboard from './pages/patient/Dashboard.jsx';
 import PatientAppointments from './pages/patient/Appointments.jsx';
 import PatientLabResults from './pages/patient/LabResults.jsx';
 import PatientMedicalHistory from './pages/patient/MedicalHistory.jsx';
 import PatientMedications from './pages/patient/Medications.jsx';
 import PatientPrescriptions from './pages/patient/Prescriptions.jsx';
+import PatientProfile from './pages/patient/Profile.jsx';
 import NurseDashboard from './pages/nurse/Dashboard.jsx';
 import NurseVitals from './pages/nurse/Vitals.jsx';
+import NurseProfile from './pages/nurse/Profile.jsx';
 import LabDashboard from './pages/lab/Dashboard.jsx';
 import LabOrders from './pages/lab/Orders.jsx';
 import LabOrderDetail from './pages/lab/OrderDetail.jsx';
 import UploadResults from './pages/lab/UploadResults.jsx';
 import LabHistory from './pages/lab/History.jsx';
+import LabProfile from './pages/lab/Profile.jsx';
 import AdminDashboard from './pages/admin/Dashboard.jsx';
+import AdminProfile from './pages/admin/Profile.jsx';
 
 function App() {
   const { user } = useAuth();
@@ -79,6 +84,7 @@ function App() {
         <Route path="labs" element={<DoctorLabResults />} />
         <Route path="prescriptions" element={<DoctorPrescriptions />} />
         <Route path="reports" element={<DoctorReports />} />
+        <Route path="profile" element={<DoctorProfile />} />
       </Route>
 
       {/* Patient Dashboard */}
@@ -93,6 +99,7 @@ function App() {
         <Route path="history" element={<PatientMedicalHistory />} />
         <Route path="medications" element={<PatientMedications />} />
         <Route path="prescriptions" element={<PatientPrescriptions />} />
+        <Route path="profile" element={<PatientProfile />} />
       </Route>
 
       {/* Nurse Dashboard */}
@@ -103,6 +110,7 @@ function App() {
       }>
         <Route path="" element={<NurseDashboard />} />
         <Route path="vitals" element={<NurseVitals />} />
+        <Route path="profile" element={<NurseProfile />} />
       </Route>
 
       {/* Lab Dashboard */}
@@ -116,6 +124,7 @@ function App() {
         <Route path="orders/:id" element={<LabOrderDetail />} />
         <Route path="upload" element={<UploadResults />} />
         <Route path="history" element={<LabHistory />} />
+        <Route path="profile" element={<LabProfile />} />
       </Route>
 
       {/* Admin Dashboard */}
@@ -125,6 +134,7 @@ function App() {
         </RoleGuard>
       }>
         <Route path="" element={<AdminDashboard />} />
+        <Route path="profile" element={<AdminProfile />} />
       </Route>
     </Routes>
   );

@@ -9,10 +9,12 @@ import { mockPrescriptions, mockLabs, mockDiagnoses } from '../../mocks/records'
 import { getPatientById } from '../../mocks/patients';
 
 import api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const PatientDashboard = () => {
+   const { user } = useAuth();
    const navigate = useNavigate();
-   const patientId = 'P001';
+   const patientId = user?.id || 'P001';
 
    // State with Mock Fallbacks
    const [patient, setPatient] = useState(getPatientById(patientId));
@@ -73,7 +75,7 @@ const PatientDashboard = () => {
          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
             <div>
                <h2 className="text-lg font-semibold text-gray-800 dark:text-slate-100">Patient Dashboard</h2>
-               <p className="text-sm text-gray-500 dark:text-slate-400">Welcome back, {patient.name}</p>
+               <p className="text-sm text-gray-500 dark:text-slate-400">Welcome back, {user?.fullName || user?.full_name || patient.name}</p>
             </div>
             <div className="flex gap-2">
                <Button variant="outline" size="sm" onClick={() => navigate('/dashboard/patient/appointments')}>

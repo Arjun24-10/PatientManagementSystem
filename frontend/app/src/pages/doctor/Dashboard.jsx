@@ -11,10 +11,15 @@ import MiniCalendar from '../../components/MiniCalendar';
 import { mockPatients } from '../../mocks/patients';
 import { mockAppointments } from '../../mocks/appointments';
 import api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
+
 
 const DoctorDashboard = () => {
+   const { user } = useAuth();
    const navigate = useNavigate();
    const [searchTerm, setSearchTerm] = useState('');
+
+   const doctorName = user?.fullName || user?.full_name || 'Doctor';
 
    // State for data
    const [patients, setPatients] = useState(mockPatients);
@@ -60,7 +65,7 @@ const DoctorDashboard = () => {
          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
             <div>
                <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100 tracking-tight">Doctor Dashboard</h2>
-               <p className="text-gray-500 dark:text-slate-400 text-sm">Welcome back, Dr. Smith. Here's your daily overview.</p>
+               <p className="text-gray-500 dark:text-slate-400 text-sm">Welcome back, {doctorName}. Here's your daily overview.</p>
             </div>
             <div className="flex gap-3">
                <Button variant="outline" className="text-gray-600 dark:text-slate-300 border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700">View Schedule</Button>
