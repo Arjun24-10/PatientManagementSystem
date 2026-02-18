@@ -30,18 +30,23 @@ describe('Authentication Flow Integration Tests', () => {
         authValue: mockAuthUsers.unauthenticated,
       });
 
+      // Wait for form to render
+      const emailInput = await screen.findByPlaceholderText(/enter your email or username/i);
+      const passwordInput = await screen.findByPlaceholderText(/enter your password/i);
+      const signInButton = await screen.findByRole('button', { name: /sign in/i });
+
       // User sees login form
-      expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
-      expect(screen.getByPlaceholderText(/enter your email or username/i)).toBeInTheDocument();
-      expect(screen.getByPlaceholderText(/enter your password/i)).toBeInTheDocument();
+      expect(signInButton).toBeInTheDocument();
+      expect(emailInput).toBeInTheDocument();
+      expect(passwordInput).toBeInTheDocument();
 
       // User enters credentials
-      await user.type(screen.getByPlaceholderText(/enter your email or username/i), 'doctor@test.com');
-      await user.type(screen.getByPlaceholderText(/enter your password/i), 'password123');
+      await user.type(emailInput, 'doctor@test.com');
+      await user.type(passwordInput, 'password123');
 
       // Verify form is filled
-      expect(screen.getByPlaceholderText(/enter your email or username/i)).toHaveValue('doctor@test.com');
-      expect(screen.getByPlaceholderText(/enter your password/i)).toHaveValue('password123');
+      expect(emailInput).toHaveValue('doctor@test.com');
+      expect(passwordInput).toHaveValue('password123');
       
       // Note: Full login flow with navigation would require mocking the entire auth flow
       // For integration testing, we verify the form works correctly
@@ -61,10 +66,15 @@ describe('Authentication Flow Integration Tests', () => {
         },
       });
 
+      // Wait for form to render
+      const emailInput = await screen.findByPlaceholderText(/enter your email or username/i);
+      const passwordInput = await screen.findByPlaceholderText(/enter your password/i);
+      const signInButton = await screen.findByRole('button', { name: /sign in/i });
+
       // Enter invalid credentials
-      await user.type(screen.getByPlaceholderText(/enter your email or username/i), 'wrong@test.com');
-      await user.type(screen.getByPlaceholderText(/enter your password/i), 'wrongpassword');
-      await user.click(screen.getByRole('button', { name: /sign in/i }));
+      await user.type(emailInput, 'wrong@test.com');
+      await user.type(passwordInput, 'wrongpassword');
+      await user.click(signInButton);
 
       // Should show error message
       await waitFor(() => {
@@ -79,7 +89,8 @@ describe('Authentication Flow Integration Tests', () => {
         authValue: mockAuthUsers.unauthenticated,
       });
 
-      const emailInput = screen.getByPlaceholderText(/enter your email or username/i);
+      // Wait for form to render
+      const emailInput = await screen.findByPlaceholderText(/enter your email or username/i);
 
       // Type invalid email and blur
       await user.type(emailInput, 'invalid');
@@ -102,9 +113,13 @@ describe('Authentication Flow Integration Tests', () => {
       // Clear any existing localStorage
       localStorage.clear();
 
+      // Wait for form to be fully rendered
+      const emailInput = await screen.findByPlaceholderText(/enter your email or username/i);
+      const passwordInput = await screen.findByPlaceholderText(/enter your password/i);
+
       // Enter credentials and check remember me
-      await user.type(screen.getByPlaceholderText(/enter your email or username/i), 'doctor@test.com');
-      await user.type(screen.getByPlaceholderText(/enter your password/i), 'password123');
+      await user.type(emailInput, 'doctor@test.com');
+      await user.type(passwordInput, 'password123');
       
       const rememberCheckbox = screen.getByLabelText(/remember me/i);
       await user.click(rememberCheckbox);
@@ -123,8 +138,9 @@ describe('Authentication Flow Integration Tests', () => {
         authValue: mockAuthUsers.unauthenticated,
       });
 
-      const passwordInput = screen.getByPlaceholderText(/enter your password/i);
-      const toggleButton = screen.getByLabelText(/show password/i);
+      // Wait for form to render
+      const passwordInput = await screen.findByPlaceholderText(/enter your password/i);
+      const toggleButton = await screen.findByLabelText(/show password/i);
 
       // Initially password should be hidden
       expect(passwordInput).toHaveAttribute('type', 'password');
@@ -134,23 +150,21 @@ describe('Authentication Flow Integration Tests', () => {
       expect(passwordInput).toHaveAttribute('type', 'text');
 
       // Click again to hide
-      await user.click(screen.getByLabelText(/hide password/i));
+      const hideButton = await screen.findByLabelText(/hide password/i);
+      await user.click(hideButton);
       expect(passwordInput).toHaveAttribute('type', 'password');
     });
   });
 
   describe('Registration Flow', () => {
     test('should navigate to create account page', async () => {
-      const user = userEvent.setup();
-      const mockNavigate = jest.fn();
-
       // This test would need the actual navigation to work
       // For now, we test that the button exists
       renderWithProviders(<Login />, {
         authValue: mockAuthUsers.unauthenticated,
       });
 
-      const createAccountButton = screen.getByRole('button', { name: /create account/i });
+      const createAccountButton = await screen.findByRole('button', { name: /create account/i });
       expect(createAccountButton).toBeInTheDocument();
     });
   });
