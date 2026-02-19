@@ -40,7 +40,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Tests the full stack: Controller -> Service -> Repository -> Database
  * Uses H2 in-memory database for isolation.
  */
-@SpringBootTest
+@SpringBootTest(properties = {
+        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration"
+})
 @AutoConfigureMockMvc
 @Transactional
 @TestPropertySource(properties = {
@@ -49,8 +51,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "spring.jpa.hibernate.ddl-auto=create-drop",
         "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
         "jwt.secret=404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970",
-        "jwt.expiration=900000",
-        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration"
+        "jwt.expiration=900000"
 })
 public class AuthIntegrationTest {
 
