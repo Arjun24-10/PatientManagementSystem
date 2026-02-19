@@ -45,9 +45,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 @TestPropertySource(properties = {
         "spring.datasource.url=jdbc:h2:mem:integrationtestdb",
+        "spring.datasource.driver-class-name=org.h2.Driver",
         "spring.jpa.hibernate.ddl-auto=create-drop",
+        "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
         "jwt.secret=404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970",
-        "jwt.expiration=900000"
+        "jwt.expiration=900000",
+        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration"
 })
 public class AuthIntegrationTest {
 
