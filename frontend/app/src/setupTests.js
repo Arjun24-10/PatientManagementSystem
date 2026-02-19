@@ -27,3 +27,50 @@ global.matchMedia = global.matchMedia || function (query) {
       dispatchEvent: jest.fn(),
    };
 };
+
+// Polyfill BroadcastChannel for MSW
+global.BroadcastChannel = class BroadcastChannel {
+   constructor(name) {
+      this.name = name;
+   }
+   postMessage() { }
+   close() { }
+   addEventListener() { }
+   removeEventListener() { }
+};
+
+// Polyfill TransformStream for MSW
+global.TransformStream = class TransformStream {
+   constructor() {
+      this.readable = {};
+      this.writable = {};
+   }
+};
+
+// Polyfill WritableStream for MSW
+global.WritableStream = class WritableStream {
+   constructor() {
+      this.locked = false;
+   }
+   getWriter() {
+      return {
+         write: () => Promise.resolve(),
+         close: () => Promise.resolve(),
+         abort: () => Promise.resolve(),
+      };
+   }
+};
+
+// Polyfill ReadableStream for MSW
+global.ReadableStream = class ReadableStream {
+   constructor() {
+      this.locked = false;
+   }
+   getReader() {
+      return {
+         read: () => Promise.resolve({ done: true, value: undefined }),
+         releaseLock: () => {},
+         cancel: () => Promise.resolve(),
+      };
+   }
+};
