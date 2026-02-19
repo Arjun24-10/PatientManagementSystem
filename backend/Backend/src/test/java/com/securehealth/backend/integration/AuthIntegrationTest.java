@@ -40,8 +40,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Tests the full stack: Controller -> Service -> Repository -> Database
  * Uses H2 in-memory database for isolation.
  */
-@SpringBootTest(properties = {
-        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration"
+@SpringBootTest(classes = {
+        com.securehealth.backend.SecureHealthApplication.class,
+        TestConfig.class
 })
 @AutoConfigureMockMvc
 @Transactional
