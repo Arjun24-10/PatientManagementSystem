@@ -8,39 +8,35 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @Entity
-@Table(name = "treatment_plans")
-public class TreatmentPlan {
+@Table(name = "appointments")
+public class Appointment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long planId;
+    private Long appointmentId;
 
-    // The patient receiving the treatment
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patient_profile_id", nullable = false)
     private PatientProfile patient;
 
-    // The doctor who created the plan
+    // Doctor associated with the appointment
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doctor_id", nullable = false)
     private Login doctor;
 
     @Column(nullable = false)
-    private String diagnosis;
+    private LocalDateTime appointmentDate;
+
+    // Status: SCHEDULED, COMPLETED, CANCELLED, NO_SHOW
+    @Column(nullable = false)
+    private String status = "SCHEDULED";
 
     @Column(columnDefinition = "TEXT")
-    private String prescription;
+    private String reasonForVisit;
 
     @Column(columnDefinition = "TEXT")
     private String doctorNotes;
 
     @Column(updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
-
-    private LocalDateTime updatedAt = LocalDateTime.now();
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }

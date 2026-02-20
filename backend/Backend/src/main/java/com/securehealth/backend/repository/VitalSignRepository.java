@@ -16,4 +16,11 @@ public interface VitalSignRepository extends JpaRepository<VitalSign, Long> {
 
     // Audit trail: "Show me all vitals recorded by this specific nurse"
     List<VitalSign> findByNurseOrderByRecordedAtDesc(Login nurse);
+
+    // Frontend: GET /vital-signs/patient/:patientId
+    List<VitalSign> findByPatient_ProfileIdOrderByRecordedAtDesc(Long patientId);
+
+    // Frontend: GET /vital-signs/patient/:patientId/latest
+    // Spring Data JPA understands "findFirst" or "findTop"
+    Optional<VitalSign> findFirstByPatient_ProfileIdOrderByRecordedAtDesc(Long patientId);
 }

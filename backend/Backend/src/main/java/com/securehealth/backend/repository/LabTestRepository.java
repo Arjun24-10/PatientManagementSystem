@@ -19,4 +19,7 @@ public interface LabTestRepository extends JpaRepository<LabTest, Long> {
 
     // For the Doctor Dashboard: "Show me the status of tests I ordered"
     List<LabTest> findByOrderedByOrderByOrderedAtDesc(Login doctor);
+
+    // Frontend: GET /lab-results/patient/:patientId
+    List<LabTest> findByPatient_ProfileIdOrderByOrderedAtDesc(Long patientId);
 }
