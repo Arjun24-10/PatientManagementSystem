@@ -12,7 +12,9 @@ const LabHistory = () => {
     const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
 
     // Filter logic
-    const filteredHistory = mockLabOrders.filter(order => {
+    const completedOrders = mockLabOrders.filter(order => order.status === 'Completed');
+
+    const filteredHistory = completedOrders.filter(order => {
         // filter by search term (patient or test)
         const matchesSearch = order.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             order.testType.toLowerCase().includes(searchTerm.toLowerCase());
@@ -67,6 +69,7 @@ const LabHistory = () => {
                         <div className="flex items-center gap-2 w-full md:w-auto">
                             {/* Date Range Inputs */}
                             <div className="flex items-center gap-2 bg-gray-50 dark:bg-slate-900/50 p-1 rounded-xl border border-gray-100 dark:border-slate-700">
+                                <span className="text-xs text-gray-500 pl-2">Date Range</span>
                                 <input
                                     type="date"
                                     value={startDate}
