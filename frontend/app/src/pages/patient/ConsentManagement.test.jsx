@@ -111,11 +111,11 @@ describe('ConsentManagement', () => {
       expect(screen.getByText(/export your data/i)).toBeInTheDocument();
    });
 
-   test('displays connected apps section on data management tab', () => {
+   test('displays data deletion section on data management tab', () => {
       render(<ConsentManagement />);
       const dataTab = screen.getByText('Data Management');
       fireEvent.click(dataTab);
-      expect(screen.getByText(/connected apps & services/i)).toBeInTheDocument();
+      expect(screen.getByText(/data deletion requests/i)).toBeInTheDocument();
    });
 
    test('displays download consent history button', () => {

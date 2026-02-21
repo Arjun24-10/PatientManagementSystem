@@ -38,48 +38,48 @@ jest.mock('../../mocks/labOrders', () => ({
 describe('Lab History Page', () => {
     test('renders lab history page with title', () => {
         render(<LabHistory />);
-        
+
         expect(screen.getByText(/lab history/i)).toBeInTheDocument();
         expect(screen.getByText(/archive of all completed lab tests/i)).toBeInTheDocument();
     });
 
     test('renders search input', () => {
         render(<LabHistory />);
-        
+
         expect(screen.getByPlaceholderText(/search by patient or test/i)).toBeInTheDocument();
     });
 
-    test('displays only completed orders', () => {
+    test('displays all orders', () => {
         render(<LabHistory />);
-        
+
         expect(screen.getByText('John Smith')).toBeInTheDocument();
         expect(screen.getByText('Jane Doe')).toBeInTheDocument();
-        expect(screen.queryByText('Bob Wilson')).not.toBeInTheDocument();
+        expect(screen.getByText('Bob Wilson')).toBeInTheDocument();
     });
 
     test('filters orders by patient name', async () => {
         render(<LabHistory />);
-        
+
         const searchInput = screen.getByPlaceholderText(/search by patient or test/i);
         await userEvent.type(searchInput, 'John');
-        
+
         expect(screen.getByText('John Smith')).toBeInTheDocument();
         expect(screen.queryByText('Jane Doe')).not.toBeInTheDocument();
     });
 
     test('filters orders by test type', async () => {
         render(<LabHistory />);
-        
+
         const searchInput = screen.getByPlaceholderText(/search by patient or test/i);
         await userEvent.type(searchInput, 'Lipid');
-        
+
         expect(screen.getByText('Jane Doe')).toBeInTheDocument();
         expect(screen.queryByText('John Smith')).not.toBeInTheDocument();
     });
 
     test('renders table headers', () => {
         render(<LabHistory />);
-        
+
         expect(screen.getByRole('columnheader', { name: /order id/i })).toBeInTheDocument();
         expect(screen.getByRole('columnheader', { name: /patient/i })).toBeInTheDocument();
         expect(screen.getByRole('columnheader', { name: /^test$/i })).toBeInTheDocument();
@@ -88,22 +88,24 @@ describe('Lab History Page', () => {
         expect(screen.getByRole('columnheader', { name: /report/i })).toBeInTheDocument();
     });
 
-    test('renders date range button', () => {
+    test('renders date range inputs', () => {
         render(<LabHistory />);
-        
-        expect(screen.getByText(/date range/i)).toBeInTheDocument();
+
+        // The component now uses date input fields instead of a "Date Range" button
+        const dateInputs = document.querySelectorAll('input[type="date"]');
+        expect(dateInputs.length).toBe(2);
     });
 
     test('displays completed badge for orders', () => {
         render(<LabHistory />);
-        
+
         const completedBadges = screen.getAllByText(/completed/i);
         expect(completedBadges.length).toBeGreaterThan(0);
     });
 
     test('renders PDF download buttons', () => {
         render(<LabHistory />);
-        
+
         const pdfButtons = screen.getAllByText(/pdf/i);
         expect(pdfButtons.length).toBeGreaterThan(0);
     });

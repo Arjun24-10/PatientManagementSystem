@@ -25,6 +25,7 @@ import PatientMedicalHistory from './pages/patient/MedicalHistory.jsx';
 import PatientMedications from './pages/patient/Medications.jsx';
 import PatientPrescriptions from './pages/patient/Prescriptions.jsx';
 import PatientProfile from './pages/patient/Profile.jsx';
+import PatientConsents from './pages/patient/ConsentManagement.jsx';
 import NurseDashboard from './pages/nurse/Dashboard.jsx';
 import NurseVitals from './pages/nurse/Vitals.jsx';
 import NurseProfile from './pages/nurse/Profile.jsx';
@@ -52,17 +53,24 @@ function App() {
     DOCTOR: 'doctor',
     NURSE: 'nurse',
     ADMIN: 'admin',
-    LAB_TECH: 'lab',
+    LAB_TECHNICIAN: 'lab',
   };
 
   const RoleGuard = ({ expectedRole, children }) => {
-    const userRole = (user?.role || '').toLowerCase();
+    // Normalize logic: Get uppercase role from user -> Lookup in map -> Get route-friendly role
+    // e.g. "LAB_TECHNICIAN" -> "lab"
+    // e.g. "DOCTOR" -> "doctor"
+    const userRoleKey = (user?.role || '').toUpperCase();
+    const normalizedUserRole = roleMap[userRoleKey] || 'patient';
+
     if (!user) {
       return <Navigate to="/login" replace />;
     }
-    if (userRole !== expectedRole) {
-      const routeRole = roleMap[(user?.role || 'PATIENT').toUpperCase()] || 'patient';
-      return <Navigate to={`/dashboard/${routeRole}`} replace />;
+
+    // Compare normalized role with expected route role
+    if (normalizedUserRole !== expectedRole) {
+      // Redirect to the correct dashboard for their role
+      return <Navigate to={`/dashboard/${normalizedUserRole}`} replace />;
     }
     return children;
   };
@@ -107,6 +115,7 @@ function App() {
         <Route path="medications" element={<PatientMedications />} />
         <Route path="prescriptions" element={<PatientPrescriptions />} />
         <Route path="profile" element={<PatientProfile />} />
+        <Route path="consents" element={<PatientConsents />} />
       </Route>
 
       {/* Nurse Dashboard */}
