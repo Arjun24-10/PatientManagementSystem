@@ -49,12 +49,12 @@ describe('Lab History Page', () => {
         expect(screen.getByPlaceholderText(/search by patient or test/i)).toBeInTheDocument();
     });
 
-    test('displays all orders', () => {
+    test('displays only completed orders', () => {
         render(<LabHistory />);
 
         expect(screen.getByText('John Smith')).toBeInTheDocument();
         expect(screen.getByText('Jane Doe')).toBeInTheDocument();
-        expect(screen.getByText('Bob Wilson')).toBeInTheDocument();
+        expect(screen.queryByText('Bob Wilson')).not.toBeInTheDocument();
     });
 
     test('filters orders by patient name', async () => {
@@ -88,12 +88,10 @@ describe('Lab History Page', () => {
         expect(screen.getByRole('columnheader', { name: /report/i })).toBeInTheDocument();
     });
 
-    test('renders date range inputs', () => {
+    test('renders date range button', () => {
         render(<LabHistory />);
 
-        // The component now uses date input fields instead of a "Date Range" button
-        const dateInputs = document.querySelectorAll('input[type="date"]');
-        expect(dateInputs.length).toBe(2);
+        expect(screen.getByText(/date range/i)).toBeInTheDocument();
     });
 
     test('displays completed badge for orders', () => {
