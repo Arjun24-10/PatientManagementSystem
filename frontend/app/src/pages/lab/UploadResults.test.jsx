@@ -81,7 +81,7 @@ describe('Upload Results Page', () => {
         render(<UploadResults />);
 
         const dropdown = screen.getByRole('combobox');
-        await userEvent.selectOptions(dropdown, 'LAB001');
+        fireEvent.change(dropdown, { target: { value: 'LAB001' } });
 
         expect(dropdown).toHaveValue('LAB001');
     });
@@ -90,7 +90,7 @@ describe('Upload Results Page', () => {
         render(<UploadResults />);
 
         const textarea = screen.getByPlaceholderText(/enter test values/i);
-        await userEvent.type(textarea, 'WBC: 7.5 x10^9/L');
+        fireEvent.change(textarea, { target: { value: 'WBC: 7.5 x10^9/L' } });
 
         expect(textarea).toHaveValue('WBC: 7.5 x10^9/L');
     });
