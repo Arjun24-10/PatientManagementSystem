@@ -35,6 +35,11 @@ public class PatientController {
         return ResponseEntity.ok(patientService.getAllPatients(getCurrentRole(auth)));
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<PatientDTO> getMyProfile(Authentication auth) {
+        return ResponseEntity.ok(patientService.getPatientByEmail(getCurrentEmail(auth)));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<PatientDTO> getPatientById(@PathVariable Long id, Authentication auth) {
         return ResponseEntity.ok(patientService.getPatientById(id, getCurrentEmail(auth), getCurrentRole(auth)));

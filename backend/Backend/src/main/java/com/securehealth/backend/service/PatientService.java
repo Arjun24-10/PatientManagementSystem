@@ -61,6 +61,19 @@ public class PatientService {
     }
 
     /**
+     * GET /patients/me
+     * SECURITY CORE: Gets the currently logged in patient's profile.
+     */
+    @Transactional(readOnly = true)
+    public PatientDTO getPatientByEmail(String email) {
+        Login user = loginRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        PatientProfile profile = patientProfileRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("404: Patient profile not found"));
+        return mapToDTO(profile);
+    }
+
+    /**
      * POST /patients
      * Creates a profile and links it to the logged-in user.
      */
