@@ -6,16 +6,20 @@ import {
     Pill, LayoutDashboard, MessageSquare, Heart, Clock
 } from 'lucide-react';
 
+import { useAuth } from '../contexts/AuthContext';
+
 const DashboardLayout = ({ role, userName = "User" }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
+    const { logout } = useAuth();
 
     const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        await logout();
         navigate('/login');
     };
 

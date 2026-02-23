@@ -8,53 +8,69 @@ import { mockAppointments } from '../../mocks/appointments';
 import { mockPrescriptions, mockLabs, mockDiagnoses, mockVitalsHistory } from '../../mocks/records';
 import { getPatientById } from '../../mocks/patients';
 
+import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
 
 const PatientDashboard = () => {
    const navigate = useNavigate();
-   const patientId = 'P001';
+   const { user } = useAuth(); // Ensure we only fetch if logged in
+   const [patientId, setPatientId] = useState(null);
 
    // State with Mock Fallbacks
-   const [patient, setPatient] = useState(getPatientById(patientId));
-   const [appointments, setAppointments] = useState(mockAppointments);
-   const [prescriptions, setPrescriptions] = useState(mockPrescriptions);
-   const [labs, setLabs] = useState(mockLabs);
-   const [diagnoses, setDiagnoses] = useState(mockDiagnoses);
-   const [vitals, setVitals] = useState(mockVitalsHistory);
+   const [patient, setPatient] = useState(null);
+   const [appointments, setAppointments] = useState([]);
+   const [prescriptions, setPrescriptions] = useState([]);
+   const [labs, setLabs] = useState([]);
+   const [diagnoses, setDiagnoses] = useState([]);
+   const [vitals, setVitals] = useState([]);
 
-   // Fetch API Data
+   // Fetch Patient Profile First
    React.useEffect(() => {
-      const fetchData = async () => {
+      const fetchProfile = async () => {
          try {
-            const pData = await api.patients.getById(patientId);
-            if (pData && pData.id) setPatient(pData);
-         } catch (e) { console.log('Using mock patient data'); }
+            const pData = await api.patients.getMe();
+            if (pData && pData.id) {
+               setPatient(pData);
+               setPatientId(pData.id);
+            }
+         } catch (e) {
+            console.log('Failed to fetch real profile, using mock data');
+            setPatient(getPatientById('6'));
+            setPatientId('6');
+         }
+      };
+      fetchProfile();
+   }, []);
 
+   // Fetch API Data once we have patientId
+   React.useEffect(() => {
+      if (!patientId) return;
+
+      const fetchData = async () => {
          try {
             const aData = await api.appointments.getByPatient(patientId);
             if (Array.isArray(aData)) setAppointments(aData);
-         } catch (e) { console.log('Using mock appointment data'); }
+         } catch (e) { console.log('Using mock appointment data'); setAppointments(mockAppointments); }
 
          try {
             const rData = await api.prescriptions.getByPatient(patientId);
             if (Array.isArray(rData)) setPrescriptions(rData);
-         } catch (e) { console.log('Using mock prescription data'); }
+         } catch (e) { console.log('Using mock prescription data'); setPrescriptions(mockPrescriptions); }
 
          try {
             const lData = await api.labResults.getByPatient(patientId);
             if (Array.isArray(lData)) setLabs(lData);
-         } catch (e) { console.log('Using mock lab data'); }
+         } catch (e) { console.log('Using mock lab data'); setLabs(mockLabs); }
 
          try {
             const mData = await api.medicalRecords.getByPatient(patientId);
             if (Array.isArray(mData)) setDiagnoses(mData);
-         } catch (e) { console.log('Using mock diagnoses data'); }
+         } catch (e) { console.log('Using mock diagnoses data'); setDiagnoses(mockDiagnoses); }
 
          try {
-            // Vitals might be a single record or list. API says getByPatient returns list.
             const vData = await api.vitalSigns.getByPatient(patientId);
             if (Array.isArray(vData)) setVitals(vData);
-         } catch (e) { console.log('Using mock vitals data'); }
+         } catch (e) { console.log('Using mock vitals data'); setVitals(mockVitalsHistory); }
       };
 
       fetchData();

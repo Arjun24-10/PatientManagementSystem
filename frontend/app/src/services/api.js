@@ -3,11 +3,30 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8081/api
 
 // Helper function for API calls
 const apiCall = async (endpoint, options = {}) => {
+   // Retrieve access token from secure_health_user in localStorage
+   const userDataStr = localStorage.getItem('secure_health_user');
+   let accessToken = null;
+   if (userDataStr) {
+      try {
+         const userSession = JSON.parse(userDataStr);
+         accessToken = userSession.accessToken;
+      } catch (e) {
+         console.error('Failed to parse secure_health_user from localStorage', e);
+      }
+   }
+
+   const headers = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+   };
+
+   // Inject Authorization header if we have an accessToken
+   if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+   }
+
    const config = {
-      headers: {
-         'Content-Type': 'application/json',
-         ...options.headers,
-      },
+      headers,
       credentials: 'include', // Include cookies for authentication
       ...options,
    };
@@ -68,6 +87,13 @@ export const authAPI = {
 // ============================================
 
 export const patientAPI = {
+   // Get current patient profile
+   getMe: async () => {
+      return apiCall('/patients/me', {
+         method: 'GET',
+      });
+   },
+
    // Get all patients
    getAll: async () => {
       return apiCall('/patients', {
