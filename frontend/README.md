@@ -137,7 +137,6 @@ npm test src/pages/doctor
 - **Framework**: Jest + React Testing Library
 - **Router**: `react-router-dom` v7.12.0 with `MemoryRouter` for tests
 - **Providers**: Auto-wrapped with `MemoryRouter` and `AuthContext.Provider` via `test-utils.jsx`
-- **Mocking Strategy**: Component-level mocks for dependencies, service-level mocks for API calls
 - **Auth Service**: Backend API integration tested with mocked fetch calls
 
 ## Key Features
@@ -160,9 +159,6 @@ npm test src/pages/doctor
 - **Typography**: Complete integration of **Plus Jakarta Sans** via Google Fonts.
 - **Responsive Design**: Mobile-first approach ensuring perfect rendering on all devices.
 
-### Mock Data
-- Development-ready mock data for patients, appointments, and medical records
-- Located in `src/mocks/` directory
 
 ## Development
 

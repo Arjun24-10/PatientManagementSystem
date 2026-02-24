@@ -1,62 +1,127 @@
 import React, { useState } from 'react';
-import { Plus, Search, Filter, Pill } from 'lucide-react';
+import { Plus, Search, Filter, Pill, X, Check } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
-import Input from '../../components/common/Input';
 import { mockPrescriptions } from '../../mocks/records';
+import { mockPatients } from '../../mocks/patients';
 
 const Prescriptions = () => {
     const [searchTerm, setSearchTerm] = useState('');
-    const [isFormatModalOpen, setIsFormatModalOpen] = useState(false);
+    const [prescriptions, setPrescriptions] = useState(mockPrescriptions);
+    const [isNewRxModalOpen, setIsNewRxModalOpen] = useState(false);
+    const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+    const [selectedRx, setSelectedRx] = useState(null);
 
-    // In a real app, this would be a list of all prescriptions across patients
-    const filteredPrescriptions = mockPrescriptions.filter(rx =>
+    // Form states
+    const [newRxData, setNewRxData] = useState({
+        patientId: '',
+        name: '',
+        dosage: '',
+        frequency: '',
+        notes: ''
+    });
+
+    const [editRxData, setEditRxData] = useState({
+        dosage: '',
+        frequency: '',
+        active: true
+    });
+
+    const filteredPrescriptions = prescriptions.filter(rx =>
         rx.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (rx.patientName && rx.patientName.toLowerCase().includes(searchTerm.toLowerCase())) ||
         rx.prescribedBy.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const handleNewRxSubmit = (e) => {
+        e.preventDefault();
+        const patient = mockPatients.find(p => p.id === newRxData.patientId);
+
+        const newPrescription = {
+            id: prescriptions.length + 1,
+            name: newRxData.name,
+            dosage: newRxData.dosage,
+            frequency: newRxData.frequency,
+            active: true,
+            prescribedBy: 'Dr. Smith', // Current logged-in user
+            date: new Date().toISOString().split('T')[0],
+            refills: 0,
+            nextRefill: 'N/A',
+            patientName: patient ? patient.name : 'Unknown',
+            patientId: newRxData.patientId
+        };
+
+        setPrescriptions([newPrescription, ...prescriptions]);
+        setIsNewRxModalOpen(false);
+        setNewRxData({ patientId: '', name: '', dosage: '', frequency: '', notes: '' });
+    };
+
+    const handleManageClick = (rx) => {
+        setSelectedRx(rx);
+        setEditRxData({
+            dosage: rx.dosage,
+            frequency: rx.frequency,
+            active: rx.active
+        });
+        setIsManageModalOpen(true);
+    };
+
+    const handleUpdateRx = (e) => {
+        e.preventDefault();
+        setPrescriptions(prescriptions.map(rx =>
+            rx.id === selectedRx.id
+                ? { ...rx, ...editRxData }
+                : rx
+        ));
+        setIsManageModalOpen(false);
+        setSelectedRx(null);
+    };
+
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="space-y-3">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-800">Prescriptions</h2>
-                    <p className="text-gray-500">Manage patient medications and refills.</p>
+                    <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">Prescriptions</h2>
+                    <p className="text-xs text-gray-500 dark:text-slate-400">Manage patient medications and refills.</p>
                 </div>
-                <Button onClick={() => setIsFormatModalOpen(true)} className="flex items-center">
-                    <Plus className="w-5 h-5 mr-2" /> New Prescription
+                <Button onClick={() => setIsNewRxModalOpen(true)} className="flex items-center text-sm">
+                    <Plus className="w-4 h-4 mr-1" /> New Prescription
                 </Button>
             </div>
 
-            <Card className="p-4">
-                <div className="flex items-center gap-4">
+            <Card className="p-3 dark:bg-slate-800">
+                <div className="flex items-center gap-2">
                     <div className="relative flex-1">
-                        <Search className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
+                        <Search className="absolute left-2.5 top-2 text-gray-400 dark:text-slate-500 w-4 h-4" />
                         <input
                             type="text"
                             placeholder="Search prescriptions..."
-                            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full pl-8 pr-3 py-1.5 border border-gray-200 dark:border-slate-600 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-400"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <Button variant="outline" className="hidden md:flex items-center">
-                        <Filter className="w-4 h-4 mr-2" /> Filter
+                    <Button variant="outline" className="hidden md:flex items-center text-sm">
+                        <Filter className="w-3.5 h-3.5 mr-1" /> Filter
                     </Button>
                 </div>
             </Card>
 
-            <div className="grid gap-4">
+            <div className="grid gap-2">
                 {filteredPrescriptions.map(rx => (
-                    <Card key={rx.id} className="p-4 flex flex-col md:flex-row justify-between items-center hover:shadow-md transition-shadow">
-                        <div className="flex items-center gap-4 w-full md:w-auto">
-                            <div className="p-3 bg-purple-50 text-purple-600 rounded-lg">
-                                <Pill size={24} />
+                    <Card key={rx.id} className="p-3 flex flex-col md:flex-row justify-between items-center hover:shadow-md transition-shadow dark:bg-slate-800">
+                        <div className="flex items-center gap-3 w-full md:w-auto">
+                            <div className="p-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded">
+                                <Pill size={16} />
                             </div>
                             <div>
-                                <h3 className="font-bold text-gray-800">{rx.name}</h3>
-                                <div className="text-sm text-gray-500 flex flex-wrap gap-2">
+                                <div className="text-xs text-gray-500 dark:text-slate-400 mb-0.5">
+                                    Patient: <span className="font-semibold text-gray-700 dark:text-slate-300">{rx.patientName}</span> ({rx.patientId})
+                                </div>
+                                <h3 className="font-bold text-sm text-gray-800 dark:text-slate-100">{rx.name}</h3>
+                                <div className="text-xs text-gray-500 dark:text-slate-400 flex flex-wrap gap-1">
                                     <span>{rx.dosage}</span>
                                     <span>•</span>
                                     <span>{rx.frequency}</span>
@@ -64,32 +129,144 @@ const Prescriptions = () => {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-6 mt-4 md:mt-0 w-full md:w-auto justify-between md:justify-end">
-                            <div className="text-right mr-4">
-                                <div className="text-sm text-gray-500">Prescribed By</div>
-                                <div className="font-medium text-gray-800">{rx.prescribedBy}</div>
+                        <div className="flex items-center gap-4 mt-2 md:mt-0 w-full md:w-auto justify-between md:justify-end">
+                            <div className="text-right mr-2">
+                                <div className="text-xs text-gray-500 dark:text-slate-400">Prescribed By</div>
+                                <div className="font-medium text-xs text-gray-800 dark:text-slate-100">{rx.prescribedBy}</div>
                             </div>
                             <Badge type={rx.active ? 'green' : 'gray'}>
                                 {rx.active ? 'Active' : 'Discontinued'}
                             </Badge>
-                            <Button variant="outline" className="text-sm">Manage</Button>
+                            <Button
+                                variant="outline"
+                                className="text-xs"
+                                onClick={() => handleManageClick(rx)}
+                            >
+                                Manage
+                            </Button>
                         </div>
                     </Card>
                 ))}
             </div>
 
-            {/* Placeholder Modal */}
+            {/* New Prescription Modal */}
             <Modal
-                isOpen={isFormatModalOpen}
-                onClose={() => setIsFormatModalOpen(false)}
+                isOpen={isNewRxModalOpen}
+                onClose={() => setIsNewRxModalOpen(false)}
                 title="New Prescription"
             >
-                <div className="p-4 text-center text-gray-500">
-                    <p>Select a patient to maintain context before prescribing.</p>
-                    <div className="mt-4">
-                        <Button onClick={() => setIsFormatModalOpen(false)}>Close</Button>
+                <form onSubmit={handleNewRxSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Select Patient</label>
+                        <select
+                            required
+                            className="w-full p-2 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-sm focus:ring-2 focus:ring-blue-500"
+                            value={newRxData.patientId}
+                            onChange={(e) => setNewRxData({ ...newRxData, patientId: e.target.value })}
+                        >
+                            <option value="">-- Select Patient --</option>
+                            {mockPatients.map(p => (
+                                <option key={p.id} value={p.id}>{p.name} ({p.id})</option>
+                            ))}
+                        </select>
                     </div>
-                </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Medication Name</label>
+                        <input
+                            type="text"
+                            required
+                            placeholder="e.g. Amoxicillin"
+                            className="w-full p-2 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-sm focus:ring-2 focus:ring-blue-500"
+                            value={newRxData.name}
+                            onChange={(e) => setNewRxData({ ...newRxData, name: e.target.value })}
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Dosage</label>
+                            <input
+                                type="text"
+                                required
+                                placeholder="e.g. 500mg"
+                                className="w-full p-2 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-sm focus:ring-2 focus:ring-blue-500"
+                                value={newRxData.dosage}
+                                onChange={(e) => setNewRxData({ ...newRxData, dosage: e.target.value })}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Frequency</label>
+                            <input
+                                type="text"
+                                required
+                                placeholder="e.g. 2x Daily"
+                                className="w-full p-2 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-sm focus:ring-2 focus:ring-blue-500"
+                                value={newRxData.frequency}
+                                onChange={(e) => setNewRxData({ ...newRxData, frequency: e.target.value })}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-2">
+                        <Button type="button" variant="secondary" onClick={() => setIsNewRxModalOpen(false)}>Cancel</Button>
+                        <Button type="submit">Create Prescription</Button>
+                    </div>
+                </form>
+            </Modal>
+
+            {/* Manage Prescription Modal */}
+            <Modal
+                isOpen={isManageModalOpen}
+                onClose={() => setIsManageModalOpen(false)}
+                title="Manage Prescription"
+            >
+                {selectedRx && (
+                    <form onSubmit={handleUpdateRx} className="space-y-4">
+                        <div className="bg-gray-50 dark:bg-slate-700/50 p-3 rounded-lg mb-4">
+                            <p className="text-sm font-medium text-gray-800 dark:text-slate-200">{selectedRx.name}</p>
+                            <p className="text-xs text-gray-500 dark:text-slate-400">Patient: {selectedRx.patientName}</p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Dosage</label>
+                                <input
+                                    type="text"
+                                    className="w-full p-2 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-sm focus:ring-2 focus:ring-blue-500"
+                                    value={editRxData.dosage}
+                                    onChange={(e) => setEditRxData({ ...editRxData, dosage: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Frequency</label>
+                                <input
+                                    type="text"
+                                    className="w-full p-2 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-sm focus:ring-2 focus:ring-blue-500"
+                                    value={editRxData.frequency}
+                                    onChange={(e) => setEditRxData({ ...editRxData, frequency: e.target.value })}
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Status</label>
+                            <select
+                                className="w-full p-2 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-sm focus:ring-2 focus:ring-blue-500"
+                                value={editRxData.active}
+                                onChange={(e) => setEditRxData({ ...editRxData, active: e.target.value === 'true' })}
+                            >
+                                <option value="true">Active</option>
+                                <option value="false">Discontinued</option>
+                            </select>
+                        </div>
+
+                        <div className="flex justify-end gap-2 pt-2">
+                            <Button type="button" variant="secondary" onClick={() => setIsManageModalOpen(false)}>Cancel</Button>
+                            <Button type="submit">Update Prescription</Button>
+                        </div>
+                    </form>
+                )}
             </Modal>
         </div>
     );

@@ -89,12 +89,7 @@ src/
 ### Admin Dashboard
 - High-level administrative overview.
 
-## 🧪 Mock Data
-The application uses local mock data located in `src/mocks/`. You can edit these files to test different data scenarios without a backend.
-
 ## 📡 API Reference
-
-The backend currently exposes authentication endpoints only. Data for dashboards is driven by local mock data in `src/mocks`.
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |

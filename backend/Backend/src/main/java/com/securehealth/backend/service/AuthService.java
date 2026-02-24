@@ -11,7 +11,10 @@ import com.securehealth.backend.repository.LoginRepository;
 import com.securehealth.backend.repository.PasswordHistoryRepository;
 import com.securehealth.backend.repository.PasswordResetTokenRepository;
 import com.securehealth.backend.repository.SessionRepository;
+import com.securehealth.backend.repository.PatientProfileRepository;
 import com.securehealth.backend.dto.LoginResponse;
+import com.securehealth.backend.dto.RegistrationRequest;
+import com.securehealth.backend.model.PatientProfile;
 import com.securehealth.backend.util.JwtUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +62,9 @@ public class AuthService {
     private LoginRepository loginRepository;
 
     @Autowired
+    private PatientProfileRepository patientProfileRepository;
+
+    @Autowired
     private EmailService emailService;
 
     @Autowired
@@ -91,15 +97,19 @@ public class AuthService {
     private String frontendUrl;
 
     /**
-     * Registers a new user.
+     * Registers a new user and creates an initial profile if applicable.
      */
-    public Login registerUser(String email, String rawPassword, Role role) {
+    @Transactional
+    public Login registerUser(RegistrationRequest request) {
+        String email = request.getEmail();
+        Role role = request.getRole();
+        
         if (loginRepository.existsByEmail(email)) {
             logEvent(email, "REGISTRATION_FAILED", "UNKNOWN", "UNKNOWN", "Email already taken");
             throw new RuntimeException("Email already taken");
         }
 
-        String hash = passwordEncoder.encode(rawPassword);
+        String hash = passwordEncoder.encode(request.getPassword());
 
         Login newUser = new Login();
         newUser.setEmail(email);
@@ -111,6 +121,20 @@ public class AuthService {
         }
 
         Login savedUser = loginRepository.save(newUser);
+        
+        // Auto-create basic PatientProfile
+        if (role == Role.PATIENT) {
+            PatientProfile profile = new PatientProfile();
+            profile.setUser(savedUser);
+            // Default to parsed values from request, or empty strings if null
+            profile.setFirstName(request.getFullName() != null && request.getFullName().contains(" ") ? request.getFullName().substring(0, request.getFullName().indexOf(' ')) : (request.getFullName() != null ? request.getFullName() : "Unknown"));
+            profile.setLastName(request.getFullName() != null && request.getFullName().contains(" ") ? request.getFullName().substring(request.getFullName().indexOf(' ') + 1) : "Unknown");
+            profile.setDateOfBirth(request.getDateOfBirth() != null ? request.getDateOfBirth() : java.time.LocalDate.now());
+            profile.setAddress(request.getAddress());
+            
+            patientProfileRepository.save(profile);
+        }
+        
         logEvent(email, "USER_REGISTERED", "UNKNOWN", "UNKNOWN", "User registered with role: " + role);
         return savedUser;
     }
@@ -178,6 +202,10 @@ public class AuthService {
 
         logEvent(email, "LOGIN_SUCCESS", ipAddress, userAgent, "Standard login");
         rateLimiterService.resetLoginAttempts(email);
+        
+        // Initialize the active session in Redis so the first API call doesn't fail
+        tokenBlacklistService.updateLastActive(email);
+        
         return new LoginResponse(accessToken, refreshToken, user.getRole().name(), "LOGIN_SUCCESS");
     }
 
@@ -216,6 +244,9 @@ public class AuthService {
             sessionRepository.save(session);
 
             logEvent(email, "LOGIN_SUCCESS", ipAddress, userAgent, "2FA Verified");
+            
+            // Initialize the active session in Redis
+            tokenBlacklistService.updateLastActive(email);
 
             return new LoginResponse(accessToken, refreshToken, user.getRole().name(), "LOGIN_SUCCESS");
         }

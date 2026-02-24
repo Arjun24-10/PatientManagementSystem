@@ -47,9 +47,9 @@ const TreatmentModal = ({ isOpen, onClose, onSave, initialData = null }) => {
                     required
                 />
                 <div>
-                    <label className="block mb-2 text-sm font-semibold text-gray-700">Notes/Instructions</label>
+                    <label className="block mb-2 text-sm font-semibold text-gray-700 dark:text-slate-300">Notes/Instructions</label>
                     <textarea
-                        className="w-full border-2 border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 transition"
+                        className="w-full border-2 border-gray-200 dark:border-slate-600 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 transition dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-400"
                         rows="3"
                         value={formData.notes}
                         onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
@@ -63,9 +63,9 @@ const TreatmentModal = ({ isOpen, onClose, onSave, initialData = null }) => {
                         id="active"
                         checked={formData.active}
                         onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-                        className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                        className="w-4 h-4 text-blue-600 rounded border-gray-300 dark:border-slate-600 focus:ring-blue-500 dark:bg-slate-700"
                     />
-                    <label htmlFor="active" className="text-sm text-gray-700">Treatment is currently active</label>
+                    <label htmlFor="active" className="text-sm text-gray-700 dark:text-slate-300">Treatment is currently active</label>
                 </div>
 
                 <div className="pt-4 flex justify-end space-x-3">

@@ -5,9 +5,11 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor; // [NEW]
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;  // [NEW]
+import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.LocalDate;
 
 /**
  * Data Transfer Object (DTO) for User Registration.
@@ -27,4 +29,12 @@ public class RegistrationRequest {
 
     @NotNull(message = "Role is required")
     private Role role;
+
+    @JsonProperty("full_name")
+    private String fullName;
+
+    @JsonProperty("date_of_birth")
+    private LocalDate dateOfBirth;
+
+    private String address;
 }
