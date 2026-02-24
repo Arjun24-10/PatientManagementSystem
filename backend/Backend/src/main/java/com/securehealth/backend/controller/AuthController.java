@@ -48,10 +48,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<Map<String, String>> registerUser(@Valid @RequestBody RegistrationRequest request) {
         try {
-            authService.registerUser(
-                    request.getEmail(),
-                    request.getPassword(),
-                    request.getRole());
+            authService.registerUser(request);
             Map<String, String> resp = new HashMap<>();
             resp.put("message", "User registered successfully");
             return ResponseEntity.status(HttpStatus.CREATED).body(resp);

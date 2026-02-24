@@ -29,8 +29,6 @@ const DashboardLayout = ({ role, userName = "User" }) => {
         }
     };
 
-    // ... existing handleLogout and getNavItems ...
-
     return (
         <div className="flex h-screen bg-gray-50 dark:bg-slate-900 transition-colors duration-200">
             {/* Mobile Sidebar Overlay */}

@@ -125,7 +125,19 @@ export const login = async (email, password) => {
       const resolvedEmail = data.email || email;
       const storedName = getProfileName(resolvedEmail);
       const fullName = data.full_name || data.fullName || storedName;
-      const user = { email: resolvedEmail, role: data.role || 'PATIENT', fullName };
+
+      const accessToken = data.accessToken || null;
+      let userId = null;
+      if (accessToken) {
+         try {
+            const payload = JSON.parse(atob(accessToken.split('.')[1]));
+            userId = payload.userId;
+         } catch (e) {
+            console.error('Failed to parse JWT token', e);
+         }
+      }
+
+      const user = { email: resolvedEmail, role: data.role || 'PATIENT', fullName, accessToken, userId };
       if (status === 'OTP_REQUIRED') {
          return { status, user };
       }
@@ -154,7 +166,12 @@ export const signIn = async (email, password) => {
 
 export const logout = async () => {
    try {
-      await fetchWithTimeout(`${AUTH_URL}/logout`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+      const userSession = getSession();
+      const headers = { 'Content-Type': 'application/json' };
+      if (userSession && userSession.accessToken) {
+         headers['Authorization'] = `Bearer ${userSession.accessToken}`;
+      }
+      await fetchWithTimeout(`${AUTH_URL}/logout`, { method: 'POST', headers });
    } catch (e) {
       // Ignore network errors; still clear local session
    } finally {
