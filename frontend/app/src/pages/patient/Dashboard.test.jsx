@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '../../test-utils';
+import { render, screen, waitFor } from '../../test-utils';
 import PatientDashboard from './Dashboard';
 
 describe('Patient Dashboard', () => {
@@ -8,8 +8,10 @@ describe('Patient Dashboard', () => {
       expect(container).toBeInTheDocument();
    });
 
-   test('displays patient welcome message', () => {
+   test('displays patient welcome message', async () => {
       render(<PatientDashboard />);
-      expect(screen.getByText(/welcome back/i)).toBeInTheDocument();
+      await waitFor(() => {
+         expect(screen.getByText(/welcome back/i)).toBeInTheDocument();
+      });
    });
 });
