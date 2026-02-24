@@ -4,3 +4,6 @@
 **/target/
 backend/Backend/target/
 ./idea/
+
+# Ignore node_modules
+node_modules/

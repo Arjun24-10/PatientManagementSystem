@@ -17,19 +17,19 @@ const VitalsAlertBanner = ({
 
     return (
         <div
-            className={`rounded-2xl border px-5 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-soft ${toneClasses.bg} ${toneClasses.border} ${!acknowledged && severity === 'critical' ? 'animate-pulse' : ''}`}
+            className={`rounded-lg border px-3 py-2.5 flex flex-col md:flex-row md:items-center md:justify-between gap-2 shadow-soft ${toneClasses.bg} ${toneClasses.border} ${!acknowledged && severity === 'critical' ? 'animate-pulse' : ''}`}
             role="alert"
         >
-            <div className="flex items-start gap-3">
-                <AlertTriangle className={`w-5 h-5 mt-0.5 ${toneClasses.text}`} aria-hidden="true" />
+            <div className="flex items-start gap-2">
+                <AlertTriangle className={`w-4 h-4 mt-0.5 ${toneClasses.text}`} aria-hidden="true" />
                 <div>
                     <p className={`font-semibold text-sm ${toneClasses.text}`}>
                         {severity === 'critical' ? 'Critical values detected' : 'Abnormal vitals detected'}
                     </p>
-                    <ul className="mt-2 space-y-1 text-sm text-gray-700">
+                    <ul className="mt-2 space-y-1 text-sm text-gray-700 dark:text-slate-300">
                         {alerts.map((alert) => (
                             <li key={alert} className="flex items-center gap-2">
-                                <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${severity === 'critical' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'}`}>
+                                <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${severity === 'critical' ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'}`}>
                                     {severity === 'critical' ? 'Critical' : 'Warning'}
                                 </span>
                                 <span>{alert}</span>
@@ -37,21 +37,21 @@ const VitalsAlertBanner = ({
                         ))}
                     </ul>
                     {notified && (
-                        <p className="text-xs text-gray-600 mt-2">Physician notified at {new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</p>
+                        <p className="text-xs text-gray-600 dark:text-slate-400 mt-2">Physician notified at {new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</p>
                     )}
                 </div>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2">
                 <Button
                     variant="outline"
-                    className={`text-sm font-semibold ${acknowledged ? 'text-gray-500 border-gray-300 bg-white' : ''}`}
+                    className={`text-xs font-semibold ${acknowledged ? 'text-gray-500 border-gray-300 bg-white' : ''}`}
                     onClick={onAcknowledge}
                     disabled={acknowledged}
                 >
                     Acknowledge Alert
                 </Button>
-                <Button variant="danger" className="flex items-center gap-2" onClick={onNotify}>
-                    <MessageSquare className="w-4 h-4" />
+                <Button variant="danger" className="flex items-center gap-1.5 text-xs" onClick={onNotify}>
+                    <MessageSquare className="w-3.5 h-3.5" />
                     Notify Physician
                 </Button>
             </div>
