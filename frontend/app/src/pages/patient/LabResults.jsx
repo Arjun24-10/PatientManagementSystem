@@ -148,8 +148,8 @@ const LabResults = () => {
                <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">Lab Results</h2>
                <p className="text-xs text-gray-500 dark:text-slate-400">View and download your laboratory test results</p>
             </div>
-            <Button variant="outline" className="whitespace-nowrap text-sm">
-               <Download className="w-3.5 h-3.5 mr-1.5" />
+            <Button variant="outline" className="flex items-center gap-1.5 whitespace-nowrap text-sm">
+               <Download className="w-4 h-4" />
                Download All
             </Button>
          </div>
@@ -276,37 +276,43 @@ const LabResults = () => {
                               <div className="flex gap-1.5">
                                  {result.status === 'completed' && (
                                     <>
-                                       <button
+                                       <Button
+                                          variant="primary"
+                                          size="sm"
                                           onClick={() => toggleExpand(result.id)}
-                                          className="px-2.5 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-xs font-medium inline-flex items-center whitespace-nowrap"
+                                          className="flex items-center gap-1.5 whitespace-nowrap"
                                        >
                                           {isExpanded ? (
                                              <>
-                                                <ChevronUp className="w-3.5 h-3.5 mr-1" />
+                                                <ChevronUp className="w-4 h-4" />
                                                 Hide
                                              </>
                                           ) : (
                                              <>
-                                                <ChevronDown className="w-3.5 h-3.5 mr-1" />
+                                                <ChevronDown className="w-4 h-4" />
                                                 View
                                              </>
                                           )}
-                                       </button>
-                                       <button
+                                       </Button>
+                                       <Button
+                                          variant="outline"
+                                          size="sm"
                                           onClick={() => handleDownload(result)}
-                                          className="px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 rounded hover:bg-gray-50 dark:hover:bg-slate-700/50 transition text-xs font-medium inline-flex items-center whitespace-nowrap"
+                                          className="flex items-center gap-1.5 whitespace-nowrap"
                                        >
-                                          <Download className="w-3.5 h-3.5 mr-1" />
+                                          <Download className="w-4 h-4" />
                                           PDF
-                                       </button>
+                                       </Button>
                                        {result.canCompare && (
-                                          <button
+                                          <Button
+                                             variant="outline"
+                                             size="sm"
                                              onClick={() => handleViewTrend(result)}
-                                             className="px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 rounded hover:bg-gray-50 dark:hover:bg-slate-700/50 transition text-xs font-medium inline-flex items-center whitespace-nowrap"
+                                             className="flex items-center gap-1.5 whitespace-nowrap"
                                           >
-                                             <TrendingUp className="w-3.5 h-3.5 mr-1" />
+                                             <TrendingUp className="w-4 h-4" />
                                              Trend
-                                          </button>
+                                          </Button>
                                        )}
                                     </>
                                  )}
@@ -372,13 +378,13 @@ const LabResults = () => {
 
                                  {/* Download Full Report */}
                                  <div className="mt-4 flex gap-2">
-                                    <Button variant="outline" size="sm" onClick={() => handleDownload(result)}>
-                                       <Download className="w-3.5 h-3.5 mr-1" />
+                                    <Button variant="outline" size="sm" className="flex items-center gap-1.5" onClick={() => handleDownload(result)}>
+                                       <Download className="w-4 h-4" />
                                        Download Report
                                     </Button>
                                     {result.canCompare && (
-                                       <Button variant="outline" size="sm" onClick={() => handleViewTrend(result)}>
-                                          <TrendingUp className="w-3.5 h-3.5 mr-1" />
+                                       <Button variant="outline" size="sm" className="flex items-center gap-1.5" onClick={() => handleViewTrend(result)}>
+                                          <TrendingUp className="w-4 h-4" />
                                           Trend Analysis
                                        </Button>
                                     )}

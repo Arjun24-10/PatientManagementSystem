@@ -156,9 +156,16 @@ const PatientDashboard = () => {
                                     </div>
                                  </div>
                               </div>
-                              <button className="w-7 h-7 rounded hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400" title="Reschedule">
-                                 <CalendarClock className="w-4 h-4" />
-                              </button>
+                              <Button
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={() => navigate('/dashboard/patient/appointments')}
+                                 className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 font-medium whitespace-nowrap"
+                                 title="Reschedule"
+                              >
+                                 <CalendarClock className="w-3.5 h-3.5" />
+                                 Reschedule
+                              </Button>
                            </div>
                         ))}
                      </div>
@@ -221,9 +228,15 @@ const PatientDashboard = () => {
                                  <div className="text-xs text-gray-500 dark:text-slate-400">{rx.dosage} • {rx.frequency}</div>
                               </div>
                            </div>
-                           <button className="w-7 h-7 rounded hover:bg-gray-200 dark:hover:bg-slate-700 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" title="Request Refill">
-                              <RefreshCw className="w-3.5 h-3.5 text-gray-600 dark:text-slate-400" />
-                           </button>
+                           <Button
+                              variant="outline"
+                              size="sm"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 px-2.5 py-1 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                              title="Request Refill"
+                           >
+                              <RefreshCw className="w-3.5 h-3.5" />
+                              Refill
+                           </Button>
                         </div>
                      ))}
                      {activeMedications.length === 0 && <p className="text-sm text-gray-500 dark:text-slate-400 text-center py-4">No active medications.</p>}
@@ -249,13 +262,12 @@ const PatientDashboard = () => {
                      </p>
 
                      <div className="space-y-3">
-                        <button className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 transition-transform transform active:scale-95">
+                        <button
+                           onClick={() => navigate('/dashboard/patient/appointments')}
+                           className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 transition-transform transform active:scale-95"
+                        >
                            <Stethoscope className="w-5 h-5" />
                            <span>Contact Doctor</span>
-                        </button>
-                        <button className="w-full py-3 px-4 bg-white dark:bg-slate-700 border-2 border-gray-100 dark:border-slate-600 text-gray-700 dark:text-slate-200 font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors flex items-center justify-center gap-2">
-                           <Scale className="w-5 h-5 text-gray-400" />
-                           <span>Symptom Checker</span>
                         </button>
                      </div>
                   </div>

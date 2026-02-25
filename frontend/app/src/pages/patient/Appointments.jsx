@@ -39,6 +39,18 @@ const PatientAppointments = () => {
    const [appointmentToCancel, setAppointmentToCancel] = useState(null);
    const [cancellationReason, setCancellationReason] = useState('');
 
+   // Details View Modal State
+   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+   const [selectedAppointment, setSelectedAppointment] = useState(null);
+
+   // Reschedule Modal State
+   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
+   const [appointmentToReschedule, setAppointmentToReschedule] = useState(null);
+   const [rescheduleData, setRescheduleData] = useState({ date: '', time: '' });
+
+   // Calendar Added Events State
+   const [calendarAddedEvents, setCalendarAddedEvents] = useState([]);
+
    // Calendar State
    const [currentMonth, setCurrentMonth] = useState(new Date());
 
@@ -171,6 +183,43 @@ const PatientAppointments = () => {
       setIsCancelModalOpen(true);
    };
 
+   // Open details modal
+   const openDetailsModal = (appointment) => {
+      setSelectedAppointment(appointment);
+      setIsDetailsModalOpen(true);
+   };
+
+   // Open reschedule modal
+   const openRescheduleModal = (appointment) => {
+      setAppointmentToReschedule(appointment);
+      setRescheduleData({ date: appointment.date, time: appointment.time });
+      setIsRescheduleModalOpen(true);
+   };
+
+   // Handle reschedule submit
+   const handleRescheduleSubmit = (e) => {
+      e.preventDefault();
+      setAppointments(
+         appointments.map(a =>
+            a.id === appointmentToReschedule.id
+               ? { ...a, date: rescheduleData.date, time: rescheduleData.time, status: 'Pending' }
+               : a
+         )
+      );
+      setIsRescheduleModalOpen(false);
+      setAppointmentToReschedule(null);
+      alert('🔄 Reschedule request submitted successfully!');
+   };
+
+   // Handle toggle add to calendar
+   const handleToggleCalendar = (appointmentId) => {
+      if (calendarAddedEvents.includes(appointmentId)) {
+         setCalendarAddedEvents(calendarAddedEvents.filter(id => id !== appointmentId));
+      } else {
+         setCalendarAddedEvents([...calendarAddedEvents, appointmentId]);
+      }
+   };
+
    // Render appointment card - Compact
    const renderAppointmentCard = (appt) => {
       const dateObj = parseISO(appt.date);
@@ -238,38 +287,73 @@ const PatientAppointments = () => {
             </div>
 
             {/* Action Buttons - Compact */}
-            <div className="mt-2 md:mt-0 flex gap-1">
+            <div className="mt-2 md:mt-0 flex gap-2">
                {activeTab === 'upcoming' && appt.status !== 'Cancelled' && (
                   <>
-                     <button className="w-7 h-7 rounded hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center justify-center text-gray-500" title="View Details">
+                     <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => { e.stopPropagation(); openDetailsModal(appt); }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-700 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 font-medium bg-white dark:bg-slate-800"
+                        title="View Details"
+                     >
                         <Calendar className="w-3.5 h-3.5" />
-                     </button>
-                     <button className="w-7 h-7 rounded hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center justify-center text-gray-500" title="Reschedule">
+                        View
+                     </Button>
+                     <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => { e.stopPropagation(); openRescheduleModal(appt); }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-700 hover:text-orange-600 dark:text-slate-300 dark:hover:text-orange-400 font-medium bg-white dark:bg-slate-800"
+                        title="Reschedule"
+                     >
                         <RefreshCw className="w-3.5 h-3.5" />
-                     </button>
-                     <button
-                        className="w-7 h-7 rounded hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center text-red-500"
-                        onClick={() => openCancelModal(appt)}
+                        Reschedule
+                     </Button>
+                     <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => { e.stopPropagation(); openCancelModal(appt); }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-700 hover:text-red-600 border-gray-200 hover:border-red-300 dark:text-slate-300 dark:hover:text-red-400 dark:border-slate-700 dark:hover:border-red-800 font-medium bg-white dark:bg-slate-800"
                         title="Cancel"
                      >
                         <AlertCircle className="w-3.5 h-3.5" />
-                     </button>
+                        Cancel
+                     </Button>
                   </>
                )}
                {activeTab === 'past' && (
                   <>
-                     <button className="w-7 h-7 rounded hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center justify-center text-gray-500" title="View Summary">
+                     <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-700 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 font-medium bg-white dark:bg-slate-800"
+                        title="View Summary"
+                     >
                         <Calendar className="w-3.5 h-3.5" />
-                     </button>
-                     <button className="w-7 h-7 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center justify-center text-blue-500" title="Book Follow-up">
+                        Summary
+                     </Button>
+                     <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-blue-700 hover:text-blue-800 border-blue-200 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:border-blue-800 dark:hover:bg-blue-900/30 font-medium bg-white dark:bg-slate-800"
+                        title="Book Follow-up"
+                     >
                         <Plus className="w-3.5 h-3.5" />
-                     </button>
+                        Follow-up
+                     </Button>
                   </>
                )}
                {activeTab === 'cancelled' && (
-                  <button className="w-7 h-7 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center justify-center text-blue-500" title="Rebook">
+                  <Button
+                     variant="outline"
+                     size="sm"
+                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-blue-700 hover:text-blue-800 border-blue-200 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:border-blue-800 dark:hover:bg-blue-900/30 font-medium bg-white dark:bg-slate-800"
+                     title="Rebook"
+                  >
                      <RefreshCw className="w-3.5 h-3.5" />
-                  </button>
+                     Rebook
+                  </Button>
                )}
             </div>
          </Card>
@@ -301,8 +385,13 @@ const PatientAppointments = () => {
                      <LayoutGrid size={16} />
                   </button>
                </div>
-               <Button onClick={() => setIsRequestModalOpen(true)} size="sm">
-                  <Plus className="w-3.5 h-3.5 mr-1" />New
+               <Button
+                  onClick={() => setIsRequestModalOpen(true)}
+                  size="sm"
+                  className="flex items-center gap-1.5"
+               >
+                  <Plus className="w-4 h-4" />
+                  New
                </Button>
             </div>
          </div>
@@ -414,6 +503,7 @@ const PatientAppointments = () => {
                                     {dayAppointments.slice(0, 2).map(appt => (
                                        <div
                                           key={appt.id}
+                                          onClick={(e) => { e.stopPropagation(); openDetailsModal(appt); }}
                                           className={`text-xs px-1 py-0.5 rounded truncate ${appt.status === 'Confirmed'
                                              ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                                              : appt.status === 'Pending'
@@ -490,9 +580,24 @@ const PatientAppointments = () => {
                               <p className="text-xs text-gray-400 dark:text-slate-500">
                                  {format(parseISO(appt.date), 'MMM dd')} at {appt.time}
                               </p>
-                              <button className="mt-1.5 w-full text-xs py-1 px-2 rounded border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center justify-center gap-1">
-                                 <Download className="w-3 h-3" />
-                                 Add to Calendar
+                              <button
+                                 onClick={() => handleToggleCalendar(appt.id)}
+                                 className={`mt-1.5 w-full text-xs py-1.5 px-2 rounded border transition-colors flex items-center justify-center gap-1.5 ${calendarAddedEvents.includes(appt.id)
+                                    ? 'bg-blue-50 dark:bg-blue-900/40 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300'
+                                    : 'border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300'
+                                    }`}
+                              >
+                                 {calendarAddedEvents.includes(appt.id) ? (
+                                    <>
+                                       <Check className="w-3 h-3" />
+                                       Remove from Calendar
+                                    </>
+                                 ) : (
+                                    <>
+                                       <Calendar className="w-3 h-3" />
+                                       Add to Calendar
+                                    </>
+                                 )}
                               </button>
                            </div>
                         ))
@@ -775,6 +880,108 @@ const PatientAppointments = () => {
                      </Button>
                   </div>
                </div>
+            )}
+         </Modal>
+
+         {/* Details Modal */}
+         <Modal
+            isOpen={isDetailsModalOpen}
+            onClose={() => {
+               setIsDetailsModalOpen(false);
+               setSelectedAppointment(null);
+            }}
+            title="Appointment Details"
+         >
+            {selectedAppointment && (
+               <div className="space-y-4 text-sm text-gray-700 dark:text-slate-300">
+                  <div className="flex justify-between items-center mb-2">
+                     <h4 className="text-base font-semibold text-gray-800 dark:text-slate-100">{selectedAppointment.type}</h4>
+                     <Badge type={selectedAppointment.status === 'Confirmed' ? 'green' : selectedAppointment.status === 'Pending' ? 'yellow' : 'blue'}>
+                        {selectedAppointment.status}
+                     </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 bg-gray-50 dark:bg-slate-800/50 p-3 rounded-lg">
+                     <div>
+                        <p className="text-xs text-gray-500 mb-1">Doctor</p>
+                        <p className="font-medium flex items-center gap-1.5"><User className="w-3.5 h-3.5 text-gray-400" /> {selectedAppointment.doctorName}</p>
+                     </div>
+                     <div>
+                        <p className="text-xs text-gray-500 mb-1">Date & Time</p>
+                        <p className="font-medium flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-gray-400" /> {format(parseISO(selectedAppointment.date), 'MMM dd, yyyy')} at {selectedAppointment.time}</p>
+                     </div>
+                     <div>
+                        <p className="text-xs text-gray-500 mb-1">Department</p>
+                        <p className="font-medium flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5 text-gray-400" /> {selectedAppointment.department}</p>
+                     </div>
+                     <div>
+                        <p className="text-xs text-gray-500 mb-1">Location / Room</p>
+                        <p className="font-medium flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-gray-400" /> {selectedAppointment.location || 'Main Clinic'}, Room {selectedAppointment.room || 'TBD'}</p>
+                     </div>
+                  </div>
+
+                  {selectedAppointment.reason && (
+                     <div>
+                        <p className="text-xs text-gray-500 mb-1">Reason for Visit</p>
+                        <p className="bg-white dark:bg-slate-800 p-2.5 rounded border border-gray-200 dark:border-slate-700">{selectedAppointment.reason}</p>
+                     </div>
+                  )}
+
+                  <div className="pt-4 border-t dark:border-slate-700 flex justify-end">
+                     <Button variant="secondary" onClick={() => setIsDetailsModalOpen(false)}>Close</Button>
+                  </div>
+               </div>
+            )}
+         </Modal>
+
+         {/* Reschedule Modal */}
+         <Modal
+            isOpen={isRescheduleModalOpen}
+            onClose={() => {
+               setIsRescheduleModalOpen(false);
+               setAppointmentToReschedule(null);
+            }}
+            title="Reschedule Appointment"
+         >
+            {appointmentToReschedule && (
+               <form onSubmit={handleRescheduleSubmit} className="space-y-4">
+                  <Alert type="info" message={`Rescheduling ${appointmentToReschedule.type} with ${appointmentToReschedule.doctorName}.`} />
+
+                  <Input
+                     type="date"
+                     label="New Preferred Date *"
+                     value={rescheduleData.date}
+                     onChange={e => setRescheduleData({ ...rescheduleData, date: e.target.value, time: '' })}
+                     min={format(new Date(), 'yyyy-MM-dd')}
+                     required
+                  />
+
+                  {rescheduleData.date && (
+                     <div>
+                        <label className="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Select New Time *</label>
+                        <div className="grid grid-cols-4 gap-1 max-h-48 overflow-y-auto">
+                           {[...mockTimeSlots.morning, ...mockTimeSlots.afternoon, ...mockTimeSlots.evening].map(slot => (
+                              <button
+                                 key={slot}
+                                 type="button"
+                                 onClick={() => setRescheduleData({ ...rescheduleData, time: slot })}
+                                 className={`p-1.5 text-xs border rounded transition-colors ${rescheduleData.time === slot
+                                    ? 'border-blue-500 bg-blue-500 text-white'
+                                    : 'border-gray-300 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100'
+                                    }`}
+                              >
+                                 {slot}
+                              </button>
+                           ))}
+                        </div>
+                     </div>
+                  )}
+
+                  <div className="flex justify-end gap-2 pt-3 border-t dark:border-slate-700">
+                     <Button type="button" variant="secondary" onClick={() => setIsRescheduleModalOpen(false)}>Cancel</Button>
+                     <Button type="submit" disabled={!rescheduleData.date || !rescheduleData.time}>Submit Request</Button>
+                  </div>
+               </form>
             )}
          </Modal>
       </div>
