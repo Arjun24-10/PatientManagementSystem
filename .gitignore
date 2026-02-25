@@ -7,3 +7,6 @@ backend/Backend/target/
 
 # Ignore node_modules
 node_modules/
+# Testing reference documents (local only)
+frontend/app/TESTING_PRESENTATION_GUIDE.md
+frontend/app/FRONTEND_TEST_ANALYSIS.md

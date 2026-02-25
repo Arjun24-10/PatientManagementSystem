@@ -58,8 +58,8 @@ describe('Authentication Flow Integration Tests', () => {
       expect(passwordInput).toBeInTheDocument();
 
       // User enters credentials
-      await user.type(emailInput, 'doctor@test.com');
-      await user.type(passwordInput, 'password123');
+      fireEvent.change(emailInput, { target: { value: 'doctor@test.com' } });
+      fireEvent.change(passwordInput, { target: { value: 'password123' } });
 
       // Verify form is filled
       expect(emailInput).toHaveValue('doctor@test.com');
@@ -88,8 +88,8 @@ describe('Authentication Flow Integration Tests', () => {
       const signInButton = await screen.findByRole('button', { name: /sign in/i }, { timeout: 5000 });
 
       // Enter invalid credentials
-      await user.type(emailInput, 'wrong@test.com');
-      await user.type(passwordInput, 'wrongpassword');
+      fireEvent.change(emailInput, { target: { value: 'wrong@test.com' } });
+      fireEvent.change(passwordInput, { target: { value: 'wrongpassword' } });
 
       // Verify form is filled
       expect(emailInput).toHaveValue('wrong@test.com');
@@ -110,8 +110,8 @@ describe('Authentication Flow Integration Tests', () => {
       const emailInput = await screen.findByPlaceholderText(/enter your email address/i, {}, { timeout: 5000 });
 
       // Type invalid email and blur
-      await user.type(emailInput, 'invalid');
-      await user.clear(emailInput);
+      fireEvent.change(emailInput, { target: { value: 'invalid' } });
+      fireEvent.change(emailInput, { target: { value: '' } });
       await user.tab();
 
       // Should show validation error after blur
@@ -135,8 +135,8 @@ describe('Authentication Flow Integration Tests', () => {
       const passwordInput = await screen.findByPlaceholderText(/enter your password/i, {}, { timeout: 5000 });
 
       // Enter credentials and check remember me
-      await user.type(emailInput, 'doctor@test.com');
-      await user.type(passwordInput, 'password123');
+      fireEvent.change(emailInput, { target: { value: 'doctor@test.com' } });
+      fireEvent.change(passwordInput, { target: { value: 'password123' } });
 
       const rememberCheckbox = screen.getByLabelText(/remember me/i);
       await user.click(rememberCheckbox);
