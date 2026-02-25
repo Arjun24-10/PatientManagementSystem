@@ -15,7 +15,7 @@
  * - Navigation/routing
  */
 
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders, mockAuthUsers } from '../../testHelpers';
 import Login from '../../pages/login';
@@ -112,7 +112,7 @@ describe('Authentication Flow Integration Tests', () => {
       // Type invalid email and blur
       fireEvent.change(emailInput, { target: { value: 'invalid' } });
       fireEvent.change(emailInput, { target: { value: '' } });
-      await user.tab();
+      fireEvent.blur(emailInput);
 
       // Should show validation error after blur
       await waitFor(() => {
