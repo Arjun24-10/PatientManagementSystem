@@ -15,8 +15,6 @@ import MedicalHistoryList from '../../components/doctor/MedicalHistoryList';
 import LabResultsList from '../../components/doctor/LabResultsList';
 
 import api from '../../services/api';
-import { getPatientById } from '../../mocks/patients';
-import { mockMedicalHistory, mockPrescriptions, mockTreatments, mockLabs } from '../../mocks/records';
 
 const PatientDetail = () => {
     const { id } = useParams();
@@ -27,12 +25,12 @@ const PatientDetail = () => {
     const [activeTab, setActiveTab] = useState('overview');
 
     // Data States
-    const [prescriptions, setPrescriptions] = useState(mockPrescriptions);
-    const [treatments, setTreatments] = useState(mockTreatments);
+    const [prescriptions, setPrescriptions] = useState([]);
+    const [treatments, setTreatments] = useState([]);
     // eslint-disable-next-line no-unused-vars
-    const [medicalHistory, setMedicalHistory] = useState(mockMedicalHistory);
+    const [medicalHistory, setMedicalHistory] = useState([]);
     // eslint-disable-next-line no-unused-vars
-    const [labs, setLabs] = useState(mockLabs);
+    const [labs, setLabs] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isRxModalOpen, setIsRxModalOpen] = useState(false);
     const [isTreatmentModalOpen, setIsTreatmentModalOpen] = useState(false);
@@ -48,32 +46,28 @@ const PatientDetail = () => {
                     const patientData = await api.patients.getById(id);
                     if (patientData && patientData.id) {
                         setPatient(patientData);
-                    } else {
-                        // Fallback to mock if API returns nothing or fails
-                        setPatient(getPatientById(id));
                     }
                 } catch (e) {
-                    console.warn('Failed to fetch patient from API, using mock', e);
-                    setPatient(getPatientById(id));
+                    console.error('Failed to fetch patient from API', e);
                 }
 
                 // 2. Prescriptions
                 try {
                     const rxData = await api.prescriptions.getByPatient(id);
                     if (Array.isArray(rxData)) setPrescriptions(rxData);
-                } catch (e) { console.warn('Using mock prescriptions'); }
+                } catch (e) { console.error('Failed to fetch prescriptions', e); }
 
                 // 3. Medical History
                 try {
                     const historyData = await api.medicalRecords.getByPatient(id);
                     if (Array.isArray(historyData)) setMedicalHistory(historyData);
-                } catch (e) { console.warn('Using mock history'); }
+                } catch (e) { console.error('Failed to fetch history', e); }
 
                 // 4. Lab Results
                 try {
                     const labData = await api.labResults.getByPatient(id);
                     if (Array.isArray(labData)) setLabs(labData);
-                } catch (e) { console.warn('Using mock labs'); }
+                } catch (e) { console.error('Failed to fetch labs', e); }
 
             } catch (error) {
                 console.error('Error loading patient details:', error);
@@ -207,7 +201,7 @@ const PatientDetail = () => {
                                 Recent Activity
                             </h3>
                             <ul className="space-y-1.5">
-                                {mockMedicalHistory.slice(0, 3).map(item => (
+                                {medicalHistory.slice(0, 3).map(item => (
                                     <li key={item.id} className="text-xs">
                                         <span className="font-bold text-gray-700 dark:text-slate-300">{item.date}:</span> <span className="dark:text-slate-400">{item.type} - {item.note}</span>
                                     </li>
@@ -319,8 +313,8 @@ const PatientDetail = () => {
                     </div>
                 )}
 
-                {activeTab === 'history' && <MedicalHistoryList history={mockMedicalHistory} />}
-                {activeTab === 'labs' && <LabResultsList labs={mockLabs} />}
+                {activeTab === 'history' && <MedicalHistoryList history={medicalHistory} />}
+                {activeTab === 'labs' && <LabResultsList labs={labs} />}
             </div>
 
             {/* Add Prescription Modal */}

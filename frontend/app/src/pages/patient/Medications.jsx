@@ -15,18 +15,44 @@ import {
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
-import {
-   mockMedicationsData,
-   mockDrugInteractions,
-   mockMedicationStats
-} from '../../mocks/medications';
+import { useAuth } from '../../contexts/AuthContext';
+import api from '../../services/api';
+
 
 const Medications = () => {
+   const { user } = useAuth();
+   const patientId = user?.id || 'P001';
    const [searchTerm, setSearchTerm] = useState('');
    const [activeTab, setActiveTab] = useState('active');
    const [expandedMeds, setExpandedMeds] = useState({});
    const [showRefillModal, setShowRefillModal] = useState(false);
    const [selectedMed, setSelectedMed] = useState(null);
+
+   const [medicationsData, setMedicationsData] = useState({ active: [], history: [] });
+   const [drugInteractions] = useState([]);
+   const [medicationStats, setMedicationStats] = useState({
+      totalActive: 0,
+      needingRefill: 0,
+      upcomingExpirations: 0,
+      adherenceRate: 0
+   });
+
+   React.useEffect(() => {
+      const fetchMedications = async () => {
+         try {
+            const data = await api.prescriptions.getByPatient(patientId);
+            if (Array.isArray(data)) {
+               const active = data.filter(m => m.status === 'Active' || m.status === 'active');
+               const history = data.filter(m => m.status !== 'Active' && m.status !== 'active');
+               setMedicationsData({ active, history });
+               setMedicationStats(prev => ({ ...prev, totalActive: active.length }));
+            }
+         } catch (error) {
+            console.error('Failed to fetch medications', error);
+         }
+      };
+      if (patientId) fetchMedications();
+   }, [patientId]);
 
    const toggleExpand = (id) => {
       setExpandedMeds(prev => ({
@@ -52,11 +78,10 @@ const Medications = () => {
       alert(`Downloading prescription for ${medication.name}...`);
    };
 
-   // Filter medications based on search
-   const filteredMedications = (activeTab === 'active' ? mockMedicationsData.active : mockMedicationsData.history)
-      .filter(med => med.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         med.genericName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         med.prescribedBy.name.toLowerCase().includes(searchTerm.toLowerCase()));
+   const filteredMedications = (activeTab === 'active' ? medicationsData.active : medicationsData.history)
+      .filter(med => med.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+         med.genericName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+         med.prescribedBy?.name?.toLowerCase().includes(searchTerm.toLowerCase()));
 
    // Get medication type badge color
    const getFormBadge = (form) => {
@@ -82,14 +107,13 @@ const Medications = () => {
             </Button>
          </div>
 
-         {/* Drug Interaction Warning */}
-         {mockDrugInteractions.length > 0 && activeTab === 'active' && (
+         {drugInteractions.length > 0 && activeTab === 'active' && (
             <div className="bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-500 p-3 rounded-r-md">
                <div className="flex items-start gap-2">
                   <AlertTriangle className="w-4 h-4 text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
                      <h3 className="text-sm font-medium text-orange-800 dark:text-orange-300">Potential Drug Interaction</h3>
-                     {mockDrugInteractions.map((interaction, idx) => (
+                     {drugInteractions.map((interaction, idx) => (
                         <div key={idx} className="text-xs text-orange-700 dark:text-orange-400 mt-1">
                            <span className="font-medium">{interaction.medication1} + {interaction.medication2}:</span> {interaction.description}
                         </div>
@@ -105,7 +129,7 @@ const Medications = () => {
                <div className="flex items-center justify-between">
                   <div>
                      <p className="text-xs text-gray-500 dark:text-slate-400">Active</p>
-                     <p className="text-xl font-semibold text-gray-800 dark:text-slate-100">{mockMedicationStats.totalActive}</p>
+                     <p className="text-xl font-semibold text-gray-800 dark:text-slate-100">{medicationStats.totalActive}</p>
                   </div>
                   <div className="w-8 h-8 bg-blue-50 dark:bg-blue-900/20 rounded-md flex items-center justify-center">
                      <Pill className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -117,7 +141,7 @@ const Medications = () => {
                <div className="flex items-center justify-between">
                   <div>
                      <p className="text-xs text-gray-500 dark:text-slate-400">Need Refill</p>
-                     <p className="text-xl font-semibold text-gray-800 dark:text-slate-100">{mockMedicationStats.needingRefill}</p>
+                     <p className="text-xl font-semibold text-gray-800 dark:text-slate-100">{medicationStats.needingRefill}</p>
                   </div>
                   <div className="w-8 h-8 bg-orange-50 dark:bg-orange-900/20 rounded-md flex items-center justify-center">
                      <RefreshCw className="w-4 h-4 text-orange-600 dark:text-orange-400" />
@@ -129,7 +153,7 @@ const Medications = () => {
                <div className="flex items-center justify-between">
                   <div>
                      <p className="text-xs text-gray-500 dark:text-slate-400">Expiring</p>
-                     <p className="text-xl font-semibold text-gray-800 dark:text-slate-100">{mockMedicationStats.upcomingExpirations}</p>
+                     <p className="text-xl font-semibold text-gray-800 dark:text-slate-100">{medicationStats.upcomingExpirations}</p>
                   </div>
                   <div className="w-8 h-8 bg-red-50 dark:bg-red-900/20 rounded-md flex items-center justify-center">
                      <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
@@ -141,7 +165,7 @@ const Medications = () => {
                <div className="flex items-center justify-between">
                   <div>
                      <p className="text-xs text-gray-500 dark:text-slate-400">Adherence</p>
-                     <p className="text-xl font-semibold text-gray-800 dark:text-slate-100">{mockMedicationStats.adherenceRate}%</p>
+                     <p className="text-xl font-semibold text-gray-800 dark:text-slate-100">{medicationStats.adherenceRate}%</p>
                   </div>
                   <div className="w-8 h-8 bg-green-50 dark:bg-green-900/20 rounded-md flex items-center justify-center">
                      <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />

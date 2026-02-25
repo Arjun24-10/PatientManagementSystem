@@ -21,20 +21,20 @@ import {
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
-import {
-   mockMedicalTimeline,
-   mockDiagnosesHistory,
-   mockTreatmentHistory,
-   mockProcedureHistory,
-   mockAllergies,
-   mockChronicConditions
-} from '../../mocks/medicalHistory';
+
 
 const MedicalHistory = () => {
    const [activeTab, setActiveTab] = useState('timeline');
    const [expandedCards, setExpandedCards] = useState({});
    const [searchTerm, setSearchTerm] = useState('');
    const [filterType, setFilterType] = useState('all');
+
+   const [timeline] = useState([]);
+   const [diagnosesHistory] = useState([]);
+   const [treatmentHistory] = useState([]);
+   const [procedureHistory] = useState([]);
+   const [allergies] = useState([]);
+   const [chronicConditions] = useState([]);
 
    const tabs = [
       { key: 'timeline', label: 'Timeline', icon: Clock },
@@ -122,7 +122,7 @@ const MedicalHistory = () => {
    };
 
    // Filter timeline based on search and filter type
-   const filteredTimeline = mockMedicalTimeline.filter(item => {
+   const filteredTimeline = timeline.filter(item => {
       const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
          item.summary.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesFilter = filterType === 'all' || item.type === filterType;
@@ -248,10 +248,10 @@ const MedicalHistory = () => {
    // Render Diagnoses Tab
    const renderDiagnoses = () => (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-         {mockDiagnosesHistory.map((diagnosis) => (
+         {diagnosesHistory.map((diagnosis) => (
             <Card key={diagnosis.id} className={`p-3 hover:shadow-sm transition-all border-l-4 ${diagnosis.status === 'active' ? 'border-red-500' :
-                  diagnosis.status === 'chronic' ? 'border-orange-500' :
-                     'border-gray-300 dark:border-slate-600'
+               diagnosis.status === 'chronic' ? 'border-orange-500' :
+                  'border-gray-300 dark:border-slate-600'
                }`}>
                <div className="flex justify-between items-start mb-2">
                   <div>
@@ -325,7 +325,7 @@ const MedicalHistory = () => {
    // Render Treatments Tab
    const renderTreatments = () => (
       <div className="space-y-3">
-         {mockTreatmentHistory.map((treatment) => (
+         {treatmentHistory.map((treatment) => (
             <Card key={treatment.id} className="p-3 hover:shadow-sm transition-all">
                <div className="flex flex-col md:flex-row justify-between md:items-start gap-2 mb-2">
                   <div className="flex-1">
@@ -434,7 +434,7 @@ const MedicalHistory = () => {
    // Render Procedures Tab
    const renderProcedures = () => (
       <div className="space-y-3">
-         {mockProcedureHistory.map((procedure) => (
+         {procedureHistory.map((procedure) => (
             <Card key={procedure.id} className="p-3 hover:shadow-sm transition-all">
                <div className="flex flex-col md:flex-row justify-between md:items-start gap-2 mb-2">
                   <div className="flex items-start gap-2 flex-1">
@@ -564,7 +564,7 @@ const MedicalHistory = () => {
    const renderAllergiesAndConditions = () => (
       <div className="space-y-4">
          {/* Critical Allergies Alert */}
-         {mockAllergies.some(a => a.severity === 'severe') && (
+         {allergies.some(a => a.severity === 'severe') && (
             <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-2.5 rounded-r">
                <div className="flex items-start">
                   <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400 mr-2 mt-0.5 flex-shrink-0" />
@@ -588,10 +588,10 @@ const MedicalHistory = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-               {mockAllergies.map((allergy) => (
+               {allergies.map((allergy) => (
                   <Card key={allergy.id} className={`p-3 border-l-4 ${allergy.severity === 'severe' ? 'border-red-500 bg-red-50 dark:bg-red-900/20' :
-                        allergy.severity === 'moderate' ? 'border-orange-500' :
-                           'border-yellow-500'
+                     allergy.severity === 'moderate' ? 'border-orange-500' :
+                        'border-yellow-500'
                      }`}>
                      <div className="flex justify-between items-start mb-1">
                         <div className="flex items-center gap-1">
@@ -670,7 +670,7 @@ const MedicalHistory = () => {
             </div>
 
             <div className="space-y-2">
-               {mockChronicConditions.map((condition) => (
+               {chronicConditions.map((condition) => (
                   <Card key={condition.id} className="p-3 hover:shadow-md transition-all">
                      <div className="flex flex-col md:flex-row justify-between md:items-start gap-2 mb-2">
                         <div className="flex-1">

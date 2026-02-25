@@ -15,7 +15,7 @@
  * - Navigation/routing
  */
 
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders, mockAuthUsers } from '../../testHelpers';
 import Login from '../../pages/login';

@@ -8,12 +8,11 @@ import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
 import api from '../../services/api';
-import { mockAppointments } from '../../mocks/appointments';
 
 const Appointments = () => {
     const [activeTab, setActiveTab] = useState('upcoming');
     const [viewMode, setViewMode] = useState('calendar'); // 'list', 'calendar' (month), 'day' (scheduler)
-    const [appointments, setAppointments] = useState(mockAppointments);
+    const [appointments, setAppointments] = useState([]);
     const [selectedDate, setSelectedDate] = useState(new Date()); // Shared date state
 
     // Side Panel State
@@ -33,7 +32,7 @@ const Appointments = () => {
                     setAppointments(data);
                 }
             } catch (error) {
-                console.warn('Failed to fetch appointments, using mock data', error);
+                console.error('Failed to fetch appointments', error);
             }
         };
         fetchAppointments();

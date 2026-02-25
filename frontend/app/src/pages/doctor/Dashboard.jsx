@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, FileText, ArrowRight, Activity, Bell, Search, Pill } from 'lucide-react';
+import { Users, FileText, ArrowRight, Activity, Bell, Search } from 'lucide-react';
 
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
@@ -8,9 +8,6 @@ import Badge from '../../components/common/Badge';
 
 import AppointmentList from '../../components/AppointmentList';
 import MiniCalendar from '../../components/MiniCalendar';
-import { mockPatients } from '../../mocks/patients';
-import { mockAppointments } from '../../mocks/appointments';
-import { mockPrescriptions } from '../../mocks/records';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -23,8 +20,8 @@ const DoctorDashboard = () => {
    const doctorName = user?.fullName || user?.full_name || 'Doctor';
 
    // State for data
-   const [patients, setPatients] = useState(mockPatients);
-   const [appointments, setAppointments] = useState(mockAppointments);
+   const [patients, setPatients] = useState([]);
+   const [appointments, setAppointments] = useState([]);
 
    // Fetch data from API
    React.useEffect(() => {
@@ -36,7 +33,7 @@ const DoctorDashboard = () => {
                setPatients(patientsData);
             }
          } catch (error) {
-            console.log('Using mock patient data (API backend not reachable)');
+            console.error('Failed to fetch patients', error);
          }
 
          try {
@@ -46,7 +43,7 @@ const DoctorDashboard = () => {
                setAppointments(appointmentsData);
             }
          } catch (error) {
-            console.log('Using mock appointment data (API backend not reachable)');
+            console.error('Failed to fetch appointments', error);
          }
       };
 
@@ -60,7 +57,7 @@ const DoctorDashboard = () => {
    );
 
    const todaysAppointments = appointments.filter(a => a.date === '2023-12-15');
-   const activePrescriptionsCount = mockPrescriptions.filter(p => p.active).length;
+
 
    return (
       <div className="space-y-4">

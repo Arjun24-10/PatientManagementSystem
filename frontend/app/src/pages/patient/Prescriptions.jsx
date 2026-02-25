@@ -3,11 +3,29 @@ import { Pill, RefreshCw, Clock, CheckCircle } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
-import { mockPrescriptions } from '../../mocks/records';
+import api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
+import { useState, useEffect } from 'react';
 
 const PatientPrescriptions = () => {
-   const activeRx = mockPrescriptions.filter(p => p.active);
-   const historyRx = mockPrescriptions.filter(p => !p.active);
+   const { user } = useAuth();
+   const patientId = user?.id || 'P001';
+   const [prescriptions, setPrescriptions] = useState([]);
+
+   useEffect(() => {
+      const fetchPrescriptions = async () => {
+         try {
+            const data = await api.prescriptions.getByPatient(patientId);
+            if (Array.isArray(data)) setPrescriptions(data);
+         } catch (error) {
+            console.error('Failed to fetch prescriptions', error);
+         }
+      };
+      if (patientId) fetchPrescriptions();
+   }, [patientId]);
+
+   const activeRx = prescriptions.filter(p => p.active);
+   const historyRx = prescriptions.filter(p => !p.active);
 
    const handleRefill = (medName) => {
       alert(`Refill request sent for ${medName}. Your pharmacy will be notified.`);

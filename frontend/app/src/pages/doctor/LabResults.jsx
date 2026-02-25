@@ -2,14 +2,16 @@ import React, { useState } from 'react';
 import { Search } from 'lucide-react';
 import Card from '../../components/common/Card';
 import LabResultsList from '../../components/doctor/LabResultsList';
-import { mockLabs } from '../../mocks/records';
+
 
 const LabResults = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filter, setFilter] = useState('All');
 
-    const filteredLabs = mockLabs.filter(lab => {
-        const matchesSearch = lab.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const [labs] = useState([]);
+
+    const filteredLabs = labs.filter(lab => {
+        const matchesSearch = lab.name?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesFilter = filter === 'All' || lab.status === filter;
         return matchesSearch && matchesFilter;
     });
@@ -42,8 +44,8 @@ const LabResults = () => {
                                 key={status}
                                 onClick={() => setFilter(status)}
                                 className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-colors ${filter === status
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600'
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600'
                                     }`}
                             >
                                 {status}

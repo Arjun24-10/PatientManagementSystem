@@ -4,9 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
-import { mockAppointments } from '../../mocks/appointments';
-import { mockPrescriptions, mockLabs, mockDiagnoses } from '../../mocks/records';
-import { getPatientById } from '../../mocks/patients'; import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
 const PatientDashboard = () => {
    const { user } = useAuth();
@@ -30,14 +28,15 @@ const PatientDashboard = () => {
                setPatientId(pData.id);
             }
          } catch (e) {
-            console.log('Failed to fetch real profile, using mock data');
+            console.error('Failed to fetch real profile', e);
             const fallbackId = user?.id || 'P001';
-            setPatient(getPatientById(fallbackId));
+            const fallbackName = user?.fullName || user?.full_name || user?.name || 'Patient';
+            setPatient({ id: fallbackId, name: fallbackName });
             setPatientId(fallbackId);
          }
       };
       fetchProfile();
-   }, []);
+   }, [user?.id]);
 
    // Fetch API Data once we have patientId
    React.useEffect(() => {
@@ -47,22 +46,22 @@ const PatientDashboard = () => {
          try {
             const aData = await api.appointments.getByPatient(patientId);
             if (Array.isArray(aData)) setAppointments(aData);
-         } catch (e) { console.log('Using mock appointment data'); setAppointments(mockAppointments); }
+         } catch (e) { console.error('Failed to fetch appointments', e); }
 
          try {
             const rData = await api.prescriptions.getByPatient(patientId);
             if (Array.isArray(rData)) setPrescriptions(rData);
-         } catch (e) { console.log('Using mock prescription data'); setPrescriptions(mockPrescriptions); }
+         } catch (e) { console.error('Failed to fetch prescriptions', e); }
 
          try {
             const lData = await api.labResults.getByPatient(patientId);
             if (Array.isArray(lData)) setLabs(lData);
-         } catch (e) { console.log('Using mock lab data'); setLabs(mockLabs); }
+         } catch (e) { console.error('Failed to fetch labs', e); }
 
          try {
             const mData = await api.medicalRecords.getByPatient(patientId);
             if (Array.isArray(mData)) setDiagnoses(mData);
-         } catch (e) { console.log('Using mock diagnoses data'); setDiagnoses(mockDiagnoses); }
+         } catch (e) { console.error('Failed to fetch diagnoses', e); }
       };
 
       fetchData();

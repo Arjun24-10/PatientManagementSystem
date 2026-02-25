@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { FileText, Download, BarChart2, PieChart, X, Check } from 'lucide-react';
+import { FileText, Download, BarChart2, PieChart, Check } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
-import { mockReports } from '../../mocks/communication';
+
 
 const Reports = () => {
-    const [reports, setReports] = useState(mockReports);
+    const [reports, setReports] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 

@@ -46,6 +46,37 @@ const apiCall = async (endpoint, options = {}) => {
    }
 };
 
+// Helper: Many components fallback to 'P001' due to missing profile ID. Resolve it seamlessly.
+let resolvedProfileIdCache = {};
+const resolvePatientId = async (id) => {
+   if (id !== 'P001' && id !== null && id !== undefined && !isNaN(id)) return id;
+
+   // Check cache to avoid duplicate /patients/me calls
+   const userDataStr = localStorage.getItem('secure_health_user');
+   let userEmail = 'unknown';
+   if (userDataStr) {
+      try {
+         const userSession = JSON.parse(userDataStr);
+         if (userSession?.user?.email) userEmail = userSession.user.email;
+      } catch (e) { }
+   }
+
+   if (resolvedProfileIdCache[userEmail]) {
+      return resolvedProfileIdCache[userEmail];
+   }
+
+   try {
+      const pData = await apiCall('/patients/me', { method: 'GET' });
+      if (pData && pData.id) {
+         resolvedProfileIdCache[userEmail] = pData.id;
+         return pData.id;
+      }
+   } catch (e) {
+      console.warn("Could not dynamically resolve patient profile ID.", e);
+   }
+   return id;
+};
+
 // ============================================
 // AUTHENTICATION APIs
 // ============================================
@@ -89,9 +120,16 @@ export const authAPI = {
 export const patientAPI = {
    // Get current patient profile
    getMe: async () => {
-      return apiCall('/patients/me', {
+      const data = await apiCall('/patients/me', {
          method: 'GET',
       });
+      if (data) {
+         return {
+            ...data,
+            name: `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.name,
+         };
+      }
+      return data;
    },
 
    // Get all patients
@@ -153,9 +191,21 @@ export const appointmentAPI = {
 
    // Get appointments by patient ID
    getByPatient: async (patientId) => {
-      return apiCall(`/appointments/patient/${patientId}`, {
+      const realId = await resolvePatientId(patientId);
+      const data = await apiCall(`/appointments/patient/${realId}`, {
          method: 'GET',
       });
+      if (Array.isArray(data)) {
+         return data.map(appt => ({
+            ...appt,
+            id: appt.appointmentId || appt.id,
+            date: appt.appointmentDate ? appt.appointmentDate.split('T')[0] : appt.date,
+            time: appt.appointmentDate ? appt.appointmentDate.split('T')[1].substring(0, 5) : appt.time,
+            doctorName: appt.doctor?.email || appt.doctorName || 'Assigned Doctor',
+            type: appt.reasonForVisit || appt.type,
+         }));
+      }
+      return data;
    },
 
    // Get appointments by doctor ID
@@ -203,9 +253,21 @@ export const appointmentAPI = {
 export const medicalRecordAPI = {
    // Get all medical records for a patient
    getByPatient: async (patientId) => {
-      return apiCall(`/medical-records/patient/${patientId}`, {
+      const realId = await resolvePatientId(patientId);
+      const data = await apiCall(`/medical-records/patient/${realId}`, {
          method: 'GET',
       });
+      if (Array.isArray(data)) {
+         return data.map(record => ({
+            ...record,
+            id: record.recordId || record.id,
+            name: record.diagnosis || record.name,
+            date: record.createdAt ? record.createdAt.split('T')[0] : record.date,
+            doctor: record.doctor?.email || record.doctor || 'Assigned Doctor',
+            severity: 'Moderate', // Default severity since backend doesn't have it
+         }));
+      }
+      return data;
    },
 
    // Get medical record by ID
@@ -246,9 +308,21 @@ export const medicalRecordAPI = {
 export const prescriptionAPI = {
    // Get all prescriptions for a patient
    getByPatient: async (patientId) => {
-      return apiCall(`/prescriptions/patient/${patientId}`, {
+      const realId = await resolvePatientId(patientId);
+      const data = await apiCall(`/prescriptions/patient/${realId}`, {
          method: 'GET',
       });
+      if (Array.isArray(data)) {
+         return data.map(rx => ({
+            ...rx,
+            id: rx.prescriptionId || rx.id,
+            name: rx.medicationName || rx.name,
+            active: rx.status === 'ACTIVE' || rx.active,
+            date: rx.issuedAt ? rx.issuedAt.split('T')[0] : rx.date,
+            doctorName: rx.doctor?.email || rx.doctorName || 'Assigned Doctor',
+         }));
+      }
+      return data;
    },
 
    // Get prescription by ID
@@ -289,9 +363,21 @@ export const prescriptionAPI = {
 export const labResultAPI = {
    // Get all lab results for a patient
    getByPatient: async (patientId) => {
-      return apiCall(`/lab-results/patient/${patientId}`, {
+      const realId = await resolvePatientId(patientId);
+      const data = await apiCall(`/lab-results/patient/${realId}`, {
          method: 'GET',
       });
+      if (Array.isArray(data)) {
+         return data.map(lab => ({
+            ...lab,
+            id: lab.testId || lab.id,
+            name: lab.testName || lab.name,
+            type: lab.testName || lab.type,
+            result: lab.resultData || lab.result,
+            date: lab.orderedAt ? lab.orderedAt.split('T')[0] : lab.date,
+         }));
+      }
+      return data;
    },
 
    // Get lab result by ID
@@ -367,14 +453,16 @@ export const doctorAPI = {
 export const vitalSignsAPI = {
    // Get all vital signs for a patient
    getByPatient: async (patientId) => {
-      return apiCall(`/vital-signs/patient/${patientId}`, {
+      const realId = await resolvePatientId(patientId);
+      return apiCall(`/vital-signs/patient/${realId}`, {
          method: 'GET',
       });
    },
 
    // Get latest vital signs for a patient
    getLatest: async (patientId) => {
-      return apiCall(`/vital-signs/patient/${patientId}/latest`, {
+      const realId = await resolvePatientId(patientId);
+      return apiCall(`/vital-signs/patient/${realId}/latest`, {
          method: 'GET',
       });
    },

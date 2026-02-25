@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
-import { Plus, Search, Filter, Pill, X, Check } from 'lucide-react';
+import { Plus, Search, Filter, Pill } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
-import { mockPrescriptions } from '../../mocks/records';
-import { mockPatients } from '../../mocks/patients';
+import api from '../../services/api';
 
 const Prescriptions = () => {
     const [searchTerm, setSearchTerm] = useState('');
-    const [prescriptions, setPrescriptions] = useState(mockPrescriptions);
+    const [prescriptions, setPrescriptions] = useState([]);
+    const [patients, setPatients] = useState([]);
     const [isNewRxModalOpen, setIsNewRxModalOpen] = useState(false);
     const [isManageModalOpen, setIsManageModalOpen] = useState(false);
     const [selectedRx, setSelectedRx] = useState(null);
@@ -22,6 +22,18 @@ const Prescriptions = () => {
         frequency: '',
         notes: ''
     });
+
+    React.useEffect(() => {
+        const fetchPatients = async () => {
+            try {
+                const data = await api.patients.getAll();
+                if (Array.isArray(data)) setPatients(data);
+            } catch (error) {
+                console.error('Failed to fetch patients', error);
+            }
+        };
+        fetchPatients();
+    }, []);
 
     const [editRxData, setEditRxData] = useState({
         dosage: '',
@@ -37,7 +49,7 @@ const Prescriptions = () => {
 
     const handleNewRxSubmit = (e) => {
         e.preventDefault();
-        const patient = mockPatients.find(p => p.id === newRxData.patientId);
+        const patient = patients.find(p => p.id === newRxData.patientId);
 
         const newPrescription = {
             id: prescriptions.length + 1,
@@ -165,7 +177,7 @@ const Prescriptions = () => {
                             onChange={(e) => setNewRxData({ ...newRxData, patientId: e.target.value })}
                         >
                             <option value="">-- Select Patient --</option>
-                            {mockPatients.map(p => (
+                            {patients.map(p => (
                                 <option key={p.id} value={p.id}>{p.name} ({p.id})</option>
                             ))}
                         </select>

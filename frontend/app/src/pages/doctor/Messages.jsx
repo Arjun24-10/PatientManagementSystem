@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Search, MessageSquare } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import { mockMessages } from '../../mocks/communication';
+
 
 const Messages = () => {
-    const [activeMessage, setActiveMessage] = useState(mockMessages[0]);
+    const [messages] = useState([]);
+    const [activeMessage, setActiveMessage] = useState(null);
     const [replyText, setReplyText] = useState('');
 
     return (
@@ -25,7 +26,7 @@ const Messages = () => {
                 </div>
 
                 <div className="flex-1 overflow-y-auto">
-                    {mockMessages.map(msg => (
+                    {messages.map(msg => (
                         <div
                             key={msg.id}
                             onClick={() => setActiveMessage(msg)}

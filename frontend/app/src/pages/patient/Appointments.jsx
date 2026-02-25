@@ -9,15 +9,27 @@ import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
 import Alert from '../../components/common/Alert';
 import Input from '../../components/common/Input';
-import { mockAppointments } from '../../mocks/appointments';
+import api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 import { mockDepartments, mockDoctors, mockTimeSlots, appointmentTypes, cancellationReasons } from '../../mocks/doctors';
 import { format, addDays, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, parseISO, differenceInDays, differenceInHours, differenceInMinutes } from 'date-fns';
 
 const PatientAppointments = () => {
-   const patientId = 'P001';
-   const [appointments, setAppointments] = useState(
-      mockAppointments.filter(a => a.patientId === patientId)
-   );
+   const { user } = useAuth();
+   const patientId = user?.id || 'P001';
+   const [appointments, setAppointments] = useState([]);
+
+   React.useEffect(() => {
+      const fetchAppointments = async () => {
+         try {
+            const data = await api.appointments.getByPatient(patientId);
+            if (Array.isArray(data)) setAppointments(data);
+         } catch (error) {
+            console.error('Failed to fetch appointments', error);
+         }
+      };
+      if (patientId) fetchAppointments();
+   }, [patientId]);
    const [activeTab, setActiveTab] = useState('upcoming');
    const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
 

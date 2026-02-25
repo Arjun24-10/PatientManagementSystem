@@ -18,9 +18,33 @@ import {
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
-import { mockLabResults, mockLabStats, mockTrendData } from '../../mocks/labResults';
+import api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const LabResults = () => {
+   const { user } = useAuth();
+   const patientId = user?.id || 'P001';
+
+   const [labResults, setLabResults] = useState([]);
+   const [labStats] = useState({
+      totalTests: 0,
+      pendingResults: 0,
+      recentAbnormal: 0
+   });
+   const [trendData] = useState({});
+
+   React.useEffect(() => {
+      const fetchLabs = async () => {
+         try {
+            const data = await api.labResults.getByPatient(patientId);
+            if (Array.isArray(data)) setLabResults(data);
+         } catch (error) {
+            console.error('Failed to fetch labs', error);
+         }
+      };
+      if (patientId) fetchLabs();
+   }, [patientId]);
+
    const [searchTerm, setSearchTerm] = useState('');
    const [expandedResults, setExpandedResults] = useState({});
    const [showTrendModal, setShowTrendModal] = useState(false);
@@ -36,7 +60,7 @@ const LabResults = () => {
    };
 
    // Filter and sort results
-   const filteredResults = mockLabResults
+   const filteredResults = labResults
       .filter(result => {
          const matchesSearch = result.testName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             result.orderingPhysician.toLowerCase().includes(searchTerm.toLowerCase());
@@ -128,10 +152,10 @@ const LabResults = () => {
          trendKey = 'vitaminD';
       }
 
-      if (trendKey && mockTrendData[trendKey]) {
+      if (trendKey && trendData[trendKey]) {
          setSelectedTrendData({
             testName: result.testName,
-            data: mockTrendData[trendKey],
+            data: trendData[trendKey],
             parameter: trendKey
          });
          setShowTrendModal(true);
@@ -160,7 +184,7 @@ const LabResults = () => {
                <div className="flex items-center justify-between">
                   <div>
                      <p className="text-xs text-gray-500 dark:text-slate-400 mb-0.5">Total Tests</p>
-                     <p className="text-xl font-bold text-gray-800 dark:text-slate-100">{mockLabStats.totalTests}</p>
+                     <p className="text-xl font-bold text-gray-800 dark:text-slate-100">{labStats.totalTests}</p>
                   </div>
                   <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
                      <FileText className="w-4 h-4 text-blue-600" />
@@ -172,7 +196,7 @@ const LabResults = () => {
                <div className="flex items-center justify-between">
                   <div>
                      <p className="text-xs text-gray-500 dark:text-slate-400 mb-0.5">Pending Results</p>
-                     <p className="text-xl font-bold text-gray-800 dark:text-slate-100">{mockLabStats.pendingResults}</p>
+                     <p className="text-xl font-bold text-gray-800 dark:text-slate-100">{labStats.pendingResults}</p>
                   </div>
                   <div className="p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded">
                      <Clock className="w-4 h-4 text-yellow-600" />
@@ -184,7 +208,7 @@ const LabResults = () => {
                <div className="flex items-center justify-between">
                   <div>
                      <p className="text-xs text-gray-500 dark:text-slate-400 mb-0.5">Recent Abnormal</p>
-                     <p className="text-xl font-bold text-gray-800 dark:text-slate-100">{mockLabStats.recentAbnormal}</p>
+                     <p className="text-xl font-bold text-gray-800 dark:text-slate-100">{labStats.recentAbnormal}</p>
                   </div>
                   <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded">
                      <AlertCircle className="w-4 h-4 text-red-600" />

@@ -6,12 +6,11 @@ import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
 import PatientSearch from './components/PatientSearch';
 import api from '../../services/api';
-import { mockPatients } from '../../mocks/patients';
 
 const Patients = () => {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
-    const [patients, setPatients] = useState(mockPatients);
+    const [patients, setPatients] = useState([]);
 
     // Fetch Patients
     React.useEffect(() => {
@@ -22,7 +21,7 @@ const Patients = () => {
                     setPatients(data);
                 }
             } catch (error) {
-                console.warn('Failed to fetch patients, using mock data', error);
+                console.error('Failed to fetch patients', error);
             }
         };
         fetchPatients();

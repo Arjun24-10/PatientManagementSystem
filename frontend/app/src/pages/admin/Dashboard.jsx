@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, Shield, AlertCircle, FileText, Activity, LayoutDashboard } from 'lucide-react';
+import { Users, AlertCircle, FileText, LayoutDashboard } from 'lucide-react';
 
 import SystemOverview from './components/SystemOverview';
 import UserManagement from './components/UserManagement';

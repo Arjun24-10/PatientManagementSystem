@@ -20,9 +20,9 @@ test('renders learn react link', () => {
   window.history.pushState({}, 'Test page', '/');
 
   // We wrap App in AuthContext.Provider because Login page calls useAuth
-  const { debug } = render(
+  render(
     <AuthContext.Provider value={mockAuthValue}>
-      <MemoryRouter>
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <App />
       </MemoryRouter>
     </AuthContext.Provider>
