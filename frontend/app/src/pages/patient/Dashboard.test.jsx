@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '../../test-utils';
+import { render, screen, waitFor } from '../../test-utils';
 import PatientDashboard from './Dashboard';
 import api from '../../services/api';
 
