@@ -8,6 +8,7 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
+      TZ : Asia/Kolkata
     ports:
       - "5432:5432"
     volumes:
@@ -55,6 +56,8 @@ services:
       # Connect to Redis container
       SPRING_DATA_REDIS_HOST: redis_cache
       SPRING_DATA_REDIS_PORT: 6379
+      TZ : Asia/Kolkata
+
 
       # For sending otp on mail
       MAIL_HOST: ${MAIL_HOST}
@@ -76,3 +79,4 @@ volumes:
   postgres_data:
   postgres_data_clean:
   redis_data:
+
