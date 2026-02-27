@@ -15,7 +15,7 @@
  * - Navigation/routing
  */
 
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders, mockAuthUsers } from '../../testHelpers';
 import Login from '../../pages/login';
@@ -25,11 +25,11 @@ import { mockLogin } from '../../mocks/auth';
 jest.mock('../../mocks/auth');
 
 describe('Authentication Flow Integration Tests', () => {
-  
+
   beforeEach(() => {
     // Reset mocks before each test
     jest.clearAllMocks();
-    
+
     // Default mock implementation
     mockLogin.mockResolvedValue({
       success: true,
@@ -38,10 +38,10 @@ describe('Authentication Flow Integration Tests', () => {
       redirectTo: '/dashboard/doctor'
     });
   });
-  
+
   describe('Login Flow', () => {
     test('should successfully login as doctor and redirect to doctor dashboard', async () => {
-      const user = userEvent.setup();
+      const user = userEvent;
 
       renderWithProviders(<Login />, {
         authValue: mockAuthUsers.unauthenticated,
@@ -58,20 +58,20 @@ describe('Authentication Flow Integration Tests', () => {
       expect(passwordInput).toBeInTheDocument();
 
       // User enters credentials
-      await user.type(emailInput, 'doctor@test.com');
-      await user.type(passwordInput, 'password123');
+      fireEvent.change(emailInput, { target: { value: 'doctor@test.com' } });
+      fireEvent.change(passwordInput, { target: { value: 'password123' } });
 
       // Verify form is filled
       expect(emailInput).toHaveValue('doctor@test.com');
       expect(passwordInput).toHaveValue('password123');
-      
+
       // Note: Full login flow with navigation would require mocking the entire auth flow
       // For integration testing, we verify the form works correctly
     }, 15000);
 
     test('should show error message for invalid credentials', async () => {
-      const user = userEvent.setup();
-      
+      const user = userEvent;
+
       // Override the mock to return error for this test
       mockLogin.mockResolvedValueOnce({
         success: false,
@@ -88,19 +88,19 @@ describe('Authentication Flow Integration Tests', () => {
       const signInButton = await screen.findByRole('button', { name: /sign in/i }, { timeout: 5000 });
 
       // Enter invalid credentials
-      await user.type(emailInput, 'wrong@test.com');
-      await user.type(passwordInput, 'wrongpassword');
-      
+      fireEvent.change(emailInput, { target: { value: 'wrong@test.com' } });
+      fireEvent.change(passwordInput, { target: { value: 'wrongpassword' } });
+
       // Verify form is filled
       expect(emailInput).toHaveValue('wrong@test.com');
       expect(passwordInput).toHaveValue('wrongpassword');
-      
+
       // Note: Full error handling would require mocking the login function
       // For now, we verify the form accepts the input
     }, 15000);
 
     test('should validate email field on blur', async () => {
-      const user = userEvent.setup();
+      const user = userEvent;
 
       renderWithProviders(<Login />, {
         authValue: mockAuthUsers.unauthenticated,
@@ -110,9 +110,9 @@ describe('Authentication Flow Integration Tests', () => {
       const emailInput = await screen.findByPlaceholderText(/enter your email address/i, {}, { timeout: 5000 });
 
       // Type invalid email and blur
-      await user.type(emailInput, 'invalid');
-      await user.clear(emailInput);
-      await user.tab();
+      fireEvent.change(emailInput, { target: { value: 'invalid' } });
+      fireEvent.change(emailInput, { target: { value: '' } });
+      fireEvent.blur(emailInput);
 
       // Should show validation error after blur
       await waitFor(() => {
@@ -121,7 +121,7 @@ describe('Authentication Flow Integration Tests', () => {
     }, 15000);
 
     test('should remember email when "Remember me" is checked', async () => {
-      const user = userEvent.setup();
+      const user = userEvent;
 
       renderWithProviders(<Login />, {
         authValue: mockAuthUsers.unauthenticated,
@@ -135,21 +135,21 @@ describe('Authentication Flow Integration Tests', () => {
       const passwordInput = await screen.findByPlaceholderText(/enter your password/i, {}, { timeout: 5000 });
 
       // Enter credentials and check remember me
-      await user.type(emailInput, 'doctor@test.com');
-      await user.type(passwordInput, 'password123');
-      
+      fireEvent.change(emailInput, { target: { value: 'doctor@test.com' } });
+      fireEvent.change(passwordInput, { target: { value: 'password123' } });
+
       const rememberCheckbox = screen.getByLabelText(/remember me/i);
       await user.click(rememberCheckbox);
-      
+
       // Verify checkbox is checked
       expect(rememberCheckbox).toBeChecked();
-      
+
       // Note: Full login flow with localStorage would require mocking the login function
       // and waiting for the async operation. For now, we verify the checkbox works.
     }, 15000);
 
     test('should toggle password visibility', async () => {
-      const user = userEvent.setup();
+      const user = userEvent;
 
       renderWithProviders(<Login />, {
         authValue: mockAuthUsers.unauthenticated,

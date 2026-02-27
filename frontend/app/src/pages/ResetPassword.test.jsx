@@ -78,7 +78,7 @@ describe('ResetPassword Page', () => {
         });
         
         const passwordInput = screen.getByPlaceholderText(/enter new password/i);
-        await userEvent.type(passwordInput, 'short');
+        fireEvent.change(passwordInput, { target: { value: 'short' } });
         fireEvent.blur(passwordInput);
         
         await waitFor(() => {
@@ -96,7 +96,7 @@ describe('ResetPassword Page', () => {
         });
         
         const passwordInput = screen.getByPlaceholderText(/enter new password/i);
-        await userEvent.type(passwordInput, 'mypassword123456');
+        fireEvent.change(passwordInput, { target: { value: 'mypassword123456' } });
         fireEvent.blur(passwordInput);
         
         await waitFor(() => {
@@ -118,8 +118,8 @@ describe('ResetPassword Page', () => {
         const confirmInput = screen.getByPlaceholderText(/confirm new password/i);
         
         // Use passwords without weak patterns
-        await userEvent.type(passwordInput, 'StrongPass!@#12');
-        await userEvent.type(confirmInput, 'DifferentPass!@#12');
+        fireEvent.change(passwordInput, { target: { value: 'StrongPass!@#12' } });
+        fireEvent.change(confirmInput, { target: { value: 'DifferentPass!@#12' } });
         fireEvent.blur(confirmInput);
         
         await waitFor(() => {
@@ -141,8 +141,8 @@ describe('ResetPassword Page', () => {
         const confirmInput = screen.getByPlaceholderText(/confirm new password/i);
         
         // Use password without weak patterns (no 'password', '123456', 'qwerty', 'admin', 'letmein')
-        await userEvent.type(passwordInput, 'StrongPass!@#12');
-        await userEvent.type(confirmInput, 'StrongPass!@#12');
+        fireEvent.change(passwordInput, { target: { value: 'StrongPass!@#12' } });
+        fireEvent.change(confirmInput, { target: { value: 'StrongPass!@#12' } });
         
         const submitButton = screen.getByRole('button', { name: /reset password/i });
         fireEvent.click(submitButton);
@@ -166,8 +166,8 @@ describe('ResetPassword Page', () => {
         const confirmInput = screen.getByPlaceholderText(/confirm new password/i);
         
         // Use password without weak patterns
-        await userEvent.type(passwordInput, 'StrongPass!@#12');
-        await userEvent.type(confirmInput, 'StrongPass!@#12');
+        fireEvent.change(passwordInput, { target: { value: 'StrongPass!@#12' } });
+        fireEvent.change(confirmInput, { target: { value: 'StrongPass!@#12' } });
         
         const submitButton = screen.getByRole('button', { name: /reset password/i });
         fireEvent.click(submitButton);
@@ -212,8 +212,8 @@ describe('ResetPassword Page', () => {
         const confirmInput = screen.getByPlaceholderText(/confirm new password/i);
         
         // Use password without weak patterns
-        await userEvent.type(passwordInput, 'StrongPass!@#12');
-        await userEvent.type(confirmInput, 'StrongPass!@#12');
+        fireEvent.change(passwordInput, { target: { value: 'StrongPass!@#12' } });
+        fireEvent.change(confirmInput, { target: { value: 'StrongPass!@#12' } });
         
         const submitButton = screen.getByRole('button', { name: /reset password/i });
         fireEvent.click(submitButton);

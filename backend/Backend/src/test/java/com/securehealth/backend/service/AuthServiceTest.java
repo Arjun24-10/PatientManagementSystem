@@ -11,6 +11,8 @@ import com.securehealth.backend.repository.LoginRepository;
 import com.securehealth.backend.repository.PasswordHistoryRepository;
 import com.securehealth.backend.repository.PasswordResetTokenRepository;
 import com.securehealth.backend.repository.SessionRepository;
+import com.securehealth.backend.repository.PatientProfileRepository;
+import com.securehealth.backend.dto.RegistrationRequest;
 import com.securehealth.backend.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,6 +42,9 @@ class AuthServiceTest {
 
     @Mock
     private SessionRepository sessionRepository;
+
+    @Mock
+    private PatientProfileRepository patientProfileRepository;
 
     @Mock
     private PasswordResetTokenRepository resetTokenRepository;
@@ -89,7 +94,7 @@ class AuthServiceTest {
         when(passwordEncoder.encode(password)).thenReturn("hashedPassword");
         when(loginRepository.save(any(Login.class))).thenReturn(testUser);
 
-        Login result = authService.registerUser(email, password, role);
+        Login result = authService.registerUser(new RegistrationRequest(email, password, role, "Test User", null, null));
 
         assertNotNull(result);
         verify(loginRepository).save(any(Login.class));
@@ -101,7 +106,7 @@ class AuthServiceTest {
         when(loginRepository.existsByEmail(email)).thenReturn(true);
 
         assertThrows(RuntimeException.class,
-                () -> authService.registerUser(email, "Password123!", Role.PATIENT));
+                () -> authService.registerUser(new RegistrationRequest(email, "Password123!", Role.PATIENT, "Test User", null, null)));
 
         verify(loginRepository, never()).save(any(Login.class));
     }
@@ -116,7 +121,7 @@ class AuthServiceTest {
         when(passwordEncoder.encode(password)).thenReturn("encodedPass");
         when(loginRepository.save(any(Login.class))).thenAnswer(i -> i.getArguments()[0]);
 
-        Login result = authService.registerUser(email, password, role);
+        Login result = authService.registerUser(new RegistrationRequest(email, password, role, "Test User", null, null));
 
         assertTrue(result.isTwoFactorEnabled(), "Doctor should have 2FA enabled by default");
     }
@@ -131,7 +136,7 @@ class AuthServiceTest {
         when(passwordEncoder.encode(password)).thenReturn("encodedPass");
         when(loginRepository.save(any(Login.class))).thenAnswer(i -> i.getArguments()[0]);
 
-        Login result = authService.registerUser(email, password, role);
+        Login result = authService.registerUser(new RegistrationRequest(email, password, role, "Test User", null, null));
 
         assertTrue(result.isTwoFactorEnabled(), "Admin should have 2FA enabled by default");
     }
@@ -146,7 +151,7 @@ class AuthServiceTest {
         when(passwordEncoder.encode(password)).thenReturn("encodedPass");
         when(loginRepository.save(any(Login.class))).thenAnswer(i -> i.getArguments()[0]);
 
-        Login result = authService.registerUser(email, password, role);
+        Login result = authService.registerUser(new RegistrationRequest(email, password, role, "Test User", null, null));
 
         assertFalse(result.isTwoFactorEnabled(), "Patient should NOT have 2FA enabled by default");
     }

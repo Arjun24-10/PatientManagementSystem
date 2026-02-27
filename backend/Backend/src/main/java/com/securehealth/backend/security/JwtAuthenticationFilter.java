@@ -37,6 +37,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String email = null;
         String jwt = null;
+        
+        System.out.println("DEBUG JWT: Request to " + request.getRequestURI());
+
+        // 0. Bypass filter for CORS preflight (OPTIONS) requests
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            chain.doFilter(request, response);
+            return;
+        }
 
         // 1. Check for "Bearer " token
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
@@ -54,6 +62,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
+        System.out.println("DEBUG JWT: Email extracted: " + email);
+
         // 2. Validate Token & Set Security Context
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
@@ -63,8 +73,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(email);
+            
+            System.out.println("DEBUG JWT: UserDetails loaded for " + userDetails.getUsername() + ", validating token...");
 
             if (jwtUtil.validateToken(jwt, userDetails)) {
+                System.out.println("DEBUG JWT: Token IS VALID! Setting security context.");
 
                 tokenBlacklistService.updateLastActive(email);
                 

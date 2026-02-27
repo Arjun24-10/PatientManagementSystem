@@ -7,8 +7,8 @@ import Button from '../common/Button';
 const LabResultsList = ({ labs }) => {
     if (!labs || labs.length === 0) {
         return (
-            <Card className="p-8 text-center text-gray-500 border-dashed">
-                <Activity className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+            <Card className="p-8 text-center text-gray-500 dark:text-slate-400 border-dashed">
+                <Activity className="w-12 h-12 mx-auto mb-2 text-gray-300 dark:text-slate-600" />
                 <p>No lab results found.</p>
             </Card>
         );
@@ -22,8 +22,8 @@ const LabResultsList = ({ labs }) => {
 
     return (
         <div className="space-y-4">
-            <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
-                <h3 className="font-bold text-gray-700">Lab Reports</h3>
+            <div className="flex justify-between items-center bg-gray-50 dark:bg-slate-900 p-4 rounded-lg">
+                <h3 className="font-bold text-gray-700 dark:text-slate-300">Lab Reports</h3>
                 <Button onClick={() => alert('Order Labs Modal')} className="flex items-center text-sm">
                     <Activity className="w-4 h-4 mr-1" /> Order New Labs
                 </Button>
@@ -31,19 +31,19 @@ const LabResultsList = ({ labs }) => {
 
             <div className="grid grid-cols-1 gap-4">
                 {labs.map((lab) => (
-                    <Card key={lab.id} className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center group hover:border-blue-300 transition-colors">
+                    <Card key={lab.id} className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center group hover:border-blue-300 dark:hover:border-blue-600 transition-colors">
                         <div className="flex items-start gap-4">
-                            <div className={`p-3 rounded-lg ${lab.type === 'Pending' ? 'bg-yellow-50 text-yellow-600' : 'bg-blue-50 text-blue-600'}`}>
+                            <div className={`p-3 rounded-lg ${lab.type === 'Pending' ? 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400' : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'}`}>
                                 <FileText size={24} />
                             </div>
                             <div>
-                                <h4 className="font-bold text-gray-800">{lab.name}</h4>
-                                <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
+                                <h4 className="font-bold text-gray-800 dark:text-slate-100">{lab.name}</h4>
+                                <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-slate-400 mt-1">
                                     <span className="flex items-center gap-1">
                                         <Clock size={14} /> Ordered: {lab.orderedDate}
                                     </span>
                                     {lab.date !== 'TBD' && (
-                                        <span className="flex items-center gap-1 text-gray-700 font-medium">
+                                        <span className="flex items-center gap-1 text-gray-700 dark:text-slate-300 font-medium">
                                             Result: {lab.date}
                                         </span>
                                     )}

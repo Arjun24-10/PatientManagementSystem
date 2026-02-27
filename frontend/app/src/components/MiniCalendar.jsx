@@ -43,16 +43,16 @@ const MiniCalendar = ({ appointments }) => {
 
    return (
       <>
-         <div className="bg-white rounded-xl border border-gray-100 shadow-soft overflow-hidden p-4">
+         <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-100 dark:border-slate-700 shadow-soft overflow-hidden p-4">
             <div className="flex items-center justify-between mb-4">
-               <h2 className="text-sm font-bold text-gray-800">
+               <h2 className="text-sm font-bold text-gray-800 dark:text-slate-100">
                   {format(currentMonth, 'MMMM yyyy')}
                </h2>
                <div className="flex space-x-1">
-                  <button onClick={prevMonth} className="p-1 hover:bg-gray-100 rounded-full transition text-gray-500">
+                  <button onClick={prevMonth} className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition text-gray-500 dark:text-slate-400">
                      <ChevronLeft size={16} />
                   </button>
-                  <button onClick={nextMonth} className="p-1 hover:bg-gray-100 rounded-full transition text-gray-500">
+                  <button onClick={nextMonth} className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition text-gray-500 dark:text-slate-400">
                      <ChevronRight size={16} />
                   </button>
                </div>
@@ -60,7 +60,7 @@ const MiniCalendar = ({ appointments }) => {
 
             <div className="grid grid-cols-7 mb-2">
                {weekDays.map(day => (
-                  <div key={day} className="text-center text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                  <div key={day} className="text-center text-[10px] font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider">
                      {day}
                   </div>
                ))}
@@ -79,7 +79,7 @@ const MiniCalendar = ({ appointments }) => {
                         onClick={() => onDateClick(day)}
                         className={`
                         h-8 w-8 flex flex-col items-center justify-center rounded-full text-xs cursor-pointer transition-colors
-                        ${!isSelectedMonth ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-100'}
+                        ${!isSelectedMonth ? 'text-gray-300 dark:text-slate-600' : 'text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700'}
                         ${isCurrentDay ? 'bg-brand-medium text-white font-bold hover:bg-brand-deep' : ''}
                     `}
                      >
@@ -99,13 +99,13 @@ const MiniCalendar = ({ appointments }) => {
          {/* Details Modal */}
          {isModalOpen && selectedDate && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-               <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
-                  <div className="flex justify-between items-center p-4 border-b border-gray-100 bg-gray-50">
-                     <h3 className="font-bold text-base text-gray-800 flex items-center">
+               <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
+                  <div className="flex justify-between items-center p-4 border-b border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-900">
+                     <h3 className="font-bold text-base text-gray-800 dark:text-slate-100 flex items-center">
                         <Clock className="w-4 h-4 mr-2 text-brand-medium" />
                         {format(selectedDate, 'MMM do, yyyy')}
                      </h3>
-                     <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                     <button onClick={() => setIsModalOpen(false)} className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300">
                         <X size={18} />
                      </button>
                   </div>
@@ -133,7 +133,7 @@ const MiniCalendar = ({ appointments }) => {
                            ))}
                         </div>
                      ) : (
-                        <div className="text-center py-6 text-gray-400">
+                        <div className="text-center py-6 text-gray-400 dark:text-slate-500">
                            <CalendarIcon className="w-10 h-10 mx-auto mb-2 opacity-50" />
                            <p className="text-sm">No appointments.</p>
                         </div>

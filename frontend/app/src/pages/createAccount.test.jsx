@@ -47,10 +47,10 @@ describe('CreateAccount Page', () => {
         const passwordInput = screen.getByPlaceholderText(/min 12 characters/i);
         const confirmInput = screen.getByPlaceholderText(/re-enter password/i);
 
-        await userEvent.type(nameInput, 'John Doe');
-        await userEvent.type(emailInput, 'john@example.com');
-        await userEvent.type(passwordInput, 'SecurePass123!');
-        await userEvent.type(confirmInput, 'DifferentPass123!');
+        fireEvent.change(nameInput, { target: { value: 'John Doe' } });
+        fireEvent.change(emailInput, { target: { value: 'john@example.com' } });
+        fireEvent.change(passwordInput, { target: { value: 'SecurePass123!' } });
+        fireEvent.change(confirmInput, { target: { value: 'DifferentPass123!' } });
 
         const submitButton = screen.getByRole('button', { name: /create account/i });
         fireEvent.click(submitButton);
@@ -68,10 +68,10 @@ describe('CreateAccount Page', () => {
         const passwordInput = screen.getByPlaceholderText(/min 12 characters/i);
         const confirmInput = screen.getByPlaceholderText(/re-enter password/i);
 
-        await userEvent.type(nameInput, 'John Doe');
-        await userEvent.type(emailInput, 'john@example.com');
-        await userEvent.type(passwordInput, '12345');
-        await userEvent.type(confirmInput, '12345');
+        fireEvent.change(nameInput, { target: { value: 'John Doe' } });
+        fireEvent.change(emailInput, { target: { value: 'john@example.com' } });
+        fireEvent.change(passwordInput, { target: { value: '12345' } });
+        fireEvent.change(confirmInput, { target: { value: '12345' } });
 
         const submitButton = screen.getByRole('button', { name: /create account/i });
         fireEvent.click(submitButton);

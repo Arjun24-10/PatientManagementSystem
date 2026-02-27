@@ -81,18 +81,18 @@ const SchedulerView = ({ appointments, onAppointmentClick, selectedDate, onDateC
             <MiniCalendar appointments={appointments} />
 
             {/* Legend/Filters (Static Mock) */}
-            <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-soft">
-               <h3 className="font-bold text-gray-800 text-sm mb-3">Filters</h3>
+            <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-gray-100 dark:border-slate-700 shadow-soft">
+               <h3 className="font-bold text-gray-800 dark:text-slate-100 text-sm mb-3">Filters</h3>
                <div className="space-y-2">
-                  <label className="flex items-center space-x-2 text-sm text-gray-600">
+                  <label className="flex items-center space-x-2 text-sm text-gray-600 dark:text-slate-400">
                      <input type="checkbox" defaultChecked className="rounded text-brand-medium focus:ring-brand-medium" />
                      <span>All Providers</span>
                   </label>
-                  <label className="flex items-center space-x-2 text-sm text-gray-600">
+                  <label className="flex items-center space-x-2 text-sm text-gray-600 dark:text-slate-400">
                      <input type="checkbox" defaultChecked className="rounded text-brand-medium focus:ring-brand-medium" />
                      <span>Confirmed</span>
                   </label>
-                  <label className="flex items-center space-x-2 text-sm text-gray-600">
+                  <label className="flex items-center space-x-2 text-sm text-gray-600 dark:text-slate-400">
                      <input type="checkbox" defaultChecked className="rounded text-brand-medium focus:ring-brand-medium" />
                      <span>Pending</span>
                   </label>
@@ -101,10 +101,10 @@ const SchedulerView = ({ appointments, onAppointmentClick, selectedDate, onDateC
          </div>
 
          {/* Main Scheduler Area */}
-         <div className="flex-1 bg-white rounded-xl border border-gray-200 shadow-soft flex flex-col overflow-hidden relative">
+         <div className="flex-1 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-soft flex flex-col overflow-hidden relative">
             {/* Header - Day Column */}
-            <div className="h-12 border-b border-gray-200 flex items-center pl-16 bg-gray-50/50">
-               <div className="font-semibold text-gray-700">
+            <div className="h-12 border-b border-gray-200 dark:border-slate-700 flex items-center pl-16 bg-gray-50/50 dark:bg-slate-900/50">
+               <div className="font-semibold text-gray-700 dark:text-slate-300">
                   {format(selectedDate, 'EEEE, MMMM do')}
                </div>
             </div>
@@ -117,11 +117,11 @@ const SchedulerView = ({ appointments, onAppointmentClick, selectedDate, onDateC
                   {timeSlots.map((time, index) => (
                      <div key={index} className="flex absolute w-full" style={{ top: index * SLOT_HEIGHT, height: SLOT_HEIGHT }}>
                         {/* Time Label */}
-                        <div className="w-16 text-right pr-3 text-xs text-gray-400 -mt-2.5 font-medium select-none">
+                        <div className="w-16 text-right pr-3 text-xs text-gray-400 dark:text-slate-500 -mt-2.5 font-medium select-none">
                            {format(time, 'hh:mm aa')}
                         </div>
                         {/* Divider Line */}
-                        <div className={`flex-1 border-t ${index % 2 === 0 ? 'border-gray-200' : 'border-gray-100 border-dashed'}`}></div>
+                        <div className={`flex-1 border-t ${index % 2 === 0 ? 'border-gray-200 dark:border-slate-700' : 'border-gray-100 dark:border-slate-600 border-dashed'}`}></div>
                      </div>
                   ))}
 
@@ -152,16 +152,16 @@ const SchedulerView = ({ appointments, onAppointmentClick, selectedDate, onDateC
                                  ...getAppointmentStyle(appt),
                                  borderLeft: `4px solid ${borderColor}`
                               }}
-                              className="bg-white rounded hover:shadow-md border border-gray-200 border-l-4 p-2 text-xs transition-shadow cursor-pointer group overflow-hidden hover:z-20"
+                              className="bg-white dark:bg-slate-800 rounded hover:shadow-md border border-gray-200 dark:border-slate-700 border-l-4 p-2 text-xs transition-shadow cursor-pointer group overflow-hidden hover:z-20"
                            >
-                              <div className="font-bold text-gray-800 truncate leading-tight">
+                              <div className="font-bold text-gray-800 dark:text-slate-100 truncate leading-tight">
                                  {appt.patientName}
                               </div>
-                              <div className="text-gray-500 truncate mt-0.5">
+                              <div className="text-gray-500 dark:text-slate-400 truncate mt-0.5">
                                  {appt.time} - {appt.type}
                               </div>
                               {appt.room && (
-                                 <div className="text-gray-400 font-medium truncate mt-1 text-[10px] flex items-center">
+                                 <div className="text-gray-400 dark:text-slate-500 font-medium truncate mt-1 text-[10px] flex items-center">
                                     {appt.room}
                                  </div>
                               )}

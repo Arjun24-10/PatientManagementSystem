@@ -62,38 +62,38 @@ const VitalsOverviewCard = ({
     const badgeType = alertSeverity === 'critical' ? 'red' : alertSeverity === 'abnormal' ? 'yellow' : 'green';
 
     return (
-        <Card className="p-6 space-y-5 border border-gray-100 shadow-soft">
-            <div className="flex items-start justify-between gap-3">
+        <Card className="p-3 space-y-2.5 border border-gray-100 dark:border-slate-700 shadow-soft dark:bg-slate-800">
+            <div className="flex items-start justify-between gap-2">
                 <div>
-                    <h3 className="text-lg font-bold text-gray-900">Current Vitals Overview</h3>
-                    <p className="text-sm text-gray-500">Updated {lastTimestamp}</p>
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-slate-100">Current Vitals Overview</h3>
+                    <p className="text-xs text-gray-500 dark:text-slate-400">Updated {lastTimestamp}</p>
                 </div>
                 <Badge type={badgeType}>
                     {alertSeverity === 'critical' ? 'Critical' : alertSeverity === 'abnormal' ? 'Monitoring' : 'Stable'}
                 </Badge>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-2">
                 {items.map((item) => {
                     const StatusIcon = item.icon;
                     return (
-                        <div key={item.key} className="rounded-lg border border-gray-100 bg-white/80 p-4 flex items-center justify-between gap-3">
+                        <div key={item.key} className="rounded border border-gray-100 dark:border-slate-700 bg-white/80 dark:bg-slate-700/80 p-2.5 flex items-center justify-between gap-2">
                             <div>
-                                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{item.label}</p>
-                                <p className="text-lg font-semibold text-gray-900 mt-1">{item.value}</p>
-                                <p className="text-xs text-gray-400 mt-1">{item.helper}</p>
+                                <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">{item.label}</p>
+                                <p className="text-sm font-semibold text-gray-900 dark:text-slate-100 mt-0.5">{item.value}</p>
+                                <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">{item.helper}</p>
                             </div>
-                            <div className="flex flex-col items-end gap-1">
-                                <span className={`text-xs font-semibold ${getStatusClasses(item.status).text}`}>
+                            <div className="flex flex-col items-end gap-0.5">
+                                <span className={`text-[10px] font-semibold ${getStatusClasses(item.status).text}`}>
                                     {item.status ? item.status.charAt(0).toUpperCase() + item.status.slice(1) : '—'}
                                 </span>
-                                <span className="flex items-center gap-1 text-xs text-gray-400">
+                                <span className="flex items-center gap-0.5 text-[10px] text-gray-400 dark:text-slate-500">
                                     {trendIcon(item.trend)}
                                     {item.trend === 'up' ? 'Rising' : item.trend === 'down' ? 'Falling' : 'Stable'}
                                 </span>
                                 {StatusIcon && (
-                                    <div className="flex items-center gap-1 text-xs text-gray-500">
-                                        <StatusIcon className="w-4 h-4 text-brand-medium" aria-hidden="true" />
+                                    <div className="flex items-center gap-0.5 text-[10px] text-gray-500 dark:text-slate-400">
+                                        <StatusIcon className="w-3.5 h-3.5 text-brand-medium" aria-hidden="true" />
                                         <span>{item.iconLabel}</span>
                                     </div>
                                 )}
