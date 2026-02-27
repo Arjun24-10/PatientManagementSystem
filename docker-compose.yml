@@ -50,6 +50,7 @@ services:
       - .env
     environment:
       # Connect to Postgres container
+      JAVA_TOOL_OPTIONS: "-Dtomcat.util.http.parser.HttpParser.requestTargetAllow=_"
       SPRING_DATASOURCE_URL: jdbc:postgresql://secure_health_db:5432/${DB_NAME}?stringtype=unspecified
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
@@ -69,7 +70,33 @@ services:
       - postgres_db
       - redis_cache
     networks:
+      health_net: # ← change from "- health_net" to this
+        aliases:
+          - secure-health-api
+
+  prometheus:
+    image: prom/prometheus
+    container_name: secure_health_prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
       - health_net
+    depends_on:
+      - backend_api
+
+  grafana:
+    image: grafana/grafana
+    container_name: secure_health_grafana
+    restart: always
+    ports:
+      - "3001:3000"
+    networks:
+      - health_net
+    depends_on:
+      - prometheus
 
 networks:
   health_net:

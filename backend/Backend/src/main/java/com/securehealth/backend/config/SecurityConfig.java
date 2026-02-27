@@ -51,9 +51,9 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
@@ -86,7 +86,7 @@ public class SecurityConfig {
     private void saveSecurityLog(String action, HttpServletRequest request) {
         try {
             AuditLog log = new AuditLog(
-                    null, // email unknown at security layer
+                    "SYSTEM",   // ✅ Never null
                     action,
                     request.getRemoteAddr(),
                     request.getHeader("User-Agent"),
