@@ -13,6 +13,19 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findByPatient_ProfileIdOrderByAppointmentDateDesc(Long patientId);
 
     // Frontend: GET /appointments/doctor/:doctorId
-    // Note: Doctor is linked via the Login entity, whose ID is 'userId'
+    // Finds all appointments for a doctor between the start and end of a specific
+    // day
+    List<Appointment> findByDoctor_UserIdAndAppointmentDateBetween(
+            Long doctorId,
+            java.time.LocalDateTime startOfDay,
+            java.time.LocalDateTime endOfDay);
+
+    // Checks if the doctor already has a non-cancelled appointment at this exact
+    // time
+    boolean existsByDoctor_UserIdAndAppointmentDateAndStatusNotIn(
+            Long doctorId,
+            java.time.LocalDateTime appointmentDate,
+            java.util.List<String> statuses);
+
     List<Appointment> findByDoctor_UserIdOrderByAppointmentDateAsc(Long doctorId);
 }

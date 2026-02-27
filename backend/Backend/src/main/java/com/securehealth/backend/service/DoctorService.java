@@ -52,7 +52,12 @@ public class DoctorService {
         profile.setSpecialty(dto.getSpecialty());
         profile.setContactNumber(dto.getContactNumber());
         profile.setDepartment(dto.getDepartment());
-        profile.setAvailabilitySchedule(dto.getAvailabilitySchedule());
+        
+        // Update Scheduling Fields
+        if (dto.getShiftStartTime() != null) profile.setShiftStartTime(dto.getShiftStartTime());
+        if (dto.getShiftEndTime() != null) profile.setShiftEndTime(dto.getShiftEndTime());
+        if (dto.getSlotDurationMinutes() != null) profile.setSlotDurationMinutes(dto.getSlotDurationMinutes());
+        if (dto.getWorkingDays() != null) profile.setWorkingDays(dto.getWorkingDays());
 
         return mapToDTO(doctorProfileRepository.save(profile));
     }
@@ -67,7 +72,13 @@ public class DoctorService {
         dto.setSpecialty(profile.getSpecialty());
         dto.setContactNumber(profile.getContactNumber());
         dto.setDepartment(profile.getDepartment());
-        dto.setAvailabilitySchedule(profile.getAvailabilitySchedule());
+        
+        // Map Scheduling Fields to DTO
+        dto.setShiftStartTime(profile.getShiftStartTime());
+        dto.setShiftEndTime(profile.getShiftEndTime());
+        dto.setSlotDurationMinutes(profile.getSlotDurationMinutes());
+        dto.setWorkingDays(profile.getWorkingDays());
+        
         return dto;
     }
 }

@@ -80,3 +80,15 @@ const enableTwoFactorAuth = async (email) => {
   }
   return await response.json();
 };
+
+GET /api/appointments/patient/{patientId} (Fetch a patient's appointments)
+
+GET /api/appointments/doctor/{doctorId} (Fetch a doctor's schedule)
+
+GET /api/appointments/doctor/{doctorId}/available-slots?date=YYYY-MM-DD (Get available time slots)
+
+POST /api/appointments (Book a new appointment)
+
+PUT /api/appointments/{id}/approve (Admin: Approve appointment)
+
+PUT /api/appointments/{id}/reject (Admin: Reject appointment)

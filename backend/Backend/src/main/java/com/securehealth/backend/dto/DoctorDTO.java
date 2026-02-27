@@ -1,15 +1,21 @@
 package com.securehealth.backend.dto;
 
 import lombok.Data;
+import java.time.LocalTime;
+import java.time.DayOfWeek;
+import java.util.List;
 
 @Data
 public class DoctorDTO {
-    private Long id; // Maps to profileId
+    private Long id; 
     private String firstName;
     private String lastName;
-    private String email; // From the linked Login account
+    private String email; 
     private String specialty;
     private String contactNumber;
     private String department;
-    private String availabilitySchedule;
+    private LocalTime shiftStartTime;
+    private LocalTime shiftEndTime;
+    private Integer slotDurationMinutes;
+    private List<DayOfWeek> workingDays;
 }
