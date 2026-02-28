@@ -92,3 +92,152 @@ POST /api/appointments (Book a new appointment)
 PUT /api/appointments/{id}/approve (Admin: Approve appointment)
 
 PUT /api/appointments/{id}/reject (Admin: Reject appointment)
+
+Module 2: Appointment Scheduling
+Fetch Schedules & Available Slots
+JavaScript
+
+// Fetch all appointments for a patient (Roles: PATIENT, DOCTOR, ADMIN)
+export const getPatientAppointments = async (patientId, token) => {
+  const response = await fetch(`http://localhost:8081/api/appointments/patient/${patientId}`, {
+    headers: { "Authorization": `Bearer ${token}` }
+  });
+  return await response.json();
+};
+
+// Fetch a doctor's schedule (Roles: DOCTOR, ADMIN)
+export const getDoctorSchedule = async (doctorId, token) => {
+  const response = await fetch(`http://localhost:8081/api/appointments/doctor/${doctorId}`, {
+    headers: { "Authorization": `Bearer ${token}` }
+  });
+  return await response.json();
+};
+
+// Generate available calendar slots (e.g., "09:00:00")
+export const getAvailableSlots = async (doctorId, dateString, token) => {
+  const response = await fetch(`http://localhost:8081/api/appointments/doctor/${doctorId}/available-slots?date=${dateString}`, {
+    headers: { "Authorization": `Bearer ${token}` }
+  });
+  return await response.json();
+};
+
+Booking & Approvals
+JavaScript
+
+// Book an open slot -> PENDING_APPROVAL (Roles: PATIENT)
+export const bookAppointment = async (appointmentData, token) => {
+  const response = await fetch("http://localhost:8081/api/appointments", {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}` 
+    },
+    body: JSON.stringify(appointmentData), // { doctorId, appointmentDate, reasonForVisit }
+  });
+  if (response.status === 409) throw new Error("Time slot already taken!");
+  if (!response.ok) throw new Error("Failed to book appointment");
+  return await response.json();
+};
+
+// Admin approves an appointment -> SCHEDULED (Roles: ADMIN)
+export const approveAppointment = async (appointmentId, token) => {
+  const response = await fetch(`http://localhost:8081/api/appointments/${appointmentId}/approve`, {
+    method: "PUT",
+    headers: { "Authorization": `Bearer ${token}` }
+  });
+  return await response.json();
+};
+
+// Admin rejects an appointment -> REJECTED (Roles: ADMIN)
+export const rejectAppointment = async (appointmentId, reason, token) => {
+  const response = await fetch(`http://localhost:8081/api/appointments/${appointmentId}/reject`, {
+    method: "PUT",
+    headers: { 
+      "Content-Type": "text/plain",
+      "Authorization": `Bearer ${token}` 
+    },
+    body: reason // Optional string
+  });
+  return await response.json();
+};
+
+Get Doctor's Unique Patients
+
+Retrieves a distinct list of all patients assigned to a doctor.
+
+    GET /doctors/{doctorId}/patients
+
+    Allowed Roles: DOCTOR (Self), ADMIN
+
+JavaScript
+
+export const getPatientsByDoctor = async (doctorId, token) => {
+  const response = await fetch(`http://localhost:8081/api/doctors/${doctorId}/patients`, {
+    headers: { "Authorization": `Bearer ${token}` }
+  });
+  return await response.json();
+};
+
+Log Vital Signs & Lab Tests (Pre-Consultation)
+
+    Allowed Roles: DOCTOR, ADMIN (or NURSE)
+
+JavaScript
+
+// Payload: { patientId, bloodPressure, heartRate, temperature, respiratoryRate, oxygenSaturation, weight, height }
+export const addVitalSigns = async (vitalsData, token) => {
+  const response = await fetch("http://localhost:8081/api/vital-signs", {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}` 
+    },
+    body: JSON.stringify(vitalsData),
+  });
+  return await response.json();
+};
+
+// Payload: { patientId, testName, testCategory, resultValue, unit, referenceRange, remarks }
+export const addLabTest = async (labData, token) => {
+  const response = await fetch("http://localhost:8081/api/lab-results", {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}` 
+    },
+    body: JSON.stringify(labData),
+  });
+  return await response.json();
+};
+
+Write Medical Records & Prescriptions (Consultation)
+
+    Allowed Roles: DOCTOR (Only)
+
+JavaScript
+
+// Payload: { patientId, diagnosis, symptoms, treatmentProvided }
+export const addMedicalRecord = async (recordData, token) => {
+  const response = await fetch("http://localhost:8081/api/medical-records", {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}` 
+    },
+    body: JSON.stringify(recordData),
+  });
+  return await response.json();
+};
+
+// Payload: { patientId, medicationName, dosage, frequency, duration, specialInstructions }
+export const addPrescription = async (prescriptionData, token) => {
+  const response = await fetch("http://localhost:8081/api/prescriptions", {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}` 
+    },
+    body: JSON.stringify(prescriptionData),
+  });
+  return await response.json();
+};
