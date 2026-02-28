@@ -3,6 +3,9 @@ package com.securehealth.backend.repository;
 import com.securehealth.backend.model.Appointment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import com.securehealth.backend.model.PatientProfile;
 
 import java.util.List;
 

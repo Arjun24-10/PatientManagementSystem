@@ -2,6 +2,7 @@ package com.securehealth.backend.controller;
 
 import com.securehealth.backend.dto.DoctorDTO;
 import com.securehealth.backend.service.DoctorService;
+import com.securehealth.backend.service.PatientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -16,6 +17,9 @@ public class DoctorController {
 
     @Autowired
     private DoctorService doctorService;
+
+    @Autowired
+    private PatientService patientService;
 
     // Helper to extract email from security context
     private String getCurrentEmail(Authentication auth) {
@@ -54,6 +58,18 @@ public class DoctorController {
         return ResponseEntity.ok(doctorService.updateDoctorProfile(
                 id, 
                 doctorDTO, 
+                getCurrentEmail(auth), 
+                getCurrentRole(auth)
+        ));
+    }
+
+    @GetMapping("/{doctorId}/patients")
+    public ResponseEntity<List<com.securehealth.backend.dto.PatientDTO>> getPatientsByDoctor(
+            @PathVariable Long doctorId, 
+            Authentication auth) {
+        
+        return ResponseEntity.ok(patientService.getPatientsByDoctor(
+                doctorId, 
                 getCurrentEmail(auth), 
                 getCurrentRole(auth)
         ));
