@@ -28,7 +28,7 @@ public class VitalSignService {
 
         VitalSign vitalSign = new VitalSign();
         vitalSign.setPatient(patient);
-        vitalSign.setRecordedBy(recorder); 
+        vitalSign.setNurse(recorder);
         
         vitalSign.setBloodPressure(request.getBloodPressure());
         vitalSign.setHeartRate(request.getHeartRate());

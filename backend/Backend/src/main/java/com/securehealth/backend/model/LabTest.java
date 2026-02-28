@@ -20,26 +20,17 @@ public class LabTest {
     private PatientProfile patient;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ordered_by_doctor_id", nullable = false)
+    @JoinColumn(name = "ordered_by_id")
     private Login orderedBy;
 
-    // Can be null until a lab tech actually processes it
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fulfilled_by_tech_id")
-    private Login fulfilledBy;
-
-    @Column(nullable = false)
-    private String testName; // e.g., "Complete Blood Count", "Lipid Panel"
-
-    @Column(columnDefinition = "TEXT")
-    private String resultData; // The actual lab results
-
-    // Status: PENDING, COMPLETED, CANCELLED
-    @Column(nullable = false)
-    private String status = "PENDING";
+    private String testName;
+    private String testCategory;
+    private String resultValue;
+    private String unit;
+    private String referenceRange;
+    private String remarks;
+    private String status;
 
     @Column(updatable = false)
     private LocalDateTime orderedAt = LocalDateTime.now();
-
-    private LocalDateTime completedAt;
 }

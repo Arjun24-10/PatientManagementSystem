@@ -31,4 +31,9 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             java.util.List<String> statuses);
 
     List<Appointment> findByDoctor_UserIdOrderByAppointmentDateAsc(Long doctorId);
+
+    @Query("SELECT DISTINCT a.patient FROM Appointment a " +
+           "WHERE a.doctor.userId = :doctorId " +
+           "AND a.status IN ('SCHEDULED', 'COMPLETED')")
+    List<PatientProfile> findDistinctPatientsByDoctorId(@Param("doctorId") Long doctorId);
 }
