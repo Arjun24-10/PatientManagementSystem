@@ -32,7 +32,16 @@ const Prescriptions = () => {
                 console.error('Failed to fetch patients', error);
             }
         };
+        const fetchPrescriptions = async () => {
+            try {
+                const data = await api.prescriptions.getAll();
+                if (Array.isArray(data)) setPrescriptions(data);
+            } catch (error) {
+                console.error('Failed to fetch prescriptions', error);
+            }
+        };
         fetchPatients();
+        fetchPrescriptions();
     }, []);
 
     const [editRxData, setEditRxData] = useState({
@@ -47,27 +56,32 @@ const Prescriptions = () => {
         rx.prescribedBy.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const handleNewRxSubmit = (e) => {
+    const handleNewRxSubmit = async (e) => {
         e.preventDefault();
         const patient = patients.find(p => p.id === newRxData.patientId);
 
         const newPrescription = {
-            id: prescriptions.length + 1,
-            name: newRxData.name,
+            medicationName: newRxData.name,
             dosage: newRxData.dosage,
             frequency: newRxData.frequency,
-            active: true,
-            prescribedBy: 'Dr. Smith', // Current logged-in user
-            date: new Date().toISOString().split('T')[0],
-            refills: 0,
-            nextRefill: 'N/A',
-            patientName: patient ? patient.name : 'Unknown',
+            status: 'ACTIVE',
+            notes: newRxData.notes,
             patientId: newRxData.patientId
         };
 
-        setPrescriptions([newPrescription, ...prescriptions]);
-        setIsNewRxModalOpen(false);
-        setNewRxData({ patientId: '', name: '', dosage: '', frequency: '', notes: '' });
+        try {
+            const created = await api.prescriptions.create(newPrescription);
+            // Append mock data to created if backend omits it to ensure UI renders properly
+            setPrescriptions([
+                { ...created, patientName: patient ? patient.name : 'Unknown', name: created.medicationName || created.name },
+                ...prescriptions
+            ]);
+            setIsNewRxModalOpen(false);
+            setNewRxData({ patientId: '', name: '', dosage: '', frequency: '', notes: '' });
+        } catch (error) {
+            console.error('Failed to create prescription', error);
+            alert('Failed to create prescription.');
+        }
     };
 
     const handleManageClick = (rx) => {
@@ -80,15 +94,29 @@ const Prescriptions = () => {
         setIsManageModalOpen(true);
     };
 
-    const handleUpdateRx = (e) => {
+    const handleUpdateRx = async (e) => {
         e.preventDefault();
-        setPrescriptions(prescriptions.map(rx =>
-            rx.id === selectedRx.id
-                ? { ...rx, ...editRxData }
-                : rx
-        ));
-        setIsManageModalOpen(false);
-        setSelectedRx(null);
+
+        try {
+            const updatePayload = {
+                ...selectedRx,
+                dosage: editRxData.dosage,
+                frequency: editRxData.frequency,
+                status: editRxData.active ? 'ACTIVE' : 'DISCONTINUED',
+            };
+            await api.prescriptions.update(selectedRx.id, updatePayload);
+
+            setPrescriptions(prescriptions.map(rx =>
+                rx.id === selectedRx.id
+                    ? { ...rx, ...editRxData, active: editRxData.active }
+                    : rx
+            ));
+            setIsManageModalOpen(false);
+            setSelectedRx(null);
+        } catch (error) {
+            console.error('Failed to update prescription', error);
+            alert('Failed to update prescription.');
+        }
     };
 
     return (

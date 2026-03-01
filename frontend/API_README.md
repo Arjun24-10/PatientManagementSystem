@@ -74,6 +74,7 @@ fetch("http://localhost:8081/api/auth/logout", {
 ## Medical Records (`/medical-records`)
 | Method | Endpoint | Description | Payload |
 |---|---|---|---|
+| GET | `/medical-records` | Get all medical records | - |
 | GET | `/medical-records/patient/:patientId` | Get all by Patient | - |
 | GET | `/medical-records/:id` | Get record by ID | - |
 | POST | `/medical-records` | Create record | `{ ...recordData }` |
@@ -83,6 +84,7 @@ fetch("http://localhost:8081/api/auth/logout", {
 ## Prescriptions (`/prescriptions`)
 | Method | Endpoint | Description | Payload |
 |---|---|---|---|
+| GET | `/prescriptions` | Get all prescriptions | - |
 | GET | `/prescriptions/patient/:patientId` | Get all by Patient | - |
 | GET | `/prescriptions/:id` | Get prescription by ID | - |
 | POST | `/prescriptions` | Create prescription | `{ ...prescriptionData }` |
@@ -92,6 +94,7 @@ fetch("http://localhost:8081/api/auth/logout", {
 ## Lab Results (`/lab-results`)
 | Method | Endpoint | Description | Payload |
 |---|---|---|---|
+| GET | `/lab-results` | Get all lab results | - |
 | GET | `/lab-results/patient/:patientId` | Get all by Patient | - |
 | GET | `/lab-results/:id` | Get result by ID | - |
 | POST | `/lab-results` | Create result | `{ ...labResultData }` |

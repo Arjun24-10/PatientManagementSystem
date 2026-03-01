@@ -29,14 +29,14 @@ const PatientDashboard = () => {
             }
          } catch (e) {
             console.error('Failed to fetch real profile', e);
-            const fallbackId = user?.id || 'P001';
+            const fallbackId = user?.userId || user?.id || 'P001';
             const fallbackName = user?.fullName || user?.full_name || user?.name || 'Patient';
             setPatient({ id: fallbackId, name: fallbackName });
             setPatientId(fallbackId);
          }
       };
       fetchProfile();
-   }, [user?.id]);
+   }, [user]);
 
    // Fetch API Data once we have patientId
    React.useEffect(() => {

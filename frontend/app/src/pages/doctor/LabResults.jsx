@@ -2,13 +2,26 @@ import React, { useState } from 'react';
 import { Search } from 'lucide-react';
 import Card from '../../components/common/Card';
 import LabResultsList from '../../components/doctor/LabResultsList';
+import api from '../../services/api';
 
 
 const LabResults = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filter, setFilter] = useState('All');
 
-    const [labs] = useState([]);
+    const [labs, setLabs] = useState([]);
+
+    React.useEffect(() => {
+        const fetchLabs = async () => {
+            try {
+                const data = await api.labResults.getAll();
+                if (Array.isArray(data)) setLabs(data);
+            } catch (error) {
+                console.error("Failed to fetch labs", error);
+            }
+        };
+        fetchLabs();
+    }, []);
 
     const filteredLabs = labs.filter(lab => {
         const matchesSearch = lab.name?.toLowerCase().includes(searchTerm.toLowerCase());

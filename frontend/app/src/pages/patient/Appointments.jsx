@@ -11,24 +11,46 @@ import Alert from '../../components/common/Alert';
 import Input from '../../components/common/Input';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
-import { mockDepartments, mockDoctors, mockTimeSlots, appointmentTypes, cancellationReasons } from '../../mocks/doctors';
 import { format, addDays, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, parseISO, differenceInDays, differenceInHours, differenceInMinutes } from 'date-fns';
+
+// Static ENUM-like arrays
+const appointmentTypes = ['General Checkup', 'Follow-up', 'Consultation', 'Specialist', 'Routine', 'Emergency'];
+const cancellationReasons = ['Schedule Conflict', 'Feeling Better', 'Transportation Issue', 'Financial Reasons', 'Other'];
+const timeSlots = {
+   morning: ['09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM'],
+   afternoon: ['01:00 PM', '01:30 PM', '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM'],
+   evening: ['05:00 PM', '05:30 PM', '06:00 PM', '06:30 PM']
+};
 
 const PatientAppointments = () => {
    const { user } = useAuth();
    const patientId = user?.id || 'P001';
    const [appointments, setAppointments] = useState([]);
 
+   const [doctors, setDoctors] = useState([]);
+   const [departments, setDepartments] = useState([]);
+
    React.useEffect(() => {
-      const fetchAppointments = async () => {
+      const fetchAppointmentsAndDoctors = async () => {
          try {
             const data = await api.appointments.getByPatient(patientId);
             if (Array.isArray(data)) setAppointments(data);
          } catch (error) {
             console.error('Failed to fetch appointments', error);
          }
+
+         try {
+            const docData = await api.doctors.getAll();
+            if (Array.isArray(docData)) {
+               setDoctors(docData);
+               const uniqueDepts = Array.from(new Set(docData.map(d => d.department || d.specialization).filter(Boolean)));
+               setDepartments(uniqueDepts.map(name => ({ id: name, name })));
+            }
+         } catch (error) {
+            console.error('Failed to fetch doctors', error);
+         }
       };
-      if (patientId) fetchAppointments();
+      if (patientId) fetchAppointmentsAndDoctors();
    }, [patientId]);
    const [activeTab, setActiveTab] = useState('upcoming');
    const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
@@ -79,14 +101,14 @@ const PatientAppointments = () => {
    // Get doctors filtered by selected department
    const filteredDoctors = useMemo(() => {
       if (!requestForm.department) return [];
-      return mockDoctors.filter(d => d.department === requestForm.department);
-   }, [requestForm.department]);
+      return doctors.filter(d => (d.department || d.specialization) === requestForm.department);
+   }, [requestForm.department, doctors]);
 
    // Get available time slots for selected date
    const availableTimeSlots = useMemo(() => {
       if (!requestForm.date) return [];
       // In a real app, this would check doctor's availability
-      return [...mockTimeSlots.morning, ...mockTimeSlots.afternoon, ...mockTimeSlots.evening];
+      return [...timeSlots.morning, ...timeSlots.afternoon, ...timeSlots.evening];
    }, [requestForm.date]);
 
    // Calendar days for current month
@@ -115,66 +137,75 @@ const PatientAppointments = () => {
    };
 
    // Handle request appointment submission
-   const handleRequestSubmit = (e) => {
+   const handleRequestSubmit = async (e) => {
       e.preventDefault();
       if (requestStep < 3) {
          setRequestStep(requestStep + 1);
       } else {
-         // Submit the request
-         const selectedDoctor = mockDoctors.find(d => d.id === requestForm.doctor);
-         const newAppointment = {
-            id: `A${appointments.length + 1}`.padStart(4, '0'),
-            patientId,
-            patientName: 'Emily Blunt',
-            doctorName: selectedDoctor?.name || 'TBD',
-            doctorId: requestForm.doctor,
-            department: mockDepartments.find(d => d.id === requestForm.department)?.name,
-            date: requestForm.date,
-            time: requestForm.time,
-            duration: 30,
-            type: requestForm.type,
-            status: 'Pending',
-            room: 'TBD',
-            location: 'TBD',
-            reason: requestForm.reason,
-            cancellationReason: null,
-         };
+         try {
+            const selectedDoctor = doctors.find(d => d.id === requestForm.doctor || d.doctorId === requestForm.doctor);
+            const newAppointment = {
+               patientId,
+               doctorId: requestForm.doctor,
+               doctorName: selectedDoctor?.full_name || selectedDoctor?.fullName || selectedDoctor?.name,
+               department: requestForm.department,
+               date: requestForm.date,
+               time: requestForm.time,
+               duration: 30,
+               type: requestForm.type,
+               status: 'Pending',
+               room: 'TBD',
+               location: 'TBD',
+               reasonForVisit: requestForm.reason,
+               reason: requestForm.reason,
+            };
 
-         setAppointments([...appointments, newAppointment]);
-         setIsRequestModalOpen(false);
-         setRequestStep(1);
-         setRequestForm({
-            department: '',
-            doctor: '',
-            date: '',
-            time: '',
-            type: '',
-            reason: '',
-            specialRequirements: '',
-         });
-         alert('✅ Appointment request submitted! We will confirm shortly.');
+            const created = await api.appointments.create(newAppointment);
+            setAppointments([...appointments, created]);
+            setIsRequestModalOpen(false);
+            setRequestStep(1);
+            setRequestForm({
+               department: '',
+               doctor: '',
+               date: '',
+               time: '',
+               type: '',
+               reason: '',
+               specialRequirements: '',
+            });
+            alert('✅ Appointment request submitted!');
+         } catch (err) {
+            console.error('Failed to request appointment:', err);
+            alert('Failed to request appointment. Please try again.');
+         }
       }
    };
 
    // Handle cancel appointment
-   const handleCancelAppointment = () => {
+   const handleCancelAppointment = async () => {
       if (!cancellationReason) {
          alert('Please select a cancellation reason');
          return;
       }
 
-      setAppointments(
-         appointments.map(a =>
-            a.id === appointmentToCancel.id
-               ? { ...a, status: 'Cancelled', cancellationReason }
-               : a
-         )
-      );
+      try {
+         await api.appointments.cancel(appointmentToCancel.id);
+         setAppointments(
+            appointments.map(a =>
+               a.id === appointmentToCancel.id
+                  ? { ...a, status: 'Cancelled', cancellationReason }
+                  : a
+            )
+         );
 
-      setIsCancelModalOpen(false);
-      setAppointmentToCancel(null);
-      setCancellationReason('');
-      alert('📧 Appointment cancelled. Confirmation email sent.');
+         setIsCancelModalOpen(false);
+         setAppointmentToCancel(null);
+         setCancellationReason('');
+         alert('📧 Appointment cancelled.');
+      } catch (err) {
+         console.error('Failed to cancel appointment:', err);
+         alert('Failed to cancel appointment. Please try again.');
+      }
    };
 
    // Open cancel modal
@@ -562,9 +593,9 @@ const PatientAppointments = () => {
                            required
                         >
                            <option value="">Choose a department</option>
-                           {mockDepartments.map(dept => (
+                           {departments.map(dept => (
                               <option key={dept.id} value={dept.id}>
-                                 {dept.icon} {dept.name}
+                                 {dept.name}
                               </option>
                            ))}
                         </select>
@@ -576,9 +607,9 @@ const PatientAppointments = () => {
                            <div className="space-y-2 max-h-48 overflow-y-auto">
                               {filteredDoctors.map(doctor => (
                                  <div
-                                    key={doctor.id}
-                                    onClick={() => setRequestForm({ ...requestForm, doctor: doctor.id })}
-                                    className={`p-2 border rounded cursor-pointer transition-colors ${requestForm.doctor === doctor.id
+                                    key={doctor.id || doctor.doctorId}
+                                    onClick={() => setRequestForm({ ...requestForm, doctor: doctor.id || doctor.doctorId })}
+                                    className={`p-2 border rounded cursor-pointer transition-colors ${requestForm.doctor === (doctor.id || doctor.doctorId)
                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                                        : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600'
                                        }`}
@@ -586,14 +617,14 @@ const PatientAppointments = () => {
                                     <div className="flex items-center justify-between">
                                        <div className="flex items-center gap-2">
                                           <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-medium">
-                                             {doctor.avatar}
+                                             {(doctor.full_name || doctor.fullName || doctor.name || 'D').charAt(0)}
                                           </div>
                                           <div>
-                                             <p className="text-sm font-medium text-gray-800 dark:text-slate-100">{doctor.name}</p>
-                                             <p className="text-xs text-gray-500 dark:text-slate-400">{doctor.specialization}</p>
+                                             <p className="text-sm font-medium text-gray-800 dark:text-slate-100">{doctor.full_name || doctor.fullName || doctor.name}</p>
+                                             <p className="text-xs text-gray-500 dark:text-slate-400">{doctor.specialization || doctor.department}</p>
                                           </div>
                                        </div>
-                                       <span className="text-xs text-yellow-600">{doctor.rating}⭐</span>
+                                       <span className="text-xs text-yellow-600">⭐ {doctor.rating || '4.8'}</span>
                                     </div>
                                  </div>
                               ))}

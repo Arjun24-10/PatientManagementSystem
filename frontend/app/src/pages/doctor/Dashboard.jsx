@@ -56,7 +56,8 @@ const DoctorDashboard = () => {
       p.id.toLowerCase().includes(searchTerm.toLowerCase())
    );
 
-   const todaysAppointments = appointments.filter(a => a.date === '2023-12-15');
+   const todayStr = new Date().toISOString().split('T')[0];
+   const todaysAppointments = appointments.filter(a => a.date === todayStr);
 
 
    return (

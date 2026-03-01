@@ -34,6 +34,17 @@ const apiCall = async (endpoint, options = {}) => {
    try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
 
+      if (response.status === 401 || response.status === 403) {
+         if (endpoint !== '/auth/login' && endpoint !== '/auth/register') {
+            console.warn('API returned 401/403. Session may be expired.');
+            // Clear local storage to force a re-login
+            localStorage.removeItem('secure_health_user');
+            // Slight delay then redirect
+            window.location.href = '/login';
+            throw new Error('Session expired. Please log in again.');
+         }
+      }
+
       if (!response.ok) {
          const error = await response.json().catch(() => ({ message: 'Request failed' }));
          throw new Error(error.message || `HTTP error! status: ${response.status}`);
@@ -134,9 +145,17 @@ export const patientAPI = {
 
    // Get all patients
    getAll: async () => {
-      return apiCall('/patients', {
+      const data = await apiCall('/patients', {
          method: 'GET',
       });
+      if (Array.isArray(data)) {
+         return data.map(p => ({
+            ...p,
+            name: `${p.firstName || ''} ${p.lastName || ''}`.trim() || p.name || 'Unknown',
+            id: p.id != null ? String(p.id) : '',
+         }));
+      }
+      return data;
    },
 
    // Get patient by ID
@@ -177,9 +196,23 @@ export const patientAPI = {
 export const appointmentAPI = {
    // Get all appointments
    getAll: async () => {
-      return apiCall('/appointments', {
+      const data = await apiCall('/appointments', {
          method: 'GET',
       });
+      if (Array.isArray(data)) {
+         return data.map(appt => ({
+            ...appt,
+            id: appt.appointmentId || appt.id,
+            date: appt.appointmentDate ? appt.appointmentDate.split('T')[0] : appt.date,
+            time: appt.appointmentDate ? appt.appointmentDate.split('T')[1]?.substring(0, 5) : appt.time,
+            doctorName: appt.doctor?.email || appt.doctorName || 'Assigned Doctor',
+            patientName: appt.patient
+               ? `${appt.patient.firstName || ''} ${appt.patient.lastName || ''}`.trim()
+               : appt.patientName || 'Patient',
+            type: appt.reasonForVisit || appt.type,
+         }));
+      }
+      return data;
    },
 
    // Get appointment by ID
@@ -270,6 +303,24 @@ export const medicalRecordAPI = {
       return data;
    },
 
+   // Get all medical records
+   getAll: async () => {
+      const data = await apiCall('/medical-records', {
+         method: 'GET',
+      });
+      if (Array.isArray(data)) {
+         return data.map(record => ({
+            ...record,
+            id: record.recordId || record.id,
+            name: record.diagnosis || record.name,
+            date: record.createdAt ? record.createdAt.split('T')[0] : record.date,
+            doctor: record.doctor?.email || record.doctor || 'Assigned Doctor',
+            severity: 'Moderate', // Default severity since backend doesn't have it
+         }));
+      }
+      return data;
+   },
+
    // Get medical record by ID
    getById: async (id) => {
       return apiCall(`/medical-records/${id}`, {
@@ -325,6 +376,24 @@ export const prescriptionAPI = {
       return data;
    },
 
+   // Get all prescriptions (all patients)
+   getAll: async () => {
+      const data = await apiCall('/prescriptions', {
+         method: 'GET',
+      });
+      if (Array.isArray(data)) {
+         return data.map(rx => ({
+            ...rx,
+            id: rx.prescriptionId || rx.id,
+            name: rx.medicationName || rx.name,
+            active: rx.status === 'ACTIVE' || rx.active,
+            date: rx.issuedAt ? rx.issuedAt.split('T')[0] : rx.date,
+            doctorName: rx.doctor?.email || rx.doctorName || 'Assigned Doctor',
+         }));
+      }
+      return data;
+   },
+
    // Get prescription by ID
    getById: async (id) => {
       return apiCall(`/prescriptions/${id}`, {
@@ -365,6 +434,24 @@ export const labResultAPI = {
    getByPatient: async (patientId) => {
       const realId = await resolvePatientId(patientId);
       const data = await apiCall(`/lab-results/patient/${realId}`, {
+         method: 'GET',
+      });
+      if (Array.isArray(data)) {
+         return data.map(lab => ({
+            ...lab,
+            id: lab.testId || lab.id,
+            name: lab.testName || lab.name,
+            type: lab.testName || lab.type,
+            result: lab.resultData || lab.result,
+            date: lab.orderedAt ? lab.orderedAt.split('T')[0] : lab.date,
+         }));
+      }
+      return data;
+   },
+
+   // Get all lab results (across all patients)
+   getAll: async () => {
+      const data = await apiCall('/lab-results', {
          method: 'GET',
       });
       if (Array.isArray(data)) {

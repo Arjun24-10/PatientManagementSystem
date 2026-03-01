@@ -21,7 +21,8 @@ import {
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
-
+import api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const MedicalHistory = () => {
    const [activeTab, setActiveTab] = useState('timeline');
@@ -29,12 +30,42 @@ const MedicalHistory = () => {
    const [searchTerm, setSearchTerm] = useState('');
    const [filterType, setFilterType] = useState('all');
 
-   const [timeline] = useState([]);
-   const [diagnosesHistory] = useState([]);
+   const [timeline, setTimeline] = useState([]);
+   const [diagnosesHistory, setDiagnosesHistory] = useState([]);
    const [treatmentHistory] = useState([]);
    const [procedureHistory] = useState([]);
    const [allergies] = useState([]);
    const [chronicConditions] = useState([]);
+
+   const { user } = useAuth();
+   const patientId = user?.id || 'P001';
+
+   React.useEffect(() => {
+      const fetchRecords = async () => {
+         try {
+            const data = await api.medicalRecords.getByPatient(patientId);
+            if (Array.isArray(data)) {
+               // Assuming backend returns records mixed or just diagnoses, map them appropriately mappings
+               setDiagnosesHistory(data);
+               // Populate timeline loosely based on diagnoses date
+               setTimeline(data.map(d => ({
+                  id: d.id,
+                  type: 'visit',
+                  title: d.name,
+                  date: d.date,
+                  doctor: d.doctor,
+                  summary: d.notes || d.diagnosis,
+                  details: d.notes || d.diagnosis,
+                  department: 'General',
+                  status: d.status || 'completed'
+               })));
+            }
+         } catch (error) {
+            console.error('Failed to fetch medical history', error);
+         }
+      };
+      if (patientId) fetchRecords();
+   }, [patientId]);
 
    const tabs = [
       { key: 'timeline', label: 'Timeline', icon: Clock },
