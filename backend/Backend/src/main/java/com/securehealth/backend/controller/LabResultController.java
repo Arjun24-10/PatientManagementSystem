@@ -1,6 +1,7 @@
 package com.securehealth.backend.controller;
 
 import com.securehealth.backend.model.LabTest;
+import com.securehealth.backend.dto.LabTestDTO;
 import com.securehealth.backend.repository.LabTestRepository;
 import com.securehealth.backend.security.PatientAccessValidator;
 import com.securehealth.backend.service.LabTestService;
@@ -21,9 +22,9 @@ public class LabResultController {
     @Autowired private LabTestService labTestService;
 
     @GetMapping("/patient/{patientId}")
-    public ResponseEntity<List<LabTest>> getByPatient(@PathVariable Long patientId, Authentication auth) {
+    public ResponseEntity<List<LabTestDTO>> getByPatient(@PathVariable Long patientId, Authentication auth) {
         accessValidator.validateAccess(patientId, auth);
-        return ResponseEntity.ok(labTestRepository.findByPatient_ProfileIdOrderByOrderedAtDesc(patientId));
+        return ResponseEntity.ok(labTestService.getLabTestsByPatient(patientId));
     }
 
     

@@ -1,9 +1,12 @@
 package com.securehealth.backend.model;
 
+
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+
+
 
 @Data
 @NoArgsConstructor
@@ -20,7 +23,6 @@ public class LabTest {
     private PatientProfile patient;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ordered_by_id")
     private Login orderedBy;
 
     private String testName;

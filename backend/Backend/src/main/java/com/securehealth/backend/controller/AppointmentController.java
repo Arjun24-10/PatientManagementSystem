@@ -1,5 +1,6 @@
 package com.securehealth.backend.controller;
 
+import com.securehealth.backend.dto.AppointmentDTO;
 import com.securehealth.backend.dto.AppointmentRequest;
 import com.securehealth.backend.model.Appointment;
 import com.securehealth.backend.repository.AppointmentRepository;
@@ -26,9 +27,9 @@ public class AppointmentController {
     @Autowired private AppointmentService appointmentService;
 
     @GetMapping("/patient/{patientId}")
-    public ResponseEntity<List<Appointment>> getByPatient(@PathVariable Long patientId, Authentication auth) {
+    public ResponseEntity<List<AppointmentDTO>> getByPatient(@PathVariable Long patientId, Authentication auth) {
         accessValidator.validateAccess(patientId, auth);
-        return ResponseEntity.ok(appointmentRepository.findByPatient_ProfileIdOrderByAppointmentDateDesc(patientId));
+        return ResponseEntity.ok(appointmentService.getAppointmentsByPatient(patientId));
     }
 
     @GetMapping("/doctor/{doctorId}")

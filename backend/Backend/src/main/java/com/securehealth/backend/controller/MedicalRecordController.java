@@ -1,6 +1,7 @@
 package com.securehealth.backend.controller;
 
 import com.securehealth.backend.model.MedicalRecord;
+import com.securehealth.backend.dto.MedicalRecordDTO;
 import com.securehealth.backend.repository.MedicalRecordRepository;
 import com.securehealth.backend.service.MedicalRecordService;
 import com.securehealth.backend.security.PatientAccessValidator;
@@ -21,9 +22,9 @@ public class MedicalRecordController {
     @Autowired private MedicalRecordService medicalRecordService;
 
     @GetMapping("/patient/{patientId}")
-    public ResponseEntity<List<MedicalRecord>> getByPatient(@PathVariable Long patientId, Authentication auth) {
+    public ResponseEntity<List<MedicalRecordDTO>> getByPatient(@PathVariable Long patientId, Authentication auth) {
         accessValidator.validateAccess(patientId, auth);
-        return ResponseEntity.ok(medicalRecordRepository.findByPatient_ProfileIdOrderByCreatedAtDesc(patientId));
+        return ResponseEntity.ok(medicalRecordService.getMedicalRecordsByPatient(patientId));
     }
 
     @PostMapping

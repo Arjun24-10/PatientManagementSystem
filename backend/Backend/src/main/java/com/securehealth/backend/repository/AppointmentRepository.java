@@ -36,4 +36,6 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
            "WHERE a.doctor.userId = :doctorId " +
            "AND a.status IN ('SCHEDULED', 'COMPLETED')")
     List<PatientProfile> findDistinctPatientsByDoctorId(@Param("doctorId") Long doctorId);
+
+    List<Appointment> findByPatient_ProfileId(Long patientId);
 }

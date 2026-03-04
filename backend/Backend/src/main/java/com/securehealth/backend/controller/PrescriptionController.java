@@ -1,5 +1,6 @@
 package com.securehealth.backend.controller;
 
+import com.securehealth.backend.dto.PrescriptionDTO;
 import com.securehealth.backend.model.Prescription;
 import com.securehealth.backend.repository.PrescriptionRepository;
 import com.securehealth.backend.service.PrescriptionService;
@@ -21,9 +22,9 @@ public class PrescriptionController {
     @Autowired private PrescriptionService prescriptionService;
 
     @GetMapping("/patient/{patientId}")
-    public ResponseEntity<List<Prescription>> getByPatient(@PathVariable Long patientId, Authentication auth) {
+    public ResponseEntity<List<PrescriptionDTO>> getByPatient(@PathVariable Long patientId, Authentication auth) {
         accessValidator.validateAccess(patientId, auth);
-        return ResponseEntity.ok(prescriptionRepository.findByPatient_ProfileIdOrderByIssuedAtDesc(patientId));
+        return ResponseEntity.ok(prescriptionService.getPrescriptionsByPatient(patientId));
     }
 
     @PostMapping

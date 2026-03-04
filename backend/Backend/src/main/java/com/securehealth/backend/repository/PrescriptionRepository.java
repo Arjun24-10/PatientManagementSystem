@@ -14,4 +14,7 @@ public interface PrescriptionRepository extends JpaRepository<Prescription, Long
     
     // Optional but helpful: Find active prescriptions
     List<Prescription> findByPatient_ProfileIdAndStatus(Long patientId, String status);
+
+    // Make sure java.util.List is imported
+    List<Prescription> findByPatient_ProfileId(Long patientId);
 }

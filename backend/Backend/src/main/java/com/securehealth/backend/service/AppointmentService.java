@@ -9,8 +9,11 @@ import com.securehealth.backend.repository.AppointmentRepository;
 import com.securehealth.backend.repository.DoctorProfileRepository;
 import com.securehealth.backend.repository.LoginRepository;
 import com.securehealth.backend.repository.PatientProfileRepository;
+import com.securehealth.backend.dto.AppointmentDTO;
 
-import jakarta.transaction.Transactional;
+import java.util.List;
+import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -141,5 +144,21 @@ public class AppointmentService {
         // appointment.setDoctorNotes("Rejected by Admin: " + rejectionReason); 
         
         return appointmentRepository.save(appointment);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AppointmentDTO> getAppointmentsByPatient(Long patientId) {
+        return appointmentRepository.findByPatient_ProfileId(patientId).stream().map(app -> {
+            AppointmentDTO dto = new AppointmentDTO();
+            dto.setAppointmentId(app.getAppointmentId());
+            dto.setDoctorId(app.getDoctor().getUserId());
+            // This safely triggers the lazy load while the connection is open!
+            dto.setDoctorName(app.getDoctor().getEmail()); 
+            dto.setPatientName(app.getPatient().getFirstName() + " " + app.getPatient().getLastName());
+            dto.setAppointmentDate(app.getAppointmentDate());
+            dto.setStatus(app.getStatus());
+            dto.setReasonForVisit(app.getReasonForVisit());
+            return dto;
+        }).collect(Collectors.toList());
     }
 }

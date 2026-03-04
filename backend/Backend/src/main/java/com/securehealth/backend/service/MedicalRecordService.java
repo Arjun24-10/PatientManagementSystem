@@ -1,5 +1,6 @@
 package com.securehealth.backend.service;
 
+import com.securehealth.backend.dto.MedicalRecordDTO;
 import com.securehealth.backend.dto.MedicalRecordRequest;
 import com.securehealth.backend.model.Login;
 import com.securehealth.backend.model.MedicalRecord;
@@ -7,6 +8,10 @@ import com.securehealth.backend.model.PatientProfile;
 import com.securehealth.backend.repository.LoginRepository;
 import com.securehealth.backend.repository.MedicalRecordRepository;
 import com.securehealth.backend.repository.PatientProfileRepository;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,5 +39,21 @@ public class MedicalRecordService {
         record.setTreatmentProvided(request.getTreatmentProvided());
 
         return medicalRecordRepository.save(record);
+    }
+    @Transactional(readOnly = true)
+    public List<MedicalRecordDTO> getMedicalRecordsByPatient(Long patientId) {
+        return medicalRecordRepository.findByPatient_ProfileId(patientId).stream().map(mr -> {
+            MedicalRecordDTO dto = new MedicalRecordDTO();
+            dto.setRecordId(mr.getRecordId());
+            
+            // Safely trigger the lazy load
+            dto.setDoctorName(mr.getDoctor() != null ? mr.getDoctor().getEmail() : "Unknown Doctor");
+            
+            dto.setDiagnosis(mr.getDiagnosis());
+            dto.setSymptoms(mr.getSymptoms());
+            dto.setTreatmentProvided(mr.getTreatmentProvided());
+            dto.setRecordedAt(mr.getUpdatedAt());
+            return dto;
+        }).collect(Collectors.toList());
     }
 }
