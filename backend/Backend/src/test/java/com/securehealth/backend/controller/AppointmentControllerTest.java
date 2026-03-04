@@ -66,28 +66,28 @@ public class AppointmentControllerTest {
     @Test
     @WithMockUser(username = "patient@mail.com", authorities = {"PATIENT"})
     void getAppointmentsByPatient_ReturnsList() throws Exception {
-        // Arrange
-        Long patientId = 1L;
-        Appointment apt = new Appointment();
-        apt.setAppointmentId(100L);
-        apt.setStatus("SCHEDULED");
-        apt.setAppointmentDate(LocalDateTime.now().plusDays(1));
+        //Arrange
+        com.securehealth.backend.dto.AppointmentDTO mockDto = new com.securehealth.backend.dto.AppointmentDTO();
+        mockDto.setAppointmentId(10L);
+        mockDto.setDoctorName("dr.house@mail.com");
+        mockDto.setPatientName("John Doe");
+        mockDto.setStatus("SCHEDULED");
+        mockDto.setReasonForVisit("Routine Checkup");
 
-        // Mock the validator to do nothing (assume access is granted)
-        doNothing().when(accessValidator).validateAccess(eq(patientId), any());
-        
-        // Mock the repository
-        when(appointmentRepository.findByPatient_ProfileIdOrderByAppointmentDateDesc(patientId))
-                .thenReturn(Arrays.asList(apt));
+        when(appointmentService.getAppointmentsByPatient(1L))
+                .thenReturn(List.of(mockDto));
 
-        // Act & Assert
-        mockMvc.perform(get("/api/appointments/patient/" + patientId)
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                "patient@mail.com", null, List.of(new SimpleGrantedAuthority("PATIENT")));
+                
+        mockMvc.perform(get("/api/appointments/patient/1")
+                .principal(auth)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].appointmentId").value(100))
-                .andExpect(jsonPath("$[0].status").value("SCHEDULED"));
+                .andExpect(jsonPath("$[0].appointmentId").value(10))           // Matches the DTO
+                .andExpect(jsonPath("$[0].doctorName").value("dr.house@mail.com")) // Matches the DTO
+                .andExpect(jsonPath("$[0].status").value("SCHEDULED"));        // Matches the DTO
     }
-
     @Test
     void approveAppointment_AsAdmin_Returns200() throws Exception {
         // Arrange
