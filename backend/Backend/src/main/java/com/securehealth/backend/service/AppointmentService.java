@@ -161,4 +161,23 @@ public class AppointmentService {
             return dto;
         }).collect(Collectors.toList());
     }
+    
+    @Transactional(readOnly = true)
+    public List<AppointmentDTO> getAllAppointments() {
+        return appointmentRepository.findAll().stream().map(app -> {
+            AppointmentDTO dto = new AppointmentDTO();
+            dto.setAppointmentId(app.getAppointmentId());
+            dto.setDoctorId(app.getDoctor().getUserId());
+            
+            // Safely trigger lazy loading
+            dto.setDoctorName(app.getDoctor() != null ? app.getDoctor().getEmail() : "Unknown");
+            dto.setPatientName(app.getPatient() != null ? 
+                app.getPatient().getFirstName() + " " + app.getPatient().getLastName() : "Unknown");
+                
+            dto.setAppointmentDate(app.getAppointmentDate());
+            dto.setStatus(app.getStatus());
+            dto.setReasonForVisit(app.getReasonForVisit());
+            return dto;
+        }).collect(Collectors.toList());
+    }
 }

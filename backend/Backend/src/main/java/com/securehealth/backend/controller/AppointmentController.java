@@ -108,4 +108,15 @@ public class AppointmentController {
         }
     }
     
+    @GetMapping
+    public ResponseEntity<?> getAllAppointments(Authentication auth) {
+        // Enforce RBAC: Block Patients
+        String role = auth.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse("");
+        if (role.equals("PATIENT")) {
+            return ResponseEntity.status(403).body("Forbidden: Patients cannot view the global clinic schedule.");
+        }
+
+        // Allow ADMIN and DOCTOR
+        return ResponseEntity.ok(appointmentService.getAllAppointments());
+    }
 }
