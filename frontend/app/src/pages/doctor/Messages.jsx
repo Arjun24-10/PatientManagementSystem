@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { Search, MessageSquare } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
+import { mockMessages } from '../../mocks/communication';
 
 
 const Messages = () => {
-    const [messages] = useState([]);
-    const [activeMessage, setActiveMessage] = useState(null);
+    const [messages] = useState(mockMessages);
+    const [activeMessage, setActiveMessage] = useState(mockMessages[0]);
     const [replyText, setReplyText] = useState('');
 
     return (

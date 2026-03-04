@@ -1,5 +1,6 @@
 import React from 'react';
 import { Download } from 'lucide-react';
+import IconOnlyButton from '../../../components/common/IconOnlyButton';
 import {
     ResponsiveContainer,
     LineChart,
@@ -13,6 +14,7 @@ import {
 } from 'recharts';
 import Card from '../../../components/common/Card';
 import Button from '../../../components/common/Button';
+import IconButton from '../../../components/common/IconButton';
 
 const rangeLabels = {
     '24h': 'Last 24 hrs',
@@ -132,10 +134,12 @@ const VitalsTrendCard = ({
         </div>
 
         <div className="flex justify-end">
-            <Button variant="outline" className="flex items-center gap-2" onClick={onExport}>
-                <Download className="w-4 h-4" />
-                Export Trend PDF
-            </Button>
+            <IconButton 
+               icon={Download} 
+               label="Export Trend PDF" 
+               variant="outline" 
+               onClick={onExport}
+            />
         </div>
     </Card>
 );

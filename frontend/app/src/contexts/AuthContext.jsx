@@ -158,6 +158,80 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // 2FA verification function
+  const verifyOtp = async (email, otp) => {
+    setError(null);
+    setLoading(true);
+    try {
+      const result = await authService.verifyOtp(email, otp);
+      if (result.success) {
+        setUser(result.user);
+        setSession({ user: result.user });
+        // Schedule auto-logout based on JWT expiry if token is provided
+        if (result.user?.accessToken) {
+          scheduleAutoLogout(result.user.accessToken);
+        }
+        return { success: true };
+      } else {
+        setError(result.error);
+        return { success: false, error: result.error };
+      }
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Resend OTP function
+  const resendOtp = async (email) => {
+    setError(null);
+    try {
+      const result = await authService.resendOtp(email);
+      return result;
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  // Password reset request function
+  const forgotPassword = async (email) => {
+    setError(null);
+    try {
+      const result = await authService.forgotPassword(email);
+      return result;
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  // Validate password reset token function
+  const validateResetToken = async (token) => {
+    setError(null);
+    try {
+      const result = await authService.validateResetToken(token);
+      return result;
+    } catch (err) {
+      setError(err.message);
+      return { valid: false, error: err.message };
+    }
+  };
+
+  // Reset password function
+  const resetPassword = async (token, newPassword, confirmPassword) => {
+    setError(null);
+    try {
+      const result = await authService.resetPassword(token, newPassword, confirmPassword);
+      return result;
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
   const value = {
     user,
     session,
@@ -166,6 +240,11 @@ export const AuthProvider = ({ children }) => {
     login,
     signup,
     logout,
+    verifyOtp,
+    resendOtp,
+    forgotPassword,
+    validateResetToken,
+    resetPassword,
     isAuthenticated: !!user,
   };
 

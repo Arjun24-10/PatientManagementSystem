@@ -21,6 +21,7 @@ import {
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
+import IconButton from '../../components/common/IconButton';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -186,10 +187,12 @@ const MedicalHistory = () => {
                <option value="prescription">Prescriptions</option>
                <option value="procedure">Procedures</option>
             </select>
-            <Button variant="outline" size="sm" className="whitespace-nowrap">
-               <Download className="w-3.5 h-3.5 mr-1" />
-               Export
-            </Button>
+            <IconButton 
+               icon={Download} 
+               label="Export" 
+               variant="outline" 
+               size="sm"
+            />
          </div>
 
          {/* Timeline */}
@@ -321,12 +324,15 @@ const MedicalHistory = () => {
 
                <div className="pt-2 border-t border-gray-200 dark:border-slate-700">
                   <p className="text-xs text-gray-600 dark:text-slate-300 leading-relaxed">
-                     {expandedCards[diagnosis.id]
-                        ? diagnosis.notes
-                        : `${diagnosis.notes.substring(0, 80)}...`
-                     }
+                     {diagnosis.notes ? (
+                        expandedCards[diagnosis.id]
+                           ? diagnosis.notes
+                           : `${diagnosis.notes.substring(0, 80)}...`
+                     ) : (
+                        <span className="text-gray-400 italic">No notes available</span>
+                     )}
                   </p>
-                  {diagnosis.notes.length > 80 && (
+                  {diagnosis.notes && diagnosis.notes.length > 80 && (
                      <button
                         onClick={() => toggleCard(diagnosis.id)}
                         className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-xs font-medium mt-1"
@@ -801,15 +807,19 @@ const MedicalHistory = () => {
                <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">Medical History</h2>
                <p className="text-xs text-gray-500 dark:text-slate-400">Medical records and health information</p>
             </div>
-            <div className="flex gap-1.5">
-               <Button variant="outline" className="whitespace-nowrap text-xs py-1 px-2">
-                  <Printer className="w-3.5 h-3.5 mr-1" />
-                  Print
-               </Button>
-               <Button variant="outline" className="whitespace-nowrap text-xs py-1 px-2">
-                  <Download className="w-3.5 h-3.5 mr-1" />
-                  Export
-               </Button>
+            <div className="flex items-center gap-2">
+               <IconButton 
+                  icon={Printer} 
+                  label="Print History" 
+                  variant="outline" 
+                  size="sm"
+               />
+               <IconButton 
+                  icon={Download} 
+                  label="Export PDF" 
+                  variant="outline" 
+                  size="sm"
+               />
             </div>
          </div>
 

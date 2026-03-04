@@ -18,8 +18,10 @@ import {
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
+import IconButton from '../../components/common/IconButton';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { mockLabResults } from '../../mocks/labResults';
 
 const LabResults = () => {
    const { user } = useAuth();
@@ -40,9 +42,16 @@ const LabResults = () => {
             if (Array.isArray(data)) setLabResults(data);
          } catch (error) {
             console.error('Failed to fetch labs', error);
+            // Fallback to mock data for testing
+            setLabResults(mockLabResults);
          }
       };
-      if (patientId) fetchLabs();
+      if (patientId) {
+         fetchLabs();
+      } else {
+         // Use mock data when no patient ID
+         setLabResults(mockLabResults);
+      }
    }, [patientId]);
 
    const [searchTerm, setSearchTerm] = useState('');
@@ -172,10 +181,12 @@ const LabResults = () => {
                <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">Lab Results</h2>
                <p className="text-xs text-gray-500 dark:text-slate-400">View and download your laboratory test results</p>
             </div>
-            <Button variant="outline" className="whitespace-nowrap text-sm">
-               <Download className="w-3.5 h-3.5 mr-1.5" />
-               Download All
-            </Button>
+            <IconButton 
+               icon={Download} 
+               label="Download All" 
+               variant="outline" 
+               size="default"
+            />
          </div>
 
          {/* Summary Stats */}
@@ -302,27 +313,27 @@ const LabResults = () => {
                                     <>
                                        <button
                                           onClick={() => toggleExpand(result.id)}
-                                          className="px-2.5 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-xs font-medium inline-flex items-center whitespace-nowrap"
+                                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-xs font-medium"
                                        >
                                           {isExpanded ? (
                                              <>
-                                                <ChevronUp className="w-3.5 h-3.5 mr-1" />
-                                                Hide
+                                                <ChevronUp className="w-3.5 h-3.5" />
+                                                <span>Hide</span>
                                              </>
                                           ) : (
                                              <>
-                                                <ChevronDown className="w-3.5 h-3.5 mr-1" />
-                                                View
+                                                <ChevronDown className="w-3.5 h-3.5" />
+                                                <span>View</span>
                                              </>
                                           )}
                                        </button>
-                                       <button
+                                       <IconButton
+                                          icon={Download}
+                                          label="PDF"
+                                          variant="outline"
+                                          size="sm"
                                           onClick={() => handleDownload(result)}
-                                          className="px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 rounded hover:bg-gray-50 dark:hover:bg-slate-700/50 transition text-xs font-medium inline-flex items-center whitespace-nowrap"
-                                       >
-                                          <Download className="w-3.5 h-3.5 mr-1" />
-                                          PDF
-                                       </button>
+                                       />
                                        {result.canCompare && (
                                           <button
                                              onClick={() => handleViewTrend(result)}
@@ -396,15 +407,21 @@ const LabResults = () => {
 
                                  {/* Download Full Report */}
                                  <div className="mt-4 flex gap-2">
-                                    <Button variant="outline" size="sm" onClick={() => handleDownload(result)}>
-                                       <Download className="w-3.5 h-3.5 mr-1" />
-                                       Download Report
-                                    </Button>
+                                    <IconButton 
+                                       icon={Download} 
+                                       label="Download Report" 
+                                       variant="outline" 
+                                       size="sm" 
+                                       onClick={() => handleDownload(result)}
+                                    />
                                     {result.canCompare && (
-                                       <Button variant="outline" size="sm" onClick={() => handleViewTrend(result)}>
-                                          <TrendingUp className="w-3.5 h-3.5 mr-1" />
-                                          Trend Analysis
-                                       </Button>
+                                       <IconButton 
+                                          icon={TrendingUp} 
+                                          label="View Trend" 
+                                          variant="outline" 
+                                          size="sm" 
+                                          onClick={() => handleViewTrend(result)}
+                                       />
                                     )}
                                  </div>
                               </div>

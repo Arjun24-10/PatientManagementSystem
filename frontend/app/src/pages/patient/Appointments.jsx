@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
+import IconOnlyButton from '../../components/common/IconOnlyButton';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
 import Alert from '../../components/common/Alert';
@@ -533,9 +534,9 @@ const PatientAppointments = () => {
                               <p className="text-xs text-gray-400 dark:text-slate-500">
                                  {format(parseISO(appt.date), 'MMM dd')} at {appt.time}
                               </p>
-                              <button className="mt-1.5 w-full text-xs py-1 px-2 rounded border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center justify-center gap-1">
+                              <button className="mt-1.5 w-full inline-flex items-center justify-center gap-1 text-xs py-1 px-2 rounded border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700">
                                  <Download className="w-3 h-3" />
-                                 Add to Calendar
+                                 <span>Add to Calendar</span>
                               </button>
                            </div>
                         ))

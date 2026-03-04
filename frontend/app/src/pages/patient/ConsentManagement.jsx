@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
+import IconButton from '../../components/common/IconButton';
+import IconOnlyButton from '../../components/common/IconOnlyButton';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
 import GrantModifyConsent from './GrantModifyConsent';
@@ -702,9 +704,11 @@ const ConsentManagement = () => {
                </div>
             </div>
             <div className="flex gap-2">
-               <Button variant="outline" className="p-1.5 text-gray-600 dark:text-slate-300 border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700/50" title="Download Consent History">
-                  <Download className="w-4 h-4" />
-               </Button>
+               <IconOnlyButton 
+                  icon={Download} 
+                  tooltip="Download Consent History" 
+                  variant="secondary"
+               />
             </div>
          </div>
 
@@ -822,9 +826,12 @@ const ConsentManagement = () => {
                            <option value="6months">Last 6 months</option>
                            <option value="1year">Last year</option>
                         </select>
-                        <Button variant="outline" size="sm" className="p-2" title="Export History">
-                           <Download className="w-4 h-4" />
-                        </Button>
+                        <IconOnlyButton 
+                           icon={Download} 
+                           tooltip="Export History" 
+                           variant="secondary"
+                           size="sm"
+                        />
                      </div>
                   </div>
                   <div className="p-6">
