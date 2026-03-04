@@ -40,4 +40,14 @@ public interface LoginRepository extends JpaRepository<Login, Long> {
      * @return true if the email is already registered, false otherwise.
      */
     boolean existsByEmail(String email);
+
+    /**
+     * Counts the total number of users assigned to a specific role.
+     * <p>
+     * Used for administrative metrics and dashboard reporting.
+     * </p>
+     * @param role The string representation of the user role (e.g., "PATIENT", "DOCTOR").
+     * @return The total count of users with the specified role.
+     */
+    long countByRole(String role);
 }

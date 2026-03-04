@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import com.securehealth.backend.model.PatientProfile;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
@@ -38,4 +39,15 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<PatientProfile> findDistinctPatientsByDoctorId(@Param("doctorId") Long doctorId);
 
     List<Appointment> findByPatient_ProfileId(Long patientId);
+
+    // Counts appointments by their exact status
+    long countByStatus(String status);
+
+    List<Appointment> findByStatus(String status);
+
+    // Counts scheduled appointments for a specific time range (today)
+    @Query("SELECT COUNT(a) FROM Appointment a WHERE a.appointmentDate >= :startOfDay " +
+           "AND a.appointmentDate < :endOfDay AND a.status = 'SCHEDULED'")
+    long countTodaysAppointments(@Param("startOfDay") LocalDateTime startOfDay, 
+                                 @Param("endOfDay") LocalDateTime endOfDay);
 }
