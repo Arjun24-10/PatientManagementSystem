@@ -2,6 +2,7 @@ package com.securehealth.backend.controller;
 
 import com.securehealth.backend.model.Appointment;
 import com.securehealth.backend.repository.AppointmentRepository;
+import com.securehealth.backend.repository.AuditLogRepository;
 import com.securehealth.backend.security.PatientAccessValidator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AppointmentController.class)
-@AutoConfigureMockMvc(addFilters = false) // Disables global security filters for isolated controller testing
+@AutoConfigureMockMvc(addFilters = false)
 public class AppointmentControllerTest {
 
     @Autowired
@@ -47,6 +48,11 @@ public class AppointmentControllerTest {
     @MockBean
     private TokenBlacklistService tokenBlacklistService;
 
+    // FIX: AuditLogRepository must be mocked so the RequestLoggingFilter
+    // (which Spring wires even in WebMvcTest) can be satisfied during context load.
+    @MockBean
+    private AuditLogRepository auditLogRepository;
+
     @Test
     @WithMockUser(username = "patient@mail.com", authorities = {"PATIENT"})
     void getAppointmentsByPatient_ReturnsList() throws Exception {
@@ -57,16 +63,13 @@ public class AppointmentControllerTest {
         apt.setStatus("SCHEDULED");
         apt.setAppointmentDate(LocalDateTime.now().plusDays(1));
 
-        // Mock the validator to do nothing (assume access is granted)
         doNothing().when(accessValidator).validateAccess(eq(patientId), any());
-        
-        // Mock the repository
         when(appointmentRepository.findByPatient_ProfileIdOrderByAppointmentDateDesc(patientId))
                 .thenReturn(Arrays.asList(apt));
 
         // Act & Assert
         mockMvc.perform(get("/api/appointments/patient/" + patientId)
-                .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].appointmentId").value(100))
                 .andExpect(jsonPath("$[0].status").value("SCHEDULED"));
