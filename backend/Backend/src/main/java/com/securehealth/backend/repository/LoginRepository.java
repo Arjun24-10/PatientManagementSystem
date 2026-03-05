@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.List;
 
 /**
  * Data Access Object (DAO) for the Login entity.
@@ -50,4 +51,14 @@ public interface LoginRepository extends JpaRepository<Login, Long> {
      * @return The total count of users with the specified role.
      */
     long countByRole(String role);
+
+    /**
+     * Retrieves a list of users who do not have the specified role.
+     * <p>
+     * Typically used to fetch all staff members (Admins, Doctors, Nurses) by excluding "PATIENT".
+     * </p>
+     * @param role The role to exclude from the results.
+     * @return A list of Login entities that do not match the given role.
+     */
+    List<Login> findByRoleNot(String role);
 }
