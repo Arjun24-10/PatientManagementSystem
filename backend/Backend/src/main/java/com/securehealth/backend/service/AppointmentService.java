@@ -61,7 +61,8 @@ public class AppointmentService {
                 .map(apt -> apt.getAppointmentDate().toLocalTime())
                 .toList();
 
-        // 4. Generate ALL possible slots for the day based on shift hours and slot duration
+        // 4. Generate ALL possible slots for the day based on shift hours and slot
+        // duration
         List<LocalTime> availableSlots = new ArrayList<>();
         LocalTime currentSlot = doctor.getShiftStartTime();
 
@@ -90,10 +91,9 @@ public class AppointmentService {
 
         // UPDATE: Check against both CANCELLED and REJECTED statuses
         boolean isSlotTaken = appointmentRepository.existsByDoctor_UserIdAndAppointmentDateAndStatusNotIn(
-                doctor.getUserId(), 
-                request.getAppointmentDate(), 
-                List.of("CANCELLED", "REJECTED")
-        );
+                doctor.getUserId(),
+                request.getAppointmentDate(),
+                List.of("CANCELLED", "REJECTED"));
 
         if (isSlotTaken) {
             throw new RuntimeException("409 Conflict: This time slot is currently unavailable or pending review.");
@@ -104,7 +104,7 @@ public class AppointmentService {
         appointment.setDoctor(doctor);
         appointment.setAppointmentDate(request.getAppointmentDate());
         appointment.setReasonForVisit(request.getReasonForVisit());
-        
+
         // UPDATE: Set to PENDING instead of SCHEDULED
         appointment.setStatus("PENDING_APPROVAL");
 
@@ -141,8 +141,8 @@ public class AppointmentService {
 
         appointment.setStatus("REJECTED");
         // Optional: If you added a 'adminNotes' column, you could save the reason here
-        // appointment.setDoctorNotes("Rejected by Admin: " + rejectionReason); 
-        
+        // appointment.setDoctorNotes("Rejected by Admin: " + rejectionReason);
+
         return appointmentRepository.save(appointment);
     }
 
@@ -153,7 +153,7 @@ public class AppointmentService {
             dto.setAppointmentId(app.getAppointmentId());
             dto.setDoctorId(app.getDoctor().getUserId());
             // This safely triggers the lazy load while the connection is open!
-            dto.setDoctorName(app.getDoctor().getEmail()); 
+            dto.setDoctorName(app.getDoctor().getEmail());
             dto.setPatientName(app.getPatient().getFirstName() + " " + app.getPatient().getLastName());
             dto.setAppointmentDate(app.getAppointmentDate());
             dto.setStatus(app.getStatus());
@@ -161,23 +161,76 @@ public class AppointmentService {
             return dto;
         }).collect(Collectors.toList());
     }
-    
+
     @Transactional(readOnly = true)
     public List<AppointmentDTO> getAllAppointments() {
         return appointmentRepository.findAll().stream().map(app -> {
             AppointmentDTO dto = new AppointmentDTO();
             dto.setAppointmentId(app.getAppointmentId());
             dto.setDoctorId(app.getDoctor().getUserId());
-            
+
             // Safely trigger lazy loading
             dto.setDoctorName(app.getDoctor() != null ? app.getDoctor().getEmail() : "Unknown");
-            dto.setPatientName(app.getPatient() != null ? 
-                app.getPatient().getFirstName() + " " + app.getPatient().getLastName() : "Unknown");
-                
+            dto.setPatientName(
+                    app.getPatient() != null ? app.getPatient().getFirstName() + " " + app.getPatient().getLastName()
+                            : "Unknown");
+
             dto.setAppointmentDate(app.getAppointmentDate());
             dto.setStatus(app.getStatus());
             dto.setReasonForVisit(app.getReasonForVisit());
             return dto;
         }).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public AppointmentDTO completeAppointment(Long appointmentId, String doctorEmail) {
+        // 1. Find the appointment
+        Appointment app = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
+        // 2. Security Check: Does this doctor own this appointment?
+        if (!app.getDoctor().getEmail().equals(doctorEmail)) {
+            throw new RuntimeException("Forbidden: You can only complete your own appointments.");
+        }
+
+        // 3. Update status
+        app.setStatus("COMPLETED");
+        appointmentRepository.save(app);
+
+        // 4. Return the safe DTO
+        AppointmentDTO dto = new AppointmentDTO();
+        dto.setAppointmentId(app.getAppointmentId());
+        dto.setStatus(app.getStatus());
+        return dto;
+    }
+
+    @Transactional
+    public AppointmentDTO updateAppointment(Long appointmentId, AppointmentDTO request, String doctorEmail) {
+        // 1. Find the appointment
+        Appointment app = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
+        // 2. Security Check
+        if (!app.getDoctor().getEmail().equals(doctorEmail)) {
+            throw new RuntimeException("Forbidden: You can only modify your own appointments.");
+        }
+
+        // 3. Apply the updates (only if the frontend actually sent them)
+        if (request.getReasonForVisit() != null) {
+            app.setReasonForVisit(request.getReasonForVisit());
+        }
+        if (request.getAppointmentDate() != null) {
+            app.setAppointmentDate(request.getAppointmentDate());
+        }
+
+        // 4. Save and return DTO
+        appointmentRepository.save(app);
+
+        AppointmentDTO dto = new AppointmentDTO();
+        dto.setAppointmentId(app.getAppointmentId());
+        dto.setAppointmentDate(app.getAppointmentDate());
+        dto.setReasonForVisit(app.getReasonForVisit());
+        dto.setStatus(app.getStatus());
+        return dto;
     }
 }
