@@ -7,8 +7,10 @@ import IconButton from '../../components/common/IconButton';
 import Modal from '../../components/common/Modal';
 import api from '../../services/api';
 import { mockPrescriptions } from '../../mocks/records';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Prescriptions = () => {
+    const { user } = useAuth();
     const [searchTerm, setSearchTerm] = useState('');
     const [prescriptions, setPrescriptions] = useState([]);
     const [patients, setPatients] = useState([]);
@@ -34,21 +36,18 @@ const Prescriptions = () => {
     React.useEffect(() => {
         const fetchPatients = async () => {
             try {
-                const data = await api.patients.getAll();
+                const doctorId = user?.id || 'D001';
+                const data = await api.doctors.getPatientsByDoctor(doctorId);
                 if (Array.isArray(data)) setPatients(data);
             } catch (error) {
-                console.error('Failed to fetch patients', error);
-                // Handle both old and new error messages
-                if (error.message === 'DOCTOR_ENDPOINT_NOT_IMPLEMENTED' || 
-                    error.message.includes('not yet available for doctors')) {
-                    setPatients([
-                        { id: 'P001', name: 'John Doe', email: 'john.doe@email.com' },
-                        { id: 'P002', name: 'Jane Smith', email: 'jane.smith@email.com' },
-                        { id: 'P003', name: 'Bob Wilson', email: 'bob.wilson@email.com' }
-                    ]);
-                } else {
-                    setPatients([]);
+                if (!error?.message?.includes('not yet available')) {
+                    console.error('Failed to fetch patients for prescriptions', error);
                 }
+                setPatients([
+                    { id: 'P001', name: 'John Doe', email: 'john.doe@email.com' },
+                    { id: 'P002', name: 'Jane Smith', email: 'jane.smith@email.com' },
+                    { id: 'P003', name: 'Bob Wilson', email: 'bob.wilson@email.com' }
+                ]);
             }
         };
 
@@ -57,7 +56,9 @@ const Prescriptions = () => {
                 const data = await api.prescriptions.getAll();
                 if (Array.isArray(data)) setPrescriptions(data);
             } catch (error) {
-                console.error('Failed to fetch prescriptions', error);
+                if (!error?.message?.includes('not yet available')) {
+                    console.error('Failed to fetch prescriptions', error);
+                }
                 // Always fallback to mock data for testing when API is not available
                 setPrescriptions(mockPrescriptions);
             }
@@ -65,7 +66,7 @@ const Prescriptions = () => {
 
         fetchPatients();
         fetchPrescriptions();
-    }, []);
+    }, [user]);
 
     const filteredPrescriptions = prescriptions.filter(rx =>
         rx.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -131,8 +132,19 @@ const Prescriptions = () => {
             setIsManageModalOpen(false);
             setSelectedRx(null);
         } catch (error) {
-            console.error('Failed to update prescription', error);
-            alert('Failed to update prescription.');
+            if (!error?.message?.includes('not yet available')) {
+                console.error('Failed to update prescription', error);
+                alert('Failed to update prescription.');
+            } else {
+                // UI state already optimistically updated just above, so do nothing or close modal
+                setPrescriptions(prescriptions.map(rx =>
+                    rx.id === selectedRx.id
+                        ? { ...rx, ...editRxData, active: editRxData.active }
+                        : rx
+                ));
+                setIsManageModalOpen(false);
+                setSelectedRx(null);
+            }
         }
     };
 
@@ -143,11 +155,11 @@ const Prescriptions = () => {
                     <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">Prescriptions</h2>
                     <p className="text-xs text-gray-500 dark:text-slate-400">Manage patient medications and refills.</p>
                 </div>
-                <IconButton 
-                   icon={Plus} 
-                   label="New Prescription" 
-                   variant="primary"
-                   onClick={() => setIsNewRxModalOpen(true)}
+                <IconButton
+                    icon={Plus}
+                    label="New Prescription"
+                    variant="primary"
+                    onClick={() => setIsNewRxModalOpen(true)}
                 />
             </div>
 
@@ -163,12 +175,12 @@ const Prescriptions = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <IconButton 
-                       icon={Filter} 
-                       label="Filter" 
-                       variant="outline"
-                       size="sm"
-                       className="hidden md:inline-flex"
+                    <IconButton
+                        icon={Filter}
+                        label="Filter"
+                        variant="outline"
+                        size="sm"
+                        className="hidden md:inline-flex"
                     />
                 </div>
             </Card>

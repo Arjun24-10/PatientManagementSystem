@@ -6,9 +6,11 @@ import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
 import PatientSearch from './components/PatientSearch';
 import api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Patients = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [searchTerm, setSearchTerm] = useState('');
     const [patients, setPatients] = useState([]);
 
@@ -16,12 +18,16 @@ const Patients = () => {
     React.useEffect(() => {
         const fetchPatients = async () => {
             try {
-                const data = await api.patients.getAll();
+                // Determine doctorId from context (fallback to a default for testing if needed)
+                const doctorId = user?.id || 'D001';
+                const data = await api.doctors.getPatientsByDoctor(doctorId);
                 if (Array.isArray(data)) {
                     setPatients(data);
                 }
             } catch (error) {
-                console.error('Failed to fetch patients', error);
+                if (!error?.message?.includes('not yet available')) {
+                    console.error('Failed to fetch patients', error);
+                }
                 // Use mock data for doctors when API is not available
                 const mockPatients = [
                     {
@@ -37,12 +43,12 @@ const Patients = () => {
                         avatar: 'JS'
                     },
                     {
-                        id: 'P002', 
+                        id: 'P002',
                         name: 'Sarah Johnson',
                         email: 'sarah.j@example.com',
                         phone: '+1-555-0124',
                         age: 32,
-                        gender: 'Female', 
+                        gender: 'Female',
                         condition: 'Diabetes',
                         status: 'Needs Review',
                         lastVisit: '2024-02-20',
@@ -51,7 +57,7 @@ const Patients = () => {
                     {
                         id: 'P003',
                         name: 'Michael Brown',
-                        email: 'mike.brown@example.com', 
+                        email: 'mike.brown@example.com',
                         phone: '+1-555-0125',
                         age: 58,
                         gender: 'Male',
@@ -65,7 +71,7 @@ const Patients = () => {
             }
         };
         fetchPatients();
-    }, []);
+    }, [user]);
 
     // Basic filtering
     const filteredPatients = patients.filter(p =>

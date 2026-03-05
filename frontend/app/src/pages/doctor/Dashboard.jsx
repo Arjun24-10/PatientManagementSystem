@@ -28,17 +28,20 @@ const DoctorDashboard = () => {
       const fetchData = async () => {
          // Fetch patients with graceful fallback
          try {
-            const patientsData = await api.patients.getAll();
+            const doctorId = user?.id || 'D001';
+            const patientsData = await api.doctors.getPatientsByDoctor(doctorId);
             if (Array.isArray(patientsData)) {
                setPatients(patientsData);
             }
          } catch (error) {
-            console.error('Failed to fetch patients', error);
+            if (!error?.message?.includes('not yet available')) {
+               console.error('Failed to fetch patients', error);
+            }
             // Use mock patient data for doctor dashboard
             const mockPatients = [
                {
                   id: 'P001',
-                  name: 'John Smith', 
+                  name: 'John Smith',
                   email: 'john.smith@example.com',
                   age: 45,
                   gender: 'Male',
@@ -50,7 +53,7 @@ const DoctorDashboard = () => {
                {
                   id: 'P002',
                   name: 'Sarah Johnson',
-                  email: 'sarah.j@example.com', 
+                  email: 'sarah.j@example.com',
                   age: 32,
                   gender: 'Female',
                   condition: 'Diabetes',
@@ -64,12 +67,15 @@ const DoctorDashboard = () => {
 
          // Fetch appointments with graceful fallback
          try {
-            const appointmentsData = await api.appointments.getAll();
+            const doctorId = user?.id || 'D001';
+            const appointmentsData = await api.appointments.getByDoctor(doctorId);
             if (Array.isArray(appointmentsData)) {
                setAppointments(appointmentsData);
             }
          } catch (error) {
-            console.error('Failed to fetch appointments', error);
+            if (!error?.message?.includes('not yet available')) {
+               console.error('Failed to fetch appointments', error);
+            }
             // Use mock appointments data
             const mockAppointments = [
                {
@@ -81,7 +87,7 @@ const DoctorDashboard = () => {
                   status: 'Confirmed'
                },
                {
-                  id: 'A002', 
+                  id: 'A002',
                   patientName: 'Sarah Johnson',
                   date: new Date().toISOString().split('T')[0],
                   time: '10:30',

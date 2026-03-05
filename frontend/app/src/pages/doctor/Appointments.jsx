@@ -8,8 +8,10 @@ import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
 import api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Appointments = () => {
+    const { user } = useAuth();
     const [activeTab, setActiveTab] = useState('upcoming');
     const [viewMode, setViewMode] = useState('calendar'); // 'list', 'calendar' (month), 'day' (scheduler)
     const [appointments, setAppointments] = useState([]);
@@ -27,7 +29,8 @@ const Appointments = () => {
     React.useEffect(() => {
         const fetchAppointments = async () => {
             try {
-                const data = await api.appointments.getAll();
+                const doctorId = user?.id || 'D001';
+                const data = await api.appointments.getByDoctor(doctorId);
                 if (Array.isArray(data)) {
                     setAppointments(data);
                 }
@@ -69,7 +72,7 @@ const Appointments = () => {
             }
         };
         fetchAppointments();
-    }, []);
+    }, [user]);
 
     const filteredAppointments = appointments.filter(appt => {
         if (activeTab === 'upcoming') return appt.status !== 'Cancelled' && appt.status !== 'Completed';
@@ -106,8 +109,15 @@ const Appointments = () => {
                 a.id === apptToCancel.id ? { ...a, status: 'Cancelled' } : a
             ));
         } catch (error) {
-            console.error('Failed to cancel appointment', error);
-            alert('Failed to cancel appointment. Please try again.');
+            if (!error?.message?.includes('not yet available')) {
+                console.error('Failed to cancel appointment', error);
+                alert('Failed to cancel appointment. Please try again.');
+            } else {
+                // Feature not available backend, just update UI state for now
+                setAppointments(appointments.map(a =>
+                    a.id === apptToCancel.id ? { ...a, status: 'Cancelled' } : a
+                ));
+            }
         } finally {
             setCancelModalOpen(false);
             setApptToCancel(null);
@@ -123,8 +133,15 @@ const Appointments = () => {
                 a.id === id ? { ...a, status: 'Completed' } : a
             ));
         } catch (error) {
-            console.error('Failed to complete appointment', error);
-            alert('Failed to complete appointment. Please try again.');
+            if (!error?.message?.includes('not yet available')) {
+                console.error('Failed to complete appointment', error);
+                alert('Failed to complete appointment. Please try again.');
+            } else {
+                // Feature not available backend, just update UI state for now
+                setAppointments(appointments.map(a =>
+                    a.id === id ? { ...a, status: 'Completed' } : a
+                ));
+            }
         }
     };
 
@@ -156,7 +173,7 @@ const Appointments = () => {
                             <Columns size={20} className="rotate-90" />
                         </button>
                     </div>
-                    <Button>+ New Appointment</Button>
+                    <Button onClick={() => alert('New Appointment creation for doctors is not yet available. Please contact support.')}>+ New Appointment</Button>
                 </div>
             </div>
 

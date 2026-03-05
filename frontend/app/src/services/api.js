@@ -313,6 +313,13 @@ export const patientAPI = {
 // ============================================
 
 export const appointmentAPI = {
+   // Get available slots for a doctor on a specific date
+   getAvailableSlots: async (doctorId, date) => {
+      return apiCall(`/appointments/doctor/${doctorId}/available-slots?date=${date}`, {
+         method: 'GET',
+      });
+   },
+
    // Get all appointments (BACKEND NOT IMPLEMENTED - RETURNS EMPTY ARRAY)
    getAll: async () => {
       try {
@@ -818,6 +825,13 @@ export const labResultAPI = {
 // ============================================
 
 export const doctorAPI = {
+   // Get patients associated with a doctor
+   getPatientsByDoctor: async (doctorId) => {
+      return apiCall(`/doctors/${doctorId}/patients`, {
+         method: 'GET',
+      });
+   },
+
    // Get all doctors
    getAll: async () => {
       return apiCall('/doctors', {
@@ -902,7 +916,7 @@ export const adminAuditAPI = {
    // Get audit logs by user ID
    getAuditLogsByUser: async (userId, params = {}) => {
       const query = new URLSearchParams(params).toString();
-      return apiCall(`/admin/audit-logs/user/${userId}${query ? `?${query}` : ''}`, {
+      return apiCall(`/admin/audit-logs/${userId}${query ? `?${query}` : ''}`, {
          method: 'GET',
       });
    },

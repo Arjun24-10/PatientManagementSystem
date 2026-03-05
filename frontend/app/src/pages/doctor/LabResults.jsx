@@ -29,7 +29,9 @@ const LabResults = () => {
                 }
                 // If API returns empty data or fails, keep using the initial mock data
             } catch (error) {
-                console.error("Failed to fetch labs", error);
+                if (!error?.message?.includes('not yet available')) {
+                    console.error("Failed to fetch labs", error);
+                }
                 // Always keep using the initial mock data for doctor lab results
                 // This ensures the page remains functional
             }
