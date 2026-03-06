@@ -18,8 +18,18 @@ const Patients = () => {
     React.useEffect(() => {
         const fetchPatients = async () => {
             try {
+                console.log('🔍 Patients page - user object:', user);
+                console.log('🔍 Patients page - user.userId:', user?.userId);
+                
                 // Determine doctorId from context (fallback to a default for testing if needed)
-                const doctorId = user?.id || 'D001';
+                const doctorId = user?.userId;
+                if (!doctorId) {
+                   console.error('❌ Doctor ID not available');
+                   console.error('   user:', user);
+                   console.error('   localStorage:', localStorage.getItem('secure_health_user'));
+                   setPatients([]);
+                   return;
+                }
                 const data = await api.doctors.getPatientsByDoctor(doctorId);
                 if (Array.isArray(data)) {
                     setPatients(data);

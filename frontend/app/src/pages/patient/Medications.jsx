@@ -23,7 +23,7 @@ import { mockMedicationsData } from '../../mocks/medications';
 
 const Medications = () => {
    const { user } = useAuth();
-   const patientId = user?.id || 'P001';
+   const patientId = user?.userId;
    const [searchTerm, setSearchTerm] = useState('');
    const [activeTab, setActiveTab] = useState('active');
    const [expandedMeds, setExpandedMeds] = useState({});

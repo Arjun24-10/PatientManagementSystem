@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react';
 
 const PatientPrescriptions = () => {
    const { user } = useAuth();
-   const patientId = user?.id || 'P001';
+   const patientId = user?.userId;
    const [prescriptions, setPrescriptions] = useState([]);
 
    useEffect(() => {

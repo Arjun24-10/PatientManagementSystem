@@ -39,7 +39,7 @@ const MedicalHistory = () => {
    const [chronicConditions] = useState([]);
 
    const { user } = useAuth();
-   const patientId = user?.id || 'P001';
+   const patientId = user?.userId;
 
    React.useEffect(() => {
       const fetchRecords = async () => {

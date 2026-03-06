@@ -25,7 +25,7 @@ import { mockLabResults } from '../../mocks/labResults';
 
 const LabResults = () => {
    const { user } = useAuth();
-   const patientId = user?.id || 'P001';
+   const patientId = user?.userId;
 
    const [labResults, setLabResults] = useState([]);
    const [labStats] = useState({

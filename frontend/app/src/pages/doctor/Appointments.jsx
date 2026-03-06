@@ -29,7 +29,11 @@ const Appointments = () => {
     React.useEffect(() => {
         const fetchAppointments = async () => {
             try {
-                const doctorId = user?.id || 'D001';
+                const doctorId = user?.userId;
+                if (!doctorId) {
+                    console.error('Doctor ID not available from user session');
+                    return;
+                }
                 const data = await api.appointments.getByDoctor(doctorId);
                 if (Array.isArray(data)) {
                     setAppointments(data);

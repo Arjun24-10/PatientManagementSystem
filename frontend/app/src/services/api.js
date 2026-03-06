@@ -320,48 +320,32 @@ export const appointmentAPI = {
       });
    },
 
-   // Get all appointments (BACKEND NOT IMPLEMENTED - RETURNS EMPTY ARRAY)
+   // Get all appointments (DOCTOR and ADMIN only)
    getAll: async () => {
-      try {
-         const data = await apiCall('/appointments', {
-            method: 'GET',
-         });
-         if (Array.isArray(data)) {
-            return data.map(appt => ({
-               ...appt,
-               id: appt.appointmentId || appt.id,
-               date: appt.appointmentDate ? appt.appointmentDate.split('T')[0] : appt.date,
-               time: appt.appointmentDate ? appt.appointmentDate.split('T')[1]?.substring(0, 5) : appt.time,
-               doctorName: appt.doctor?.email || appt.doctorName || 'Assigned Doctor',
-               patientName: appt.patient
-                  ? `${appt.patient.firstName || ''} ${appt.patient.lastName || ''}`.trim()
-                  : appt.patientName || 'Patient',
-               type: appt.reasonForVisit || appt.type,
-               status: appt.status || 'PENDING',
-            }));
-         }
-         return data;
-      } catch (error) {
-         if (error.message.includes('not yet implemented')) {
-            console.warn('Appointments API not yet implemented, returning empty array');
-            return [];
-         }
-         throw error;
+      const data = await apiCall('/appointments', {
+         method: 'GET',
+      });
+      if (Array.isArray(data)) {
+         return data.map(appt => ({
+            ...appt,
+            id: appt.appointmentId || appt.id,
+            date: appt.appointmentDate ? appt.appointmentDate.split('T')[0] : appt.date,
+            time: appt.appointmentDate ? appt.appointmentDate.split('T')[1]?.substring(0, 5) : appt.time,
+            doctorName: appt.doctor?.email || appt.doctorName || 'Assigned Doctor',
+            patientName: appt.patient
+               ? `${appt.patient.firstName || ''} ${appt.patient.lastName || ''}`.trim()
+               : appt.patientName || 'Patient',
+            type: appt.reasonForVisit || appt.type,
+            status: appt.status || 'PENDING',
+         }));
       }
+      return data;
    },
 
-   // Get appointment by ID (BACKEND NOT IMPLEMENTED)
+   // Get appointment by ID (NOT IN BACKEND)
    getById: async (id) => {
-      try {
-         return apiCall(`/appointments/${id}`, {
-            method: 'GET',
-         });
-      } catch (error) {
-         if (error.message.includes('not yet implemented')) {
-            throw new Error('Appointment details view is not yet available. Please contact support.');
-         }
-         throw error;
-      }
+      console.warn('Get appointment by ID not implemented in backend');
+      throw new Error('Appointment details view is not yet available. Please contact support.');
    },
 
    // Get appointments by patient ID
@@ -392,130 +376,73 @@ export const appointmentAPI = {
       }
    },
 
-   // Get appointments by doctor ID (BACKEND NOT IMPLEMENTED)
+   // Get appointments by doctor ID
    getByDoctor: async (doctorId) => {
-      try {
-         const data = await apiCall(`/appointments/doctor/${doctorId}`, {
-            method: 'GET',
-         });
-         if (Array.isArray(data)) {
-            return data.map(appt => ({
-               ...appt,
-               id: appt.appointmentId || appt.id,
-               date: appt.appointmentDate ? appt.appointmentDate.split('T')[0] : appt.date,
-               time: appt.appointmentDate ? appt.appointmentDate.split('T')[1]?.substring(0, 5) : appt.time,
-               patientName: appt.patient
-                  ? `${appt.patient.firstName || ''} ${appt.patient.lastName || ''}`.trim()
-                  : appt.patientName || 'Patient',
-               type: appt.reasonForVisit || appt.type,
-               status: appt.status || 'PENDING',
-            }));
-         }
-         return data;
-      } catch (error) {
-         if (error.message.includes('not yet implemented')) {
-            console.warn('Doctor appointments API not yet implemented, returning empty array');
-            return [];
-         }
-         throw error;
+      const data = await apiCall(`/appointments/doctor/${doctorId}`, {
+         method: 'GET',
+      });
+      if (Array.isArray(data)) {
+         return data.map(appt => ({
+            ...appt,
+            id: appt.appointmentId || appt.id,
+            date: appt.appointmentDate ? appt.appointmentDate.split('T')[0] : appt.date,
+            time: appt.appointmentDate ? appt.appointmentDate.split('T')[1]?.substring(0, 5) : appt.time,
+            patientName: appt.patient
+               ? `${appt.patient.firstName || ''} ${appt.patient.lastName || ''}`.trim()
+               : appt.patientName || 'Patient',
+            type: appt.reasonForVisit || appt.type,
+            status: appt.status || 'PENDING',
+         }));
       }
+      return data;
    },
 
-   // Get appointments by date (BACKEND NOT IMPLEMENTED)
+   // Get appointments by date (NOT IN BACKEND - will return empty)
    getByDate: async (date) => {
-      try {
-         return apiCall(`/appointments/date/${date}`, {
-            method: 'GET',
-         });
-      } catch (error) {
-         if (error.message.includes('not yet implemented')) {
-            console.warn('Date-based appointments API not yet implemented, returning empty array');
-            return [];
-         }
-         throw error;
-      }
+      console.warn('Date-based appointments API not implemented in backend');
+      return [];
    },
 
-   // Get appointments by status (BACKEND NOT IMPLEMENTED)
+   // Get appointments by status (NOT IN BACKEND - will return empty)
    getByStatus: async (status) => {
-      try {
-         return apiCall(`/appointments/status/${status}`, {
-            method: 'GET',
-         });
-      } catch (error) {
-         if (error.message.includes('not yet implemented')) {
-            console.warn('Status-based appointments API not yet implemented, returning empty array');
-            return [];
-         }
-         throw error;
-      }
+      console.warn('Status-based appointments API not implemented in backend');
+      return [];
    },
 
-   // Get upcoming appointments (BACKEND NOT IMPLEMENTED)
+   // Get upcoming appointments (NOT IN BACKEND - use getByPatient with client-side filtering)
    getUpcoming: async (patientId) => {
-      try {
-         const realId = await resolvePatientId(patientId);
-         return apiCall(`/appointments/upcoming/${realId}`, {
-            method: 'GET',
-         });
-      } catch (error) {
-         if (error.message.includes('not yet implemented')) {
-            console.warn('Upcoming appointments API not yet implemented, returning empty array');
-            return [];
-         }
-         throw error;
-      }
+      console.warn('Upcoming appointments API not in backend, using getByPatient instead');
+      const appts = await appointmentAPI.getByPatient(patientId);
+      const now = new Date();
+      return appts.filter(a => new Date(a.date + ' ' + a.time) > now);
    },
 
-   // Get appointment statistics (BACKEND NOT IMPLEMENTED)
+   // Get appointment statistics (NOT IN BACKEND - return empty stats)
    getStats: async () => {
-      try {
-         return apiCall('/appointments/stats', {
-            method: 'GET',
-         });
-      } catch (error) {
-         if (error.message.includes('not yet implemented')) {
-            console.warn('Appointment statistics API not yet implemented');
-            return {
-               total: 0,
-               pending: 0,
-               approved: 0,
-               completed: 0,
-               cancelled: 0
-            };
-         }
-         throw error;
-      }
+      console.warn('Appointment statistics API not implemented in backend');
+      return {
+         total: 0,
+         pending: 0,
+         approved: 0,
+         completed: 0,
+         cancelled: 0
+      };
    },
 
-   // Create new appointment (BACKEND NOT IMPLEMENTED)
+   // Create new appointment
    create: async (appointmentData) => {
-      try {
-         return apiCall('/appointments', {
-            method: 'POST',
-            body: JSON.stringify(appointmentData),
-         });
-      } catch (error) {
-         if (error.message.includes('not yet implemented')) {
-            throw new Error('Appointment booking is not yet available. Please call the clinic to schedule.');
-         }
-         throw error;
-      }
+      return apiCall('/appointments', {
+         method: 'POST',
+         body: JSON.stringify(appointmentData),
+      });
    },
 
-   // Update appointment (BACKEND NOT IMPLEMENTED)
+   // Update appointment (DOCTOR only)
    update: async (id, appointmentData) => {
-      try {
-         return apiCall(`/appointments/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify(appointmentData),
-         });
-      } catch (error) {
-         if (error.message.includes('not yet implemented')) {
-            throw new Error('Appointment modification is not yet available. Please call the clinic.');
-         }
-         throw error;
-      }
+      return apiCall(`/appointments/${id}`, {
+         method: 'PUT',
+         body: JSON.stringify(appointmentData),
+      });
    },
 
    // Approve appointment (BACKEND IMPLEMENTED)
@@ -533,65 +460,30 @@ export const appointmentAPI = {
       });
    },
 
-   // Cancel appointment (BACKEND NOT IMPLEMENTED)
+   // Cancel appointment (NOT IN BACKEND - use update with CANCELLED status)
    cancel: async (id, cancelReason) => {
-      try {
-         return apiCall(`/appointments/${id}/cancel`, {
-            method: 'PUT',
-            body: JSON.stringify({ cancelReason }),
-         });
-      } catch (error) {
-         if (error.message.includes('not yet implemented')) {
-            throw new Error('Appointment cancellation is not yet available. Please call the clinic.');
-         }
-         throw error;
-      }
+      console.warn('Cancel endpoint not in backend, using update instead');
+      return appointmentAPI.update(id, { status: 'CANCELLED', cancellationReason: cancelReason });
    },
 
-   // Complete appointment (BACKEND NOT IMPLEMENTED)
+   // Complete appointment (DOCTOR only)
    complete: async (id, notes) => {
-      try {
-         return apiCall(`/appointments/${id}/complete`, {
-            method: 'PUT',
-            body: JSON.stringify({ notes }),
-         });
-      } catch (error) {
-         if (error.message.includes('not yet implemented')) {
-            throw new Error('Appointment completion marking is not yet available.');
-         }
-         throw error;
-      }
+      return apiCall(`/appointments/${id}/complete`, {
+         method: 'PUT',
+         body: JSON.stringify({ notes }),
+      });
    },
 
-   // Reschedule appointment (BACKEND NOT IMPLEMENTED)
+   // Reschedule appointment (NOT IN BACKEND - use update)
    reschedule: async (id, newDate, newTime) => {
-      try {
-         return apiCall(`/appointments/${id}/reschedule`, {
-            method: 'PUT',
-            body: JSON.stringify({ newDate, newTime }),
-         });
-      } catch (error) {
-         if (error.message.includes('not yet implemented')) {
-            throw new Error('Appointment rescheduling is not yet available. Please call the clinic.');
-         }
-         throw error;
-      }
+      console.warn('Reschedule endpoint not in backend, using update instead');
+      return appointmentAPI.update(id, { appointmentDate: `${newDate}T${newTime}` });
    },
 
-   // Check appointment conflicts (BACKEND NOT IMPLEMENTED)
+   // Check appointment conflicts (NOT IN BACKEND - return no conflict)
    checkConflicts: async (doctorId, date, time) => {
-      try {
-         return apiCall('/appointments/check-conflicts', {
-            method: 'POST',
-            body: JSON.stringify({ doctorId, date, time }),
-         });
-      } catch (error) {
-         if (error.message.includes('not yet implemented')) {
-            console.warn('Appointment conflict checking not yet implemented');
-            return { hasConflict: false };
-         }
-         throw error;
-      }
+      console.warn('Appointment conflict checking not implemented in backend');
+      return { hasConflict: false };
    },
 
    // REMOVE DELETE FUNCTIONALITY FOR COMPLIANCE
@@ -625,29 +517,16 @@ export const medicalRecordAPI = {
       return data;
    },
 
-   // Get all medical records
+   // Get all medical records (NOT IN BACKEND)
    getAll: async () => {
-      const data = await apiCall('/medical-records', {
-         method: 'GET',
-      });
-      if (Array.isArray(data)) {
-         return data.map(record => ({
-            ...record,
-            id: record.recordId || record.id,
-            name: record.diagnosis || record.name,
-            date: record.createdAt ? record.createdAt.split('T')[0] : record.date,
-            doctor: record.doctor?.email || record.doctor || 'Assigned Doctor',
-            severity: 'Moderate', // Default severity since backend doesn't have it
-         }));
-      }
-      return data;
+      console.warn('getAll medical records not implemented in backend');
+      return [];
    },
 
-   // Get medical record by ID
+   // Get medical record by ID (NOT IN BACKEND)
    getById: async (id) => {
-      return apiCall(`/medical-records/${id}`, {
-         method: 'GET',
-      });
+      console.warn('Get medical record by ID not implemented in backend');
+      throw new Error('Medical record details not available.');
    },
 
    // Create new medical record
@@ -658,19 +537,16 @@ export const medicalRecordAPI = {
       });
    },
 
-   // Update medical record
+   // Update medical record (NOT IN BACKEND)
    update: async (id, recordData) => {
-      return apiCall(`/medical-records/${id}`, {
-         method: 'PUT',
-         body: JSON.stringify(recordData),
-      });
+      console.warn('Update medical record not implemented in backend');
+      throw new Error('Medical record updates not yet supported. Please contact support.');
    },
 
-   // Delete medical record
+   // Delete medical record (NOT IN BACKEND)
    delete: async (id) => {
-      return apiCall(`/medical-records/${id}`, {
-         method: 'DELETE',
-      });
+      console.warn('Delete medical record not implemented in backend');
+      throw new Error('Medical record deletion not permitted for compliance reasons.');
    },
 };
 
@@ -698,29 +574,16 @@ export const prescriptionAPI = {
       return data;
    },
 
-   // Get all prescriptions (all patients)
+   // Get all prescriptions (NOT IN BACKEND)
    getAll: async () => {
-      const data = await apiCall('/prescriptions', {
-         method: 'GET',
-      });
-      if (Array.isArray(data)) {
-         return data.map(rx => ({
-            ...rx,
-            id: rx.prescriptionId || rx.id,
-            name: rx.medicationName || rx.name,
-            active: rx.status === 'ACTIVE' || rx.active,
-            date: rx.issuedAt ? rx.issuedAt.split('T')[0] : rx.date,
-            doctorName: rx.doctor?.email || rx.doctorName || 'Assigned Doctor',
-         }));
-      }
-      return data;
+      console.warn('getAll prescriptions not implemented in backend');
+      return [];
    },
 
-   // Get prescription by ID
+   // Get prescription by ID (NOT IN BACKEND)
    getById: async (id) => {
-      return apiCall(`/prescriptions/${id}`, {
-         method: 'GET',
-      });
+      console.warn('Get prescription by ID not implemented in backend');
+      throw new Error('Prescription details not available.');
    },
 
    // Create new prescription
@@ -731,19 +594,16 @@ export const prescriptionAPI = {
       });
    },
 
-   // Update prescription
+   // Update prescription (NOT IN BACKEND)
    update: async (id, prescriptionData) => {
-      return apiCall(`/prescriptions/${id}`, {
-         method: 'PUT',
-         body: JSON.stringify(prescriptionData),
-      });
+      console.warn('Update prescription not implemented in backend');
+      throw new Error('Prescription updates not yet supported. Please contact support.');
    },
 
-   // Delete prescription
+   // Delete prescription (NOT IN BACKEND)
    delete: async (id) => {
-      return apiCall(`/prescriptions/${id}`, {
-         method: 'DELETE',
-      });
+      console.warn('Delete prescription not implemented in backend');
+      throw new Error('Prescription deletion not permitted for compliance reasons.');
    },
 };
 
@@ -771,29 +631,16 @@ export const labResultAPI = {
       return data;
    },
 
-   // Get all lab results (across all patients)
+   // Get all lab results (NOT IN BACKEND)
    getAll: async () => {
-      const data = await apiCall('/lab-results', {
-         method: 'GET',
-      });
-      if (Array.isArray(data)) {
-         return data.map(lab => ({
-            ...lab,
-            id: lab.testId || lab.id,
-            name: lab.testName || lab.name,
-            type: lab.testName || lab.type,
-            result: lab.resultData || lab.result,
-            date: lab.orderedAt ? lab.orderedAt.split('T')[0] : lab.date,
-         }));
-      }
-      return data;
+      console.warn('getAll lab results not implemented in backend');
+      return [];
    },
 
-   // Get lab result by ID
+   // Get lab result by ID (NOT IN BACKEND)
    getById: async (id) => {
-      return apiCall(`/lab-results/${id}`, {
-         method: 'GET',
-      });
+      console.warn('Get lab result by ID not implemented in backend');
+      throw new Error('Lab result details not available.');
    },
 
    // Create new lab result
@@ -804,19 +651,16 @@ export const labResultAPI = {
       });
    },
 
-   // Update lab result
+   // Update lab result (NOT IN BACKEND)
    update: async (id, labResultData) => {
-      return apiCall(`/lab-results/${id}`, {
-         method: 'PUT',
-         body: JSON.stringify(labResultData),
-      });
+      console.warn('Update lab result not implemented in backend');
+      throw new Error('Lab result updates not yet supported. Please contact support.');
    },
 
-   // Delete lab result
+   // Delete lab result (NOT IN BACKEND)
    delete: async (id) => {
-      return apiCall(`/lab-results/${id}`, {
-         method: 'DELETE',
-      });
+      console.warn('Delete lab result not implemented in backend');
+      throw new Error('Lab result deletion not permitted for compliance reasons.');
    },
 };
 
@@ -875,12 +719,16 @@ export const vitalSignsAPI = {
       });
    },
 
-   // Get latest vital signs for a patient
+   // Get latest vital signs for a patient (NOT IN BACKEND)
    getLatest: async (patientId) => {
       const realId = await resolvePatientId(patientId);
-      return apiCall(`/vital-signs/patient/${realId}/latest`, {
+      const allVitals = await apiCall(`/vital-signs/patient/${realId}`, {
          method: 'GET',
       });
+      if (Array.isArray(allVitals) && allVitals.length > 0) {
+         return allVitals[0]; // Assuming backend returns in descending order
+      }
+      return null;
    },
 
    // Create new vital signs record

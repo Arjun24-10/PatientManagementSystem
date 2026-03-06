@@ -36,7 +36,11 @@ const Prescriptions = () => {
     React.useEffect(() => {
         const fetchPatients = async () => {
             try {
-                const doctorId = user?.id || 'D001';
+                const doctorId = user?.userId;
+                if (!doctorId) {
+                   console.error('Doctor ID not available');
+                   throw new Error('Doctor ID is required');
+                }
                 const data = await api.doctors.getPatientsByDoctor(doctorId);
                 if (Array.isArray(data)) setPatients(data);
             } catch (error) {

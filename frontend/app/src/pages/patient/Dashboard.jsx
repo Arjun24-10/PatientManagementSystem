@@ -29,8 +29,12 @@ const PatientDashboard = () => {
             }
          } catch (e) {
             console.error('Failed to fetch real profile', e);
-            const fallbackId = user?.userId || user?.id || 'P001';
+            const fallbackId = user?.userId;
             const fallbackName = user?.fullName || user?.full_name || user?.name || 'Patient';
+            if (!fallbackId) {
+               console.error('Patient ID not available');
+               return;
+            }
             setPatient({ id: fallbackId, name: fallbackName });
             setPatientId(fallbackId);
          }

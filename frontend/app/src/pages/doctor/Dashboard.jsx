@@ -28,7 +28,20 @@ const DoctorDashboard = () => {
       const fetchData = async () => {
          // Fetch patients with graceful fallback
          try {
-            const doctorId = user?.id || 'D001';
+            console.log('🔍 Dashboard - user object:', user);
+            console.log('🔍 Dashboard - user.userId:', user?.userId);
+            console.log('🔍 Dashboard - user.id:', user?.id);
+            console.log('🔍 Dashboard - all user keys:', Object.keys(user || {}));
+            
+            const doctorId = user?.userId;
+            if (!doctorId) {
+               console.error('❌ Doctor ID not available in user object');
+               console.error('   user:', user);
+               console.error('   localStorage:', localStorage.getItem('secure_health_user'));
+               // Continue with mock data rather than throwing
+               setPatients([]);
+               return;
+            }
             const patientsData = await api.doctors.getPatientsByDoctor(doctorId);
             if (Array.isArray(patientsData)) {
                setPatients(patientsData);
@@ -67,7 +80,12 @@ const DoctorDashboard = () => {
 
          // Fetch appointments with graceful fallback
          try {
-            const doctorId = user?.id || 'D001';
+            const doctorId = user?.userId;
+            if (!doctorId) {
+               console.error('❌ Doctor ID not available in user object');
+               setAppointments([]);
+               return;
+            }
             const appointmentsData = await api.appointments.getByDoctor(doctorId);
             if (Array.isArray(appointmentsData)) {
                setAppointments(appointmentsData);

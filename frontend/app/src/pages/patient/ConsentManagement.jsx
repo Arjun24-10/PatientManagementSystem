@@ -18,7 +18,7 @@ import { useAuth } from '../../contexts/AuthContext';
 const ConsentManagement = () => {
    const { user } = useAuth();
    // eslint-disable-next-line no-unused-vars
-   const patientId = user?.id || 'P001';
+   const patientId = user?.userId;
    // eslint-disable-next-line no-unused-vars
    const [consentData, setConsentData] = useState({
       summary: {

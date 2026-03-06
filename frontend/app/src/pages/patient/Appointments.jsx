@@ -25,7 +25,7 @@ const timeSlots = {
 
 const PatientAppointments = () => {
    const { user } = useAuth();
-   const patientId = user?.id || 'P001';
+   const patientId = user?.userId;
    const [appointments, setAppointments] = useState([]);
 
    const [doctors, setDoctors] = useState([]);
