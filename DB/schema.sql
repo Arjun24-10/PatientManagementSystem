@@ -1,32 +1,44 @@
--- 1. CLEANUP (Optional: Resets everything if you made mistakes)
-DROP TABLE IF EXISTS security_logs CASCADE;
+-- =================================================================================
+-- PATIENT MANAGEMENT SYSTEM - Enterprise Schema
+-- Architecture: Decoupled Clinical Modules + Active Defense Security
+-- =================================================================================
+
+-- 1. CLEANUP
 DROP TABLE IF EXISTS consent_log CASCADE;
-DROP TABLE IF EXISTS lab_results CASCADE;
-DROP TABLE IF EXISTS lab_orders CASCADE;
-DROP TABLE IF EXISTS visits CASCADE;
-DROP TABLE IF EXISTS doctor_profile CASCADE;
-DROP TABLE IF EXISTS patient_profile CASCADE;
-DROP TABLE IF EXISTS user_roles CASCADE;
+DROP TABLE IF EXISTS audit_logs CASCADE;
+DROP TABLE IF EXISTS lab_tests CASCADE;
+DROP TABLE IF EXISTS vital_signs CASCADE;
+DROP TABLE IF EXISTS prescriptions CASCADE;
+DROP TABLE IF EXISTS medical_records CASCADE;
+DROP TABLE IF EXISTS appointments CASCADE;
+DROP TABLE IF EXISTS doctor_profiles CASCADE;
+DROP TABLE IF EXISTS patient_profiles CASCADE;
 DROP TABLE IF EXISTS sessions CASCADE;
 DROP TABLE IF EXISTS login CASCADE;
-DROP TABLE IF EXISTS roles CASCADE;
 
--- 2. ENUMS (For cleaner code)
-CREATE TYPE user_role_type AS ENUM ('PATIENT', 'DOCTOR', 'NURSE', 'ADMIN', 'LAB_TECH');
+-- 2. ENUMS (Kept for strict typing where JPA doesn't conflict)
 CREATE TYPE request_status AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
+CREATE TYPE user_role_type AS ENUM ('PATIENT', 'DOCTOR', 'NURSE', 'ADMIN', 'LAB_TECH');
 
--- 3. CORE IDENTITY (Epic 1 & 5)
+-- =================================================================================
+-- CORE IDENTITY & SECURITY (Epic 1 & 5)
+-- =================================================================================
+
 CREATE TABLE login (
     user_id BIGSERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    role user_role_type NOT NULL DEFAULT 'PATIENT',
+    role VARCHAR(50) NOT NULL DEFAULT 'PATIENT', 
 
-    -- Security Fields
+    -- Identity Verification
     is_active BOOLEAN DEFAULT TRUE,
     is_verified BOOLEAN DEFAULT FALSE,
-    is_2fa_enabled BOOLEAN DEFAULT FALSE,
-    otp_secret VARCHAR(255),  -- For Google Authenticator
+    
+    -- 2FA Fields (Email + Google Auth)
+    two_factor_enabled BOOLEAN DEFAULT FALSE,
+    otp VARCHAR(10),
+    otp_expiry TIMESTAMP,
+    otp_secret VARCHAR(255),  
 
     -- Active Defense (Lockout Logic)
     failed_attempts INT DEFAULT 0,
@@ -40,75 +52,137 @@ CREATE TABLE login (
 CREATE TABLE sessions (
     session_id BIGSERIAL PRIMARY KEY,
     user_id BIGINT REFERENCES login(user_id) ON DELETE CASCADE,
-    refresh_token_hash VARCHAR(255) NOT NULL, -- Store hash, not raw token!
+    refresh_token_hash VARCHAR(255) NOT NULL,
     ip_address VARCHAR(45),
     user_agent TEXT,
-    is_revoked BOOLEAN DEFAULT FALSE,
+    is_revoked BOOLEAN DEFAULT FALSE, 
     expires_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 4. CLINICAL PROFILES (Epic 2 & 3)
-CREATE TABLE patient_profile (
+-- =================================================================================
+-- CLINICAL PROFILES (Epic 2 & 3)
+-- =================================================================================
+
+CREATE TABLE patient_profiles (
     profile_id BIGSERIAL PRIMARY KEY,
     user_id BIGINT UNIQUE REFERENCES login(user_id) ON DELETE CASCADE,
-    full_name VARCHAR(100) NOT NULL,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
     date_of_birth DATE,
-    address_encrypted TEXT, -- Encrypt this in Node.js before inserting!
+    gender VARCHAR(20),
+    contact_number VARCHAR(20),
+    emergency_contact VARCHAR(100),
+    
+    -- Privacy / HIPAA Compliance
+    address_encrypted TEXT, 
     medical_history_encrypted TEXT
 );
 
-CREATE TABLE doctor_profile (
+CREATE TABLE doctor_profiles (
     profile_id BIGSERIAL PRIMARY KEY,
     user_id BIGINT UNIQUE REFERENCES login(user_id) ON DELETE CASCADE,
-    full_name VARCHAR(100) NOT NULL,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
     license_number VARCHAR(50) UNIQUE NOT NULL,
-    specialization VARCHAR(100)
+    specialization VARCHAR(100),
+    contact_number VARCHAR(20),
+    
+    -- Scheduling Logic
+    shift_start_time TIME,
+    shift_end_time TIME,
+    working_days VARCHAR(100)
 );
 
--- 5. CLINICAL WORKFLOW (Epic 2)
-CREATE TABLE visits (
-    visit_id BIGSERIAL PRIMARY KEY,
-    patient_id BIGINT REFERENCES patient_profile(profile_id),
-    doctor_id BIGINT REFERENCES doctor_profile(profile_id),
-    visit_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    diagnosis_notes TEXT,
-    prescription_text TEXT
+-- =================================================================================
+-- CLINICAL WORKFLOW (The Decoupled Architecture)
+-- =================================================================================
+
+CREATE TABLE appointments (
+    appointment_id BIGSERIAL PRIMARY KEY,
+    patient_profile_id BIGINT REFERENCES patient_profiles(profile_id) ON DELETE CASCADE,
+    doctor_id BIGINT REFERENCES login(user_id) ON DELETE CASCADE,
+    appointment_date TIMESTAMP NOT NULL,
+    status VARCHAR(50) DEFAULT 'PENDING_APPROVAL', 
+    reason_for_visit TEXT
 );
 
-CREATE TABLE lab_orders (
-    order_id BIGSERIAL PRIMARY KEY,
-    visit_id BIGINT REFERENCES visits(visit_id),
-    test_type VARCHAR(100) NOT NULL,
-    status request_status DEFAULT 'PENDING',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE medical_records (
+    record_id BIGSERIAL PRIMARY KEY,
+    patient_profile_id BIGINT REFERENCES patient_profiles(profile_id) ON DELETE CASCADE,
+    doctor_id BIGINT REFERENCES login(user_id) ON DELETE CASCADE,
+    diagnosis TEXT,
+    symptoms TEXT,
+    treatment_provided TEXT,
+    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE lab_results (
-    result_id BIGSERIAL PRIMARY KEY,
-    order_id BIGINT REFERENCES lab_orders(order_id),
-    file_url VARCHAR(255), -- Link to S3/Local secure storage
-    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE prescriptions (
+    prescription_id BIGSERIAL PRIMARY KEY,
+    patient_profile_id BIGINT REFERENCES patient_profiles(profile_id) ON DELETE CASCADE,
+    doctor_id BIGINT REFERENCES login(user_id) ON DELETE CASCADE,
+    medication_name VARCHAR(255) NOT NULL,
+    dosage VARCHAR(100) NOT NULL,
+    frequency VARCHAR(100) NOT NULL,
+    duration VARCHAR(100),
+    special_instructions TEXT,
+    status VARCHAR(50) DEFAULT 'ACTIVE',
+    issued_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 6. SECURITY & AUDIT LOGS (Epic 4)
-CREATE TABLE security_logs (
+CREATE TABLE vital_signs (
+    vital_id BIGSERIAL PRIMARY KEY,
+    patient_profile_id BIGINT REFERENCES patient_profiles(profile_id) ON DELETE CASCADE,
+    nurse_id BIGINT REFERENCES login(user_id) ON DELETE CASCADE,
+    blood_pressure VARCHAR(20),
+    heart_rate INT,
+    temperature DECIMAL(5,2),
+    respiratory_rate INT,
+    oxygen_saturation INT,
+    weight DECIMAL(6,2),
+    height DECIMAL(6,2),
+    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE lab_tests (
+    test_id BIGSERIAL PRIMARY KEY,
+    patient_profile_id BIGINT REFERENCES patient_profiles(profile_id) ON DELETE CASCADE,
+    ordered_by_id BIGINT REFERENCES login(user_id) ON DELETE CASCADE,
+    test_name VARCHAR(255) NOT NULL,
+    test_category VARCHAR(100),
+    result_value VARCHAR(255),
+    unit VARCHAR(50),
+    reference_range VARCHAR(100),
+    remarks TEXT,
+    file_url VARCHAR(255), 
+    status VARCHAR(50) DEFAULT 'PENDING', 
+    ordered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =================================================================================
+-- SECURITY & AUDIT LOGS (Epic 4)
+-- =================================================================================
+
+CREATE TABLE audit_logs (
     log_id BIGSERIAL PRIMARY KEY,
     user_id BIGINT REFERENCES login(user_id),
-    event_type VARCHAR(50) NOT NULL, -- e.g., 'LOGIN_FAILED', '2FA_SUCCESS'
+    email VARCHAR(255), 
+    event_type VARCHAR(50) NOT NULL, 
     ip_address VARCHAR(45),
-    severity VARCHAR(20) DEFAULT 'INFO', -- INFO, WARN, CRITICAL
+    user_agent TEXT,
+    severity VARCHAR(20) DEFAULT 'INFO', 
+    details TEXT,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE consent_log (
     log_id BIGSERIAL PRIMARY KEY,
     user_id BIGINT REFERENCES login(user_id),
-    consent_type VARCHAR(50) NOT NULL, -- e.g., 'DATA_SHARING'
+    consent_type VARCHAR(50) NOT NULL, 
     is_granted BOOLEAN NOT NULL,
     ip_address VARCHAR(45),
     changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-UPDATE login SET two_factor_enabled = true WHERE role = 'DOCTOR';
-UPDATE login SET two_factor_enabled = true WHERE role = 'ADMIN';
+-- 7. INITIAL CONFIGURATION
+UPDATE login SET two_factor_enabled = true WHERE role IN ('DOCTOR', 'ADMIN');

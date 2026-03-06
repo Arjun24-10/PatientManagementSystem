@@ -1,12 +1,12 @@
 package com.securehealth.backend.model;
 
+
 import java.time.LocalDateTime;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * Represents the core Identity entity for authentication.
@@ -23,7 +23,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @AllArgsConstructor // Generates full constructor
 @Entity
 @Table(name = "login")
-@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class Login {
 
     /**
@@ -59,9 +58,7 @@ public class Login {
 
     /**
      * Securely hashed password (Argon2).
-     * <p>
-     * <b>SECURITY WARNING:</b> Never store plaintext passwords here.
-     * </p>
+     * <p><b>SECURITY WARNING:</b> Never store plaintext passwords here.</p>
      */
     @Column(nullable = false)
     private String passwordHash;
