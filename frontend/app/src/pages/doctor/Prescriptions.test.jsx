@@ -50,12 +50,14 @@ jest.mock('../../components/common/Input', () => ({ value, onChange, placeholder
    />
 ));
 jest.mock('../../services/api', () => ({
-   doctors: { getPatientsByDoctor: jest.fn().mockRejectedValue(new Error('not yet available')) },
-   prescriptions: {
-      getAll: jest.fn().mockResolvedValue(TEST_PRESCRIPTIONS),
-      create: jest.fn(),
-      update: jest.fn()
-   },
+   default: {
+      doctors: { getPatientsByDoctor: jest.fn().mockRejectedValue(new Error('not yet available')) },
+      prescriptions: {
+         getAll: jest.fn().mockResolvedValue(TEST_PRESCRIPTIONS),
+         create: jest.fn(),
+         update: jest.fn()
+      },
+   }
 }));
 jest.mock('lucide-react', () => ({
    Plus: () => <span>PlusIcon</span>,
