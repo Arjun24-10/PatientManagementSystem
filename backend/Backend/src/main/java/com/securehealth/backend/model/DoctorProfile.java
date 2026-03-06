@@ -4,6 +4,10 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalTime;
+import java.time.DayOfWeek;
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @Entity
@@ -33,6 +37,21 @@ public class DoctorProfile {
     
     private String department;
     
-    // Optional: e.g., "Mon-Fri 9AM-5PM"
-    private String availabilitySchedule; 
+    // e.g., 09:00 (9 AM)
+    @Column(nullable = false)
+    private LocalTime shiftStartTime = LocalTime.of(9, 0); 
+
+    // e.g., 17:00 (5 PM)
+    @Column(nullable = false)
+    private LocalTime shiftEndTime = LocalTime.of(17, 0); 
+
+    // e.g., 30 minutes per appointment
+    @Column(nullable = false)
+    private Integer slotDurationMinutes = 30; 
+
+    // e.g., [MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY]
+    @ElementCollection(targetClass = DayOfWeek.class, fetch = FetchType.EAGER)
+    @CollectionTable(name = "doctor_working_days", joinColumns = @JoinColumn(name = "doctor_profile_id"))
+    @Enumerated(EnumType.STRING)
+    private List<DayOfWeek> workingDays;
 }

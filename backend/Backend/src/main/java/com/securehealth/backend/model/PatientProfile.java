@@ -1,5 +1,6 @@
 package com.securehealth.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,11 +22,13 @@ public class PatientProfile {
     // 1-to-1 relationship: This profile belongs to exactly one Login account
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "userId", nullable = false, unique = true)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Login user;
 
     // Many-to-1: Many patients can be assigned to one Doctor
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_doctor_id", referencedColumnName = "userId")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Login assignedDoctor;
 
     @Column(nullable = false)

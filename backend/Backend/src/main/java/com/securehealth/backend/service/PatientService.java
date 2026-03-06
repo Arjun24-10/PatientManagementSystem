@@ -6,6 +6,7 @@ import com.securehealth.backend.model.PatientProfile;
 import com.securehealth.backend.model.Role; // Assuming you have a Role enum
 import com.securehealth.backend.repository.LoginRepository;
 import com.securehealth.backend.repository.PatientProfileRepository;
+import com.securehealth.backend.repository.AppointmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,9 @@ public class PatientService {
 
     @Autowired
     private LoginRepository loginRepository;
+
+    @Autowired
+    private AppointmentRepository appointmentRepository;
 
     /**
      * GET /patients
@@ -114,6 +118,27 @@ public class PatientService {
 
         updateProfileFields(profile, dto);
         return mapToDTO(patientProfileRepository.save(profile));
+    }
+
+    /**
+     * Retrieves a distinct list of all patients who have an active or completed 
+     * appointment with a specific doctor.
+     */
+    @Transactional(readOnly = true)
+    public List<PatientDTO> getPatientsByDoctor(Long doctorId, String requesterEmail, String requesterRole) {
+        // Find the doctor to verify identity
+        Login doctor = loginRepository.findById(doctorId)
+                .orElseThrow(() -> new RuntimeException("404: Doctor not found"));
+
+        // Strict RBAC: Only the doctor themselves (or an Admin) can view their patient list
+        if (!requesterRole.equals("ADMIN") && !doctor.getEmail().equals(requesterEmail)) {
+            throw new RuntimeException("403 Forbidden: You can only view your own patient list.");
+        }
+
+        // Fetch distinct profiles and map them to secure DTOs
+        return appointmentRepository.findDistinctPatientsByDoctorId(doctorId).stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 
     // --- Helper Methods ---

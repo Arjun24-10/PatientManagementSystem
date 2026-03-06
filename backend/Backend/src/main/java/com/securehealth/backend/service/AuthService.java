@@ -180,7 +180,7 @@ public class AuthService {
 
             logEvent(email, "OTP_REQUIRED", ipAddress, userAgent, "OTP sent to email");
             // Return "OTP_REQUIRED" status with NULL tokens
-            return new LoginResponse(null, null, user.getRole().name(), "OTP_REQUIRED");
+            return new LoginResponse(null, null, user.getRole().name(), "OTP_REQUIRED", user.getUserId());
         }
 
         // --- 2. GENERATE TOKENS (Standard Login) ---
@@ -206,7 +206,7 @@ public class AuthService {
         // Initialize the active session in Redis so the first API call doesn't fail
         tokenBlacklistService.updateLastActive(email);
         
-        return new LoginResponse(accessToken, refreshToken, user.getRole().name(), "LOGIN_SUCCESS");
+        return new LoginResponse(accessToken, refreshToken, user.getRole().name(), "LOGIN_SUCCESS", user.getUserId());
     }
 
     /**
@@ -248,7 +248,7 @@ public class AuthService {
             // Initialize the active session in Redis
             tokenBlacklistService.updateLastActive(email);
 
-            return new LoginResponse(accessToken, refreshToken, user.getRole().name(), "LOGIN_SUCCESS");
+            return new LoginResponse(accessToken, refreshToken, user.getRole().name(), "LOGIN_SUCCESS",user.getUserId());
         }
         rateLimiterService.registerFailedOtp(email, ipAddress, userAgent);
 
@@ -581,7 +581,7 @@ public class AuthService {
         // Log the success
         logEvent(user.getEmail(), "TOKEN_REFRESHED", ipAddress, userAgent, "Token rotated successfully");
 
-        return new LoginResponse(newAccessToken, newRefreshToken, user.getRole().name(), "SUCCESS");
+        return new LoginResponse(newAccessToken, newRefreshToken, user.getRole().name(), "SUCCESS",user.getUserId());
     }
 
     private void createSession(Login user, String refreshToken, String ipAddress, String userAgent) {
