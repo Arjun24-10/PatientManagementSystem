@@ -23,7 +23,7 @@ import { mockMedicationsData } from '../../mocks/medications';
 
 const Medications = () => {
    const { user } = useAuth();
-   const patientId = user?.userId;
+   const [patientId, setPatientId] = useState(null);
    const [searchTerm, setSearchTerm] = useState('');
    const [activeTab, setActiveTab] = useState('active');
    const [expandedMeds, setExpandedMeds] = useState({});
@@ -43,7 +43,25 @@ const Medications = () => {
       adherenceRate: 0
    });
 
+   // First, fetch the actual patient profile to get the correct patientId
    React.useEffect(() => {
+      const fetchPatientProfile = async () => {
+         try {
+            const pData = await api.patients.getMe();
+            if (pData && pData.id) {
+               setPatientId(pData.id);
+            }
+         } catch (err) {
+            console.error('Failed to fetch patient profile:', err);
+         }
+      };
+      fetchPatientProfile();
+   }, []);
+
+   // Fetch medications once we have patientId
+   React.useEffect(() => {
+      if (!patientId) return;
+
       const fetchMedications = async () => {
          try {
             const data = await api.prescriptions.getByPatient(patientId);

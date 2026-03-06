@@ -18,15 +18,9 @@ const Patients = () => {
     React.useEffect(() => {
         const fetchPatients = async () => {
             try {
-                console.log('🔍 Patients page - user object:', user);
-                console.log('🔍 Patients page - user.userId:', user?.userId);
-                
-                // Determine doctorId from context (fallback to a default for testing if needed)
                 const doctorId = user?.userId;
                 if (!doctorId) {
-                   console.error('❌ Doctor ID not available');
-                   console.error('   user:', user);
-                   console.error('   localStorage:', localStorage.getItem('secure_health_user'));
+                   console.warn('Doctor ID not available - loading mock patients');
                    setPatients([]);
                    return;
                 }
@@ -93,7 +87,6 @@ const Patients = () => {
         <div className="space-y-3">
             <div className="flex justify-between items-center">
                 <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">My Patients</h2>
-                <Button>+ Add Patient</Button>
             </div>
 
             <PatientSearch

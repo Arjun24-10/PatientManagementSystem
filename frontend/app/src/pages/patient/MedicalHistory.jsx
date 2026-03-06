@@ -39,9 +39,27 @@ const MedicalHistory = () => {
    const [chronicConditions] = useState([]);
 
    const { user } = useAuth();
-   const patientId = user?.userId;
+   const [patientId, setPatientId] = useState(null);
 
+   // First, fetch the actual patient profile to get the correct patientId
    React.useEffect(() => {
+      const fetchPatientProfile = async () => {
+         try {
+            const pData = await api.patients.getMe();
+            if (pData && pData.id) {
+               setPatientId(pData.id);
+            }
+         } catch (err) {
+            console.error('Failed to fetch patient profile:', err);
+         }
+      };
+      fetchPatientProfile();
+   }, []);
+
+   // Fetch medical records once we have patientId
+   React.useEffect(() => {
+      if (!patientId) return;
+
       const fetchRecords = async () => {
          try {
             const data = await api.medicalRecords.getByPatient(patientId);
@@ -65,7 +83,7 @@ const MedicalHistory = () => {
             console.error('Failed to fetch medical history', error);
          }
       };
-      if (patientId) fetchRecords();
+      fetchRecords();
    }, [patientId]);
 
    const tabs = [

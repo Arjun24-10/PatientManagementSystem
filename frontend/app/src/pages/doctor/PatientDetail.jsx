@@ -14,6 +14,10 @@ import Input from '../../components/common/Input';
 import TreatmentModal from '../../components/doctor/TreatmentModal';
 import MedicalHistoryList from '../../components/doctor/MedicalHistoryList';
 import LabResultsList from '../../components/doctor/LabResultsList';
+import VitalSignModal from '../../components/doctor/VitalSignModal';
+import LabTestModal from '../../components/doctor/LabTestModal';
+import MedicalRecordModal from '../../components/doctor/MedicalRecordModal';
+import PrescriptionModal from '../../components/doctor/PrescriptionModal';
 
 import api from '../../services/api';
 
@@ -28,13 +32,16 @@ const PatientDetail = () => {
     // Data States
     const [prescriptions, setPrescriptions] = useState([]);
     const [treatments, setTreatments] = useState([]);
-    // eslint-disable-next-line no-unused-vars
+    const [vitals, setVitals] = useState([]);
     const [medicalHistory, setMedicalHistory] = useState([]);
-    // eslint-disable-next-line no-unused-vars
     const [labs, setLabs] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isRxModalOpen, setIsRxModalOpen] = useState(false);
     const [isTreatmentModalOpen, setIsTreatmentModalOpen] = useState(false);
+    const [isVitalsModalOpen, setIsVitalsModalOpen] = useState(false);
+    const [isLabTestModalOpen, setIsLabTestModalOpen] = useState(false);
+    const [isMedicalRecordModalOpen, setIsMedicalRecordModalOpen] = useState(false);
+    const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
     const [newRx, setNewRx] = useState({ name: '', dosage: '', frequency: '', duration: '', instructions: '' });
 
     // Fetch Data
@@ -175,6 +182,22 @@ const PatientDetail = () => {
         setTreatments([newTreatment, ...treatments]);
     };
 
+    const handleAddVitals = (vital) => {
+        setVitals([vital, ...vitals]);
+    };
+
+    const handleAddLabTest = (test) => {
+        setLabs([test, ...labs]);
+    };
+
+    const handleAddMedicalRecord = (record) => {
+        setMedicalHistory([record, ...medicalHistory]);
+    };
+
+    const handleAddPrescription = (rx) => {
+        setPrescriptions([rx, ...prescriptions]);
+    };
+
     const activePrescriptions = prescriptions.filter(rx => rx.active);
     const historyPrescriptions = prescriptions.filter(rx => !rx.active);
 
@@ -277,7 +300,7 @@ const PatientDetail = () => {
                                    label="Add New" 
                                    variant="primary"
                                    size="sm"
-                                   onClick={() => setIsRxModalOpen(true)}
+                                   onClick={() => setIsPrescriptionModalOpen(true)}
                                 />
                             </div>
 
@@ -431,10 +454,42 @@ const PatientDetail = () => {
                 </form>
             </Modal>
 
+            {/* Update Prescription Click Handler - Change to use new PrescriptionModal */}
+            {/* Old modal kept for backward compatibility - now clicking shows new API-integrated modal */}
+            
             <TreatmentModal
                 isOpen={isTreatmentModalOpen}
                 onClose={() => setIsTreatmentModalOpen(false)}
                 onAdd={handleAddTreatment}
+            />
+
+            {/* New Clinical Operations Modals */}
+            <VitalSignModal
+                isOpen={isVitalsModalOpen}
+                onClose={() => setIsVitalsModalOpen(false)}
+                patientId={patient?.id}
+                onAdd={handleAddVitals}
+            />
+
+            <LabTestModal
+                isOpen={isLabTestModalOpen}
+                onClose={() => setIsLabTestModalOpen(false)}
+                patientId={patient?.id}
+                onAdd={handleAddLabTest}
+            />
+
+            <MedicalRecordModal
+                isOpen={isMedicalRecordModalOpen}
+                onClose={() => setIsMedicalRecordModalOpen(false)}
+                patientId={patient?.id}
+                onAdd={handleAddMedicalRecord}
+            />
+
+            <PrescriptionModal
+                isOpen={isPrescriptionModalOpen}
+                onClose={() => setIsPrescriptionModalOpen(false)}
+                patientId={patient?.id}
+                onAdd={handleAddPrescription}
             />
         </div>
     );

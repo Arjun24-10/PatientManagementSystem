@@ -10,6 +10,7 @@ import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
 import Alert from '../../components/common/Alert';
 import Input from '../../components/common/Input';
+import AvailableSlotSelector from '../../components/appointments/AvailableSlotSelector';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { format, addDays, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, parseISO, differenceInDays, differenceInHours, differenceInMinutes } from 'date-fns';
@@ -25,19 +26,41 @@ const timeSlots = {
 
 const PatientAppointments = () => {
    const { user } = useAuth();
-   const patientId = user?.userId;
+   const [patientId, setPatientId] = useState(null);
    const [appointments, setAppointments] = useState([]);
+   const [error, setError] = useState(null);
 
    const [doctors, setDoctors] = useState([]);
    const [departments, setDepartments] = useState([]);
 
+   // First, fetch the actual patient profile to get the correct patientId
    React.useEffect(() => {
+      const fetchPatientProfile = async () => {
+         try {
+            const pData = await api.patients.getMe();
+            if (pData && pData.id) {
+               setPatientId(pData.id);
+            }
+         } catch (err) {
+            console.error('Failed to fetch patient profile:', err);
+            setError('Unable to load your profile. Please refresh the page.');
+         }
+      };
+      fetchPatientProfile();
+   }, []);
+
+   // Fetch appointments and doctors once we have patientId
+   React.useEffect(() => {
+      if (!patientId) return;
+
       const fetchAppointmentsAndDoctors = async () => {
          try {
+            setError(null);
             const data = await api.appointments.getByPatient(patientId);
             if (Array.isArray(data)) setAppointments(data);
          } catch (error) {
             console.error('Failed to fetch appointments', error);
+            setError('Failed to load your appointments. Please try refreshing the page.');
          }
 
          try {
@@ -49,9 +72,10 @@ const PatientAppointments = () => {
             }
          } catch (error) {
             console.error('Failed to fetch doctors', error);
+            // Don't overwrite parent error, just log this one
          }
       };
-      if (patientId) fetchAppointmentsAndDoctors();
+      fetchAppointmentsAndDoctors();
    }, [patientId]);
    const [activeTab, setActiveTab] = useState('upcoming');
    const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
@@ -59,6 +83,8 @@ const PatientAppointments = () => {
    // Request Appointment Modal State
    const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
    const [requestStep, setRequestStep] = useState(1);
+   const [showSlotSelector, setShowSlotSelector] = useState(false);
+   const [selectedSlot, setSelectedSlot] = useState(null);
    const [requestForm, setRequestForm] = useState({
       department: '',
       doctor: '',
@@ -144,21 +170,13 @@ const PatientAppointments = () => {
          setRequestStep(requestStep + 1);
       } else {
          try {
-            const selectedDoctor = doctors.find(d => d.id === requestForm.doctor || d.doctorId === requestForm.doctor);
+            // Create appointment with correct payload format
+            // Backend AppointmentRequest expects: doctorId, appointmentDate (LocalDateTime), reasonForVisit, patientId
             const newAppointment = {
                patientId,
                doctorId: requestForm.doctor,
-               doctorName: selectedDoctor?.full_name || selectedDoctor?.fullName || selectedDoctor?.name,
-               department: requestForm.department,
-               date: requestForm.date,
-               time: requestForm.time,
-               duration: 30,
-               type: requestForm.type,
-               status: 'Pending',
-               room: 'TBD',
-               location: 'TBD',
+               appointmentDate: `${requestForm.date}T${requestForm.time}:00`, // Combine date+time in ISO format
                reasonForVisit: requestForm.reason,
-               reason: requestForm.reason,
             };
 
             const created = await api.appointments.create(newAppointment);
@@ -350,6 +368,15 @@ const PatientAppointments = () => {
                </Button>
             </div>
          </div>
+
+         {error && (
+            <Alert 
+               type="error" 
+               title="Error Loading Appointments"
+               message={error}
+               onClose={() => setError(null)}
+            />
+         )}
 
          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
             {/* Main Content */}

@@ -25,7 +25,7 @@ import { mockLabResults } from '../../mocks/labResults';
 
 const LabResults = () => {
    const { user } = useAuth();
-   const patientId = user?.userId;
+   const [patientId, setPatientId] = useState(null);
 
    const [labResults, setLabResults] = useState([]);
    const [labStats] = useState({
@@ -35,7 +35,25 @@ const LabResults = () => {
    });
    const [trendData] = useState({});
 
+   // First, fetch the actual patient profile to get the correct patientId
    React.useEffect(() => {
+      const fetchPatientProfile = async () => {
+         try {
+            const pData = await api.patients.getMe();
+            if (pData && pData.id) {
+               setPatientId(pData.id);
+            }
+         } catch (err) {
+            console.error('Failed to fetch patient profile:', err);
+         }
+      };
+      fetchPatientProfile();
+   }, []);
+
+   // Fetch lab results once we have patientId
+   React.useEffect(() => {
+      if (!patientId) return;
+
       const fetchLabs = async () => {
          try {
             const data = await api.labResults.getByPatient(patientId);
@@ -46,12 +64,7 @@ const LabResults = () => {
             setLabResults(mockLabResults);
          }
       };
-      if (patientId) {
-         fetchLabs();
-      } else {
-         // Use mock data when no patient ID
-         setLabResults(mockLabResults);
-      }
+      fetchLabs();
    }, [patientId]);
 
    const [searchTerm, setSearchTerm] = useState('');

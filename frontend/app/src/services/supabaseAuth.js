@@ -49,10 +49,12 @@ const getSession = () => {
             const payload = JSON.parse(atob(parts[1]));
             if (payload.userId) {
                user.userId = payload.userId;
+               // Update localStorage with extracted userId
+               saveSession(user);
             }
          }
       } catch (e) {
-         // Silent fail - userId will remain undefined
+         console.warn('Failed to extract userId from JWT token');
       }
    }
    
@@ -145,22 +147,15 @@ export const login = async (email, password) => {
 
       let data = {};
       const contentType = response.headers.get('content-type');
-      console.log('🔍 Response status:', response.status);
-      console.log('🔍 Response content-type:', contentType);
-      console.log('🔍 Response headers:', Array.from(response.headers.entries()));
       
       if (contentType && contentType.includes('application/json')) {
          try {
             const responseText = await response.text();
-            console.log('🔍 Raw response text:', responseText);
             data = JSON.parse(responseText);
          } catch (e) {
             console.warn('Failed to parse response as JSON:', e);
             data = {};
          }
-      } else {
-         const responseText = await response.text();
-         console.warn('🔍 Response is not JSON, content:', responseText);
       }
 
       if (!response.ok) {
@@ -178,11 +173,7 @@ export const login = async (email, password) => {
       const roleFromResponse = data.role || 'PATIENT';
       
       // CRITICAL: Get userId from response body (backend returns it in LoginResponse DTO)
-      console.log('🔍 Backend Response Data:', JSON.stringify(data, null, 2));
-      console.log('🔍 Response keys:', Object.keys(data));
-      
       let userId = data.userId || null;
-      console.log('✓ userId from response.userId:', userId);
       
       // Fallback: try to parse from JWT token if not in response body
       if (!userId && accessToken) {
@@ -190,19 +181,16 @@ export const login = async (email, password) => {
             const parts = accessToken.split('.');
             if (parts.length === 3) {
                const payload = JSON.parse(atob(parts[1]));
-               console.log('✓ JWT Payload:', payload);
                userId = payload.userId || payload.sub;
-               console.log('✓ userId from JWT:', userId);
             }
          } catch (e) {
-            console.error('✗ Failed to parse JWT token:', e);
+            console.error('Failed to parse JWT token:', e);
          }
       }
 
       // Fallback: If still no userId, fetch from /patients/me or /doctors/{email} endpoint
       if (!userId && accessToken && roleFromResponse) {
          try {
-            console.log('⚠️  userId not found in response or JWT, fetching from profile endpoint...');
             const headers = {
                'Content-Type': 'application/json',
                'Authorization': `Bearer ${accessToken}`
@@ -217,18 +205,12 @@ export const login = async (email, password) => {
             const profileResponse = await fetch(profileUrl, { headers, credentials: 'include' });
             if (profileResponse.ok) {
                const profileData = await profileResponse.json();
-               console.log('✓ Profile fetched:', profileData);
                userId = profileData.userId || profileData.id || profileData.user_id;
-               console.log('✓ userId from profile endpoint:', userId);
-            } else {
-               console.warn('⚠️  Profile endpoint returned', profileResponse.status);
             }
          } catch (e) {
-            console.error('✗ Failed to fetch profile:', e);
+            console.error('Failed to fetch profile:', e);
          }
       }
-
-      console.log('✓ Final Login Result:', { userId, role: roleFromResponse, status, email: resolvedEmail });
       
       const user = { email: resolvedEmail, role: roleFromResponse, fullName, accessToken, userId };
       if (status === 'OTP_REQUIRED') {

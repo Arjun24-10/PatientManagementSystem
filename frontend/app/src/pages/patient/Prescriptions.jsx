@@ -9,10 +9,28 @@ import { useState, useEffect } from 'react';
 
 const PatientPrescriptions = () => {
    const { user } = useAuth();
-   const patientId = user?.userId;
+   const [patientId, setPatientId] = useState(null);
    const [prescriptions, setPrescriptions] = useState([]);
 
+   // First, fetch the actual patient profile to get the correct patientId
    useEffect(() => {
+      const fetchPatientProfile = async () => {
+         try {
+            const pData = await api.patients.getMe();
+            if (pData && pData.id) {
+               setPatientId(pData.id);
+            }
+         } catch (err) {
+            console.error('Failed to fetch patient profile:', err);
+         }
+      };
+      fetchPatientProfile();
+   }, []);
+
+   // Fetch prescriptions once we have patientId
+   useEffect(() => {
+      if (!patientId) return;
+
       const fetchPrescriptions = async () => {
          try {
             const data = await api.prescriptions.getByPatient(patientId);
@@ -21,7 +39,7 @@ const PatientPrescriptions = () => {
             console.error('Failed to fetch prescriptions', error);
          }
       };
-      if (patientId) fetchPrescriptions();
+      fetchPrescriptions();
    }, [patientId]);
 
    const activeRx = prescriptions.filter(p => p.active);

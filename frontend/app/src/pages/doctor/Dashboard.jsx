@@ -28,17 +28,9 @@ const DoctorDashboard = () => {
       const fetchData = async () => {
          // Fetch patients with graceful fallback
          try {
-            console.log('🔍 Dashboard - user object:', user);
-            console.log('🔍 Dashboard - user.userId:', user?.userId);
-            console.log('🔍 Dashboard - user.id:', user?.id);
-            console.log('🔍 Dashboard - all user keys:', Object.keys(user || {}));
-            
             const doctorId = user?.userId;
             if (!doctorId) {
-               console.error('❌ Doctor ID not available in user object');
-               console.error('   user:', user);
-               console.error('   localStorage:', localStorage.getItem('secure_health_user'));
-               // Continue with mock data rather than throwing
+               console.warn('Doctor ID not available - using mock data');
                setPatients([]);
                return;
             }
@@ -82,7 +74,7 @@ const DoctorDashboard = () => {
          try {
             const doctorId = user?.userId;
             if (!doctorId) {
-               console.error('❌ Doctor ID not available in user object');
+               console.warn('Doctor ID not available - using mock appointments');
                setAppointments([]);
                return;
             }

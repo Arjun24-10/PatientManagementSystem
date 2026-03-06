@@ -192,7 +192,6 @@ const ConsentManagement = () => {
    // Handle consent form submission
    const handleConsentSubmit = (formData) => {
       // In production, this would call an API
-      console.log('Consent submitted:', formData);
       const action = consentMode === 'grant' ? 'granted' : 'modified';
       showToast('success', `Consent ${action} for "${selectedConsent.title}". Confirmation email sent.`);
       setShowGrantModal(false);
