@@ -10,6 +10,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -70,6 +72,36 @@ public class AdminController {
             return ResponseEntity.ok("Staff member removed successfully.");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(404).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/patients")
+    public ResponseEntity<?> getAllPatients(Authentication auth) {
+        // Enforce strict RBAC: Only ADMIN can view the master patient list
+        String role = auth.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse("");
+        if (!role.equals("ADMIN")) {
+            return ResponseEntity.status(403).body("Forbidden: Administrator access required.");
+        }
+
+        return ResponseEntity.ok(adminService.getAllPatients());
+    }
+
+    @PutMapping("/staff/{userId}/role")
+    public ResponseEntity<?> updateStaffRole(
+            @PathVariable Long userId,
+            @RequestBody com.securehealth.backend.dto.RoleUpdateDTO request,
+            Authentication auth) {
+
+        // Enforce strict RBAC: Only ADMIN can promote/demote staff
+        String role = auth.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse("");
+        if (!role.equals("ADMIN")) {
+            return ResponseEntity.status(403).body("Forbidden: Administrator access required.");
+        }
+
+        try {
+            return ResponseEntity.ok(adminService.updateStaffRole(userId, request.getNewRole()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
         }
     }
 }

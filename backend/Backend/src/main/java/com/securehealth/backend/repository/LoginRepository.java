@@ -3,6 +3,7 @@ package com.securehealth.backend.repository;
 import com.securehealth.backend.model.Login;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import com.securehealth.backend.model.Role;
 
 import java.util.Optional;
 import java.util.List;
@@ -61,4 +62,12 @@ public interface LoginRepository extends JpaRepository<Login, Long> {
      * @return A list of Login entities that do not match the given role.
      */
     List<Login> findByRoleNot(String role);
+
+    /**
+     * Retrieves a list of users who do not have the specified role using the Role Enum.
+     * 
+     * @param role The Role Enum to exclude from the results.
+     * @return A list of Login entities that do not match the given role.
+     */
+    List<Login> findByRoleNot(Role role);
 }
