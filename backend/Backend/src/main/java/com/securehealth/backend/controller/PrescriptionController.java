@@ -27,6 +27,13 @@ public class PrescriptionController {
         return ResponseEntity.ok(prescriptionService.getPrescriptionsByPatient(patientId));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getById(@PathVariable Long id, Authentication auth) {
+        return prescriptionRepository.findById(id)
+                .map(rx -> ResponseEntity.ok((Object) rx))
+                .orElse(ResponseEntity.status(404).body("Prescription not found with id: " + id));
+    }
+
     @PostMapping
     public ResponseEntity<?> createPrescription(@RequestBody com.securehealth.backend.dto.PrescriptionRequest request, Authentication auth) {
         // Enforce RBAC: Only Doctors can write prescriptions

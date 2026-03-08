@@ -27,6 +27,13 @@ public class MedicalRecordController {
         return ResponseEntity.ok(medicalRecordService.getMedicalRecordsByPatient(patientId));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getById(@PathVariable Long id, Authentication auth) {
+        return medicalRecordRepository.findById(id)
+                .map(record -> ResponseEntity.ok((Object) record))
+                .orElse(ResponseEntity.status(404).body("Medical record not found with id: " + id));
+    }
+
     @PostMapping
     public ResponseEntity<?> createMedicalRecord(@RequestBody com.securehealth.backend.dto.MedicalRecordRequest request, Authentication auth) {
         // Enforce RBAC: Only Doctors can create medical records

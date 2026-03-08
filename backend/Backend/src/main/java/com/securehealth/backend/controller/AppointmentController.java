@@ -120,6 +120,29 @@ public class AppointmentController {
         return ResponseEntity.ok(appointmentService.getAllAppointments());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getById(@PathVariable Long id, Authentication auth) {
+        return appointmentRepository.findById(id)
+                .map(appt -> ResponseEntity.ok((Object) appt))
+                .orElse(ResponseEntity.status(404).body("Appointment not found with id: " + id));
+    }
+
+    @GetMapping("/status/{status}")
+    public ResponseEntity<List<Appointment>> getByStatus(@PathVariable String status) {
+        return ResponseEntity.ok(appointmentRepository.findByStatus(status));
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<?> getStats() {
+        java.util.Map<String, Object> stats = new java.util.HashMap<>();
+        stats.put("total", appointmentRepository.count());
+        stats.put("pending", appointmentRepository.countByStatus("PENDING"));
+        stats.put("scheduled", appointmentRepository.countByStatus("SCHEDULED"));
+        stats.put("completed", appointmentRepository.countByStatus("COMPLETED"));
+        stats.put("cancelled", appointmentRepository.countByStatus("CANCELLED"));
+        return ResponseEntity.ok(stats);
+    }
+
     @PutMapping("/{id}/complete")
     public ResponseEntity<?> completeAppointment(@PathVariable Long id, Authentication auth) {
         // Enforce RBAC: Only Doctors can mark as complete

@@ -27,6 +27,13 @@ public class LabResultController {
         return ResponseEntity.ok(labTestService.getLabTestsByPatient(patientId));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getById(@PathVariable Long id, Authentication auth) {
+        return labTestRepository.findById(id)
+                .map(test -> ResponseEntity.ok((Object) test))
+                .orElse(ResponseEntity.status(404).body("Lab result not found with id: " + id));
+    }
+
     
 
     @PostMapping
