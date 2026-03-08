@@ -41,7 +41,7 @@ describe('Authentication Flow Integration Tests', () => {
 
   describe('Login Flow', () => {
     test('should successfully login as doctor and redirect to doctor dashboard', async () => {
-      const user = userEvent;
+      const user = userEvent.setup();
 
       renderWithProviders(<Login />, {
         authValue: mockAuthUsers.unauthenticated,
@@ -100,7 +100,7 @@ describe('Authentication Flow Integration Tests', () => {
     }, 15000);
 
     test('should validate email field on blur', async () => {
-      const user = userEvent;
+      const user = userEvent.setup();
 
       renderWithProviders(<Login />, {
         authValue: mockAuthUsers.unauthenticated,
@@ -109,10 +109,10 @@ describe('Authentication Flow Integration Tests', () => {
       // Wait for form to render with increased timeout
       const emailInput = await screen.findByPlaceholderText(/enter your email address/i, {}, { timeout: 5000 });
 
-      // Type invalid email and blur
-      fireEvent.change(emailInput, { target: { value: 'invalid' } });
-      fireEvent.change(emailInput, { target: { value: '' } });
-      fireEvent.blur(emailInput);
+      // Type invalid email and clear it, then trigger blur
+      await user.type(emailInput, 'invalid');
+      await user.clear(emailInput);
+      await user.tab();
 
       // Should show validation error after blur
       await waitFor(() => {

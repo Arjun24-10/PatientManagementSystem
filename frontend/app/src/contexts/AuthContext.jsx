@@ -1,13 +1,52 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useRef } from 'react';
 import * as authService from '../services/supabaseAuth';
 
 export const AuthContext = createContext();
+
+// Decode JWT exp claim without a library (standard base64 decode)
+const getTokenExpiry = (token) => {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp ? payload.exp * 1000 : null; // convert to ms
+  } catch {
+    return null;
+  }
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const logoutTimerRef = useRef(null);
+
+  // Schedule automatic logout when the JWT expires
+  const scheduleAutoLogout = (token) => {
+    // Clear any existing timer
+    if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
+
+    const expiresAt = getTokenExpiry(token);
+    if (!expiresAt) return;
+
+    const msUntilExpiry = expiresAt - Date.now();
+    if (msUntilExpiry <= 0) {
+      // Already expired — logout immediately
+      performLogout();
+      return;
+    }
+
+    logoutTimerRef.current = setTimeout(() => {
+      console.warn('Session expired. Logging out automatically.');
+      performLogout();
+    }, msUntilExpiry);
+  };
+
+  const performLogout = () => {
+    localStorage.removeItem('secure_health_user');
+    setUser(null);
+    setSession(null);
+    window.location.href = '/login';
+  };
 
   // Initialize auth state on mount
   useEffect(() => {
@@ -16,7 +55,15 @@ export const AuthProvider = ({ children }) => {
         const currentSession = await authService.getCurrentSession();
         setSession(currentSession);
         if (currentSession) {
+          const token = currentSession.user?.accessToken;
+          // If token is already expired, don't restore session
+          if (token && getTokenExpiry(token) <= Date.now()) {
+            localStorage.removeItem('secure_health_user');
+            setLoading(false);
+            return;
+          }
           setUser(currentSession.user);
+          if (token) scheduleAutoLogout(token);
         }
       } catch (err) {
         setError(err.message);
@@ -31,11 +78,16 @@ export const AuthProvider = ({ children }) => {
     const unsubscribe = authService.onAuthStateChange((newSession) => {
       setSession(newSession);
       setUser(newSession?.user || null);
+      if (newSession?.user?.accessToken) {
+        scheduleAutoLogout(newSession.user.accessToken);
+      }
     });
 
     return () => {
       unsubscribe();
+      if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const login = async (email, password) => {
@@ -49,6 +101,10 @@ export const AuthProvider = ({ children }) => {
       if (result.success) {
         setUser(result.user);
         setSession(result.session);
+        // Schedule auto-logout based on JWT expiry
+        if (result.user?.accessToken) {
+          scheduleAutoLogout(result.user.accessToken);
+        }
         return { success: true, status: result.status };
       } else {
         setError(result.error);
@@ -85,6 +141,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     setError(null);
+    if (logoutTimerRef.current) clearTimeout(logoutTimerRef.current);
     try {
       const result = await authService.signOut();
       if (result.success) {
@@ -101,6 +158,80 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // 2FA verification function
+  const verifyOtp = async (email, otp) => {
+    setError(null);
+    setLoading(true);
+    try {
+      const result = await authService.verifyOtp(email, otp);
+      if (result.success) {
+        setUser(result.user);
+        setSession({ user: result.user });
+        // Schedule auto-logout based on JWT expiry if token is provided
+        if (result.user?.accessToken) {
+          scheduleAutoLogout(result.user.accessToken);
+        }
+        return { success: true };
+      } else {
+        setError(result.error);
+        return { success: false, error: result.error };
+      }
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Resend OTP function
+  const resendOtp = async (email) => {
+    setError(null);
+    try {
+      const result = await authService.resendOtp(email);
+      return result;
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  // Password reset request function
+  const forgotPassword = async (email) => {
+    setError(null);
+    try {
+      const result = await authService.forgotPassword(email);
+      return result;
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
+  // Validate password reset token function
+  const validateResetToken = async (token) => {
+    setError(null);
+    try {
+      const result = await authService.validateResetToken(token);
+      return result;
+    } catch (err) {
+      setError(err.message);
+      return { valid: false, error: err.message };
+    }
+  };
+
+  // Reset password function
+  const resetPassword = async (token, newPassword, confirmPassword) => {
+    setError(null);
+    try {
+      const result = await authService.resetPassword(token, newPassword, confirmPassword);
+      return result;
+    } catch (err) {
+      setError(err.message);
+      return { success: false, error: err.message };
+    }
+  };
+
   const value = {
     user,
     session,
@@ -109,6 +240,11 @@ export const AuthProvider = ({ children }) => {
     login,
     signup,
     logout,
+    verifyOtp,
+    resendOtp,
+    forgotPassword,
+    validateResetToken,
+    resetPassword,
     isAuthenticated: !!user,
   };
 

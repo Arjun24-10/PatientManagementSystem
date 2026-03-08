@@ -6,6 +6,7 @@ import {
    CheckCircle, XCircle, Loader2
 } from 'lucide-react';
 import Button from '../../components/common/Button';
+import IconButton from '../../components/common/IconButton';
 import Badge from '../../components/common/Badge';
 import {
    getConsentFormByCategory,
@@ -397,9 +398,13 @@ const HistoryTimelineItem = ({ item, isLast }) => {
                      <FileText className="w-4 h-4" />
                      <span>Version: {item.metadata.consentVersion}</span>
                   </div>
-                  <button className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 flex items-center gap-1 mt-2">
-                     <Download className="w-4 h-4" /> Download record (PDF)
-                  </button>
+                  <IconButton 
+                     icon={Download} 
+                     label="Download record (PDF)" 
+                     variant="ghost"
+                     size="sm" 
+                     className="mt-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                  />
                </div>
             )}
          </div>
@@ -997,10 +1002,12 @@ const GrantModifyConsent = ({
                         </div>
 
                         {/* Download Confirmation */}
-                        <Button variant="outline" className="mb-4">
-                           <Download className="w-4 h-4 mr-2" />
-                           Download Confirmation (PDF)
-                        </Button>
+                        <IconButton 
+                           icon={Download} 
+                           label="Download Confirmation (PDF)" 
+                           variant="outline" 
+                           className="mb-4"
+                        />
                      </div>
                   )}
                </div>
@@ -1114,10 +1121,12 @@ const GrantModifyConsent = ({
                </div>
 
                <div className="flex flex-col gap-3">
-                  <Button className="w-full bg-brand-medium hover:bg-brand-deep">
-                     <Download className="w-4 h-4 mr-2" />
-                     Download Consent PDF
-                  </Button>
+                  <IconButton 
+                     icon={Download} 
+                     label="Download Consent PDF" 
+                     variant="primary" 
+                     className="w-full bg-brand-medium hover:bg-brand-deep"
+                  />
                   <Button variant="outline" className="w-full" onClick={onClose}>
                      Return to Consent Dashboard
                   </Button>
@@ -1598,12 +1607,18 @@ const GrantModifyConsent = ({
                               ))}
                            </div>
                            <div className="flex gap-2 mt-4">
-                              <Button variant="outline" size="sm">
-                                 <Download className="w-4 h-4 mr-1" /> Export PDF
-                              </Button>
-                              <Button variant="outline" size="sm">
-                                 <Download className="w-4 h-4 mr-1" /> Export CSV
-                              </Button>
+                              <IconButton 
+                                 icon={Download} 
+                                 label="Export PDF" 
+                                 variant="outline" 
+                                 size="sm"
+                              />
+                              <IconButton 
+                                 icon={Download} 
+                                 label="Export CSV" 
+                                 variant="outline" 
+                                 size="sm"
+                              />
                            </div>
                         </div>
                      )}

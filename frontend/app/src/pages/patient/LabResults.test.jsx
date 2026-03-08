@@ -10,6 +10,6 @@ describe('Lab Results Page', () => {
 
    test('displays lab results heading', () => {
       render(<LabResults />);
-      expect(screen.getByText(/lab results/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /lab results/i })).toBeInTheDocument();
    });
 });

@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { FileText, Download, BarChart2, PieChart, X, Check } from 'lucide-react';
+import { FileText, Download, BarChart2, PieChart, Check } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
+import IconButton from '../../components/common/IconButton';
 import Modal from '../../components/common/Modal';
-import { mockReports } from '../../mocks/communication';
+
 
 const Reports = () => {
-    const [reports, setReports] = useState(mockReports);
+    const [reports, setReports] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -60,9 +61,12 @@ const Reports = () => {
                     <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">Reports & Analytics</h2>
                     <p className="text-xs text-gray-500 dark:text-slate-400">Access medical reports and practice analytics.</p>
                 </div>
-                <Button onClick={() => setIsModalOpen(true)} className="flex items-center text-sm">
-                    <BarChart2 className="w-4 h-4 mr-1" /> Generate New Report
-                </Button>
+                <IconButton 
+                   icon={BarChart2} 
+                   label="Generate New Report" 
+                   variant="primary"
+                   onClick={() => setIsModalOpen(true)}
+                />
             </div>
 
             {/* Quick Stats Placeholder */}

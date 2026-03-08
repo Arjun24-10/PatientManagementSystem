@@ -2,6 +2,7 @@ import React from 'react';
 import { Search, Printer, Download, AlertTriangle } from 'lucide-react';
 import Card from '../../../components/common/Card';
 import Button from '../../../components/common/Button';
+import IconButton from '../../../components/common/IconButton';
 
 const VitalsLogTable = ({
     historySearch,
@@ -55,14 +56,20 @@ const VitalsLogTable = ({
                         />
                     </div>
                 </div>
-                <Button variant="outline" className="flex items-center gap-1.5 text-xs" onClick={onPrint}>
-                    <Printer className="w-3.5 h-3.5" />
-                    Print
-                </Button>
-                <Button variant="outline" className="flex items-center gap-1.5 text-xs" onClick={onExport}>
-                    <Download className="w-3.5 h-3.5" />
-                    Export
-                </Button>
+                <IconButton 
+                   icon={Printer} 
+                   label="Print" 
+                   variant="outline" 
+                   size="sm" 
+                   onClick={onPrint}
+                />
+                <IconButton 
+                   icon={Download} 
+                   label="Export" 
+                   variant="outline" 
+                   size="sm" 
+                   onClick={onExport}
+                />
             </div>
         </div>
 

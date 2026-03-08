@@ -1,6 +1,7 @@
 import React from 'react';
 import { Thermometer, Download, Printer } from 'lucide-react';
 import Button from '../../../components/common/Button';
+import IconButton from '../../../components/common/IconButton';
 
 const VitalsSectionHeader = ({ patient, onExportPdf, onPrint }) => (
     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
@@ -12,22 +13,20 @@ const VitalsSectionHeader = ({ patient, onExportPdf, onPrint }) => (
             </div>
         </div>
         <div className="flex flex-wrap gap-2">
-            <Button
+            <IconButton
+                icon={Download}
+                label="Export PDF"
                 variant="outline"
-                className="flex items-center gap-1.5 text-xs"
+                size="sm"
                 onClick={onExportPdf}
-            >
-                <Download className="w-3.5 h-3.5" />
-                Export PDF
-            </Button>
-            <Button
+            />
+            <IconButton
+                icon={Printer}
+                label="Print"
                 variant="outline"
-                className="flex items-center gap-1.5 text-xs"
+                size="sm"
                 onClick={onPrint}
-            >
-                <Printer className="w-3.5 h-3.5" />
-                Print
-            </Button>
+            />
         </div>
     </div>
 );

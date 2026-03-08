@@ -3,11 +3,47 @@ import { Pill, RefreshCw, Clock, CheckCircle } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
-import { mockPrescriptions } from '../../mocks/records';
+import api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
+import { useState, useEffect } from 'react';
 
 const PatientPrescriptions = () => {
-   const activeRx = mockPrescriptions.filter(p => p.active);
-   const historyRx = mockPrescriptions.filter(p => !p.active);
+   const { user } = useAuth();
+   const [patientId, setPatientId] = useState(null);
+   const [prescriptions, setPrescriptions] = useState([]);
+
+   // First, fetch the actual patient profile to get the correct patientId
+   useEffect(() => {
+      const fetchPatientProfile = async () => {
+         try {
+            const pData = await api.patients.getMe();
+            if (pData && pData.id) {
+               setPatientId(pData.id);
+            }
+         } catch (err) {
+            console.error('Failed to fetch patient profile:', err);
+         }
+      };
+      fetchPatientProfile();
+   }, []);
+
+   // Fetch prescriptions once we have patientId
+   useEffect(() => {
+      if (!patientId) return;
+
+      const fetchPrescriptions = async () => {
+         try {
+            const data = await api.prescriptions.getByPatient(patientId);
+            if (Array.isArray(data)) setPrescriptions(data);
+         } catch (error) {
+            console.error('Failed to fetch prescriptions', error);
+         }
+      };
+      fetchPrescriptions();
+   }, [patientId]);
+
+   const activeRx = prescriptions.filter(p => p.active);
+   const historyRx = prescriptions.filter(p => !p.active);
 
    const handleRefill = (medName) => {
       alert(`Refill request sent for ${medName}. Your pharmacy will be notified.`);

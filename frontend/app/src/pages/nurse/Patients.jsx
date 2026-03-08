@@ -4,6 +4,7 @@ import { Search, Eye, Clock, AlertTriangle, CheckCircle } from 'lucide-react';
 
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
+import IconButton from '../../components/common/IconButton';
 import Badge from '../../components/common/Badge';
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '../../components/common/Table';
 import Input from '../../components/common/Input';
@@ -114,13 +115,16 @@ const Patients = () => {
                                     </TableCell>
                                     <TableCell>{getStatusBadge(patient.status)}</TableCell>
                                     <TableCell align="right">
-                                        <Button variant="ghost" size="sm" onClick={(e) => {
-                                            e.stopPropagation();
-                                            navigate(`/dashboard/nurse/patient/${patient.id}`);
-                                        }}>
-                                            <Eye className="w-4 h-4 mr-2" />
-                                            View
-                                        </Button>
+                                        <IconButton 
+                                           icon={Eye} 
+                                           label="View" 
+                                           variant="ghost"
+                                           size="sm"
+                                           onClick={(e) => {
+                                               e.stopPropagation();
+                                               navigate(`/dashboard/nurse/patient/${patient.id}`);
+                                           }}
+                                        />
                                     </TableCell>
                                 </TableRow>
                             ))
