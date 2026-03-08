@@ -61,7 +61,8 @@ public class AppointmentService {
                 .map(apt -> apt.getAppointmentDate().toLocalTime())
                 .toList();
 
-        // 4. Generate ALL possible slots for the day based on shift hours and slot duration
+        // 4. Generate ALL possible slots for the day based on shift hours and slot
+        // duration
         List<LocalTime> availableSlots = new ArrayList<>();
         LocalTime currentSlot = doctor.getShiftStartTime();
 
@@ -90,10 +91,9 @@ public class AppointmentService {
 
         // UPDATE: Check against both CANCELLED and REJECTED statuses
         boolean isSlotTaken = appointmentRepository.existsByDoctor_UserIdAndAppointmentDateAndStatusNotIn(
-                doctor.getUserId(), 
-                request.getAppointmentDate(), 
-                List.of("CANCELLED", "REJECTED")
-        );
+                doctor.getUserId(),
+                request.getAppointmentDate(),
+                List.of("CANCELLED", "REJECTED"));
 
         if (isSlotTaken) {
             throw new RuntimeException("409 Conflict: This time slot is currently unavailable or pending review.");
@@ -104,7 +104,7 @@ public class AppointmentService {
         appointment.setDoctor(doctor);
         appointment.setAppointmentDate(request.getAppointmentDate());
         appointment.setReasonForVisit(request.getReasonForVisit());
-        
+
         // UPDATE: Set to PENDING instead of SCHEDULED
         appointment.setStatus("PENDING_APPROVAL");
 
@@ -141,8 +141,8 @@ public class AppointmentService {
 
         appointment.setStatus("REJECTED");
         // Optional: If you added a 'adminNotes' column, you could save the reason here
-        // appointment.setDoctorNotes("Rejected by Admin: " + rejectionReason); 
-        
+        // appointment.setDoctorNotes("Rejected by Admin: " + rejectionReason);
+
         return appointmentRepository.save(appointment);
     }
 
@@ -153,7 +153,7 @@ public class AppointmentService {
             dto.setAppointmentId(app.getAppointmentId());
             dto.setDoctorId(app.getDoctor().getUserId());
             // This safely triggers the lazy load while the connection is open!
-            dto.setDoctorName(app.getDoctor().getEmail()); 
+            dto.setDoctorName(app.getDoctor().getEmail());
             dto.setPatientName(app.getPatient().getFirstName() + " " + app.getPatient().getLastName());
             dto.setAppointmentDate(app.getAppointmentDate());
             dto.setStatus(app.getStatus());
@@ -168,32 +168,13 @@ public class AppointmentService {
             AppointmentDTO dto = new AppointmentDTO();
             dto.setAppointmentId(app.getAppointmentId());
             dto.setDoctorId(app.getDoctor().getUserId());
-            
+
             // Safely trigger lazy loading
             dto.setDoctorName(app.getDoctor() != null ? app.getDoctor().getEmail() : "Unknown");
-            dto.setPatientName(app.getPatient() != null ? 
-                app.getPatient().getFirstName() + " " + app.getPatient().getLastName() : "Unknown");
-                
-            dto.setAppointmentDate(app.getAppointmentDate());
-            dto.setStatus(app.getStatus());
-            dto.setReasonForVisit(app.getReasonForVisit());
-            return dto;
-        }).collect(Collectors.toList());
-    }
+            dto.setPatientName(
+                    app.getPatient() != null ? app.getPatient().getFirstName() + " " + app.getPatient().getLastName()
+                            : "Unknown");
 
-    @Transactional(readOnly = true)
-    public List<AppointmentDTO> getPendingAppointments() {
-        // Fetch only appointments waiting for admin action
-        return appointmentRepository.findByStatus("PENDING_APPROVAL").stream().map(app -> {
-            AppointmentDTO dto = new AppointmentDTO();
-            dto.setAppointmentId(app.getAppointmentId());
-            dto.setDoctorId(app.getDoctor().getUserId());
-            
-            // Safely map the proxy objects
-            dto.setDoctorName(app.getDoctor() != null ? app.getDoctor().getEmail() : "Unknown");
-            dto.setPatientName(app.getPatient() != null ? 
-                app.getPatient().getFirstName() + " " + app.getPatient().getLastName() : "Unknown");
-                
             dto.setAppointmentDate(app.getAppointmentDate());
             dto.setStatus(app.getStatus());
             dto.setReasonForVisit(app.getReasonForVisit());

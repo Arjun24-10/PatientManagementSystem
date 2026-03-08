@@ -119,4 +119,39 @@ public class AppointmentController {
         // Allow ADMIN and DOCTOR
         return ResponseEntity.ok(appointmentService.getAllAppointments());
     }
+
+    @PutMapping("/{id}/complete")
+    public ResponseEntity<?> completeAppointment(@PathVariable Long id, Authentication auth) {
+        // Enforce RBAC: Only Doctors can mark as complete
+        String role = auth.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse("");
+        if (!role.equals("DOCTOR")) {
+            return ResponseEntity.status(403).body("Forbidden: Only Doctors can complete appointments.");
+        }
+        
+        try {
+            // auth.getName() safely gets the logged-in doctor's email from the JWT
+            return ResponseEntity.ok(appointmentService.completeAppointment(id, auth.getName()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateAppointment(
+            @PathVariable Long id, 
+            @RequestBody com.securehealth.backend.dto.AppointmentDTO request, 
+            Authentication auth) {
+            
+        // Enforce RBAC: Only Doctors can update
+        String role = auth.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse("");
+        if (!role.equals("DOCTOR")) {
+            return ResponseEntity.status(403).body("Forbidden: Only Doctors can modify appointments.");
+        }
+        
+        try {
+            return ResponseEntity.ok(appointmentService.updateAppointment(id, request, auth.getName()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
+        }
+    }
 }
