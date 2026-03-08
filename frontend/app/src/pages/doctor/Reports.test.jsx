@@ -4,15 +4,18 @@ import Reports from './Reports';
 
 // Mock dependencies
 jest.mock('../../components/common/Card', () => ({ children, className }) => <div className={`mock-card ${className}`}>{children}</div>);
-jest.mock('../../components/common/Button', () => ({ children }) => <button>{children}</button>);
+jest.mock('../../components/common/Button', () => ({ children, onClick }) => <button onClick={onClick}>{children}</button>);
+jest.mock('../../components/common/IconButton', () => ({ label, onClick }) => <button onClick={onClick}>{label}</button>);
+jest.mock('../../components/common/Modal', () => ({ children, isOpen }) => isOpen ? <div>{children}</div> : null);
 jest.mock('lucide-react', () => ({
    FileText: () => <span>FileTextIcon</span>,
    Download: () => <span>DownloadIcon</span>,
    BarChart2: () => <span>BarChartIcon</span>,
    PieChart: () => <span>PieChartIcon</span>,
+   Check: () => <span>CheckIcon</span>,
 }));
 
-// Mock data
+// Mock data - not directly used by component, but keeping for reference
 jest.mock('../../mocks/communication', () => ({
    mockReports: [
       {
@@ -37,9 +40,8 @@ describe('Reports Page', () => {
       expect(screen.getByText('Analytics')).toBeInTheDocument();
    });
 
-   test('renders list of reports', () => {
+   test('renders empty state for no reports', () => {
       render(<Reports />);
-      expect(screen.getByText('Monthly Analytics')).toBeInTheDocument();
-      expect(screen.getByText('PDF')).toBeInTheDocument();
+      expect(screen.getByText('No reports generated yet.')).toBeInTheDocument();
    });
 });

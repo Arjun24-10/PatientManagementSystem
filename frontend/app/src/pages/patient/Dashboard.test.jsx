@@ -1,18 +1,21 @@
+jest.mock('../../services/api', () => ({
+   __esModule: true,
+   default: {
+      patients: {
+         getMe: jest.fn()
+      },
+      appointments: { getByPatient: jest.fn().mockResolvedValue([]) },
+      prescriptions: { getByPatient: jest.fn().mockResolvedValue([]) },
+      labResults: { getByPatient: jest.fn().mockResolvedValue([]) },
+      medicalRecords: { getByPatient: jest.fn().mockResolvedValue([]) },
+      vitalSigns: { getByPatient: jest.fn().mockResolvedValue([]) },
+   }
+}));
+
 import React from 'react';
 import { render, screen, waitFor } from '../../test-utils';
 import PatientDashboard from './Dashboard';
 import api from '../../services/api';
-
-jest.mock('../../services/api', () => ({
-   patients: {
-      getMe: jest.fn()
-   },
-   appointments: { getByPatient: jest.fn().mockResolvedValue([]) },
-   prescriptions: { getByPatient: jest.fn().mockResolvedValue([]) },
-   labResults: { getByPatient: jest.fn().mockResolvedValue([]) },
-   medicalRecords: { getByPatient: jest.fn().mockResolvedValue([]) },
-   vitalSigns: { getByPatient: jest.fn().mockResolvedValue([]) },
-}));
 
 describe('Patient Dashboard', () => {
    beforeEach(() => {

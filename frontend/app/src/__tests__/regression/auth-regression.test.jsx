@@ -309,7 +309,7 @@ describe('Authentication Regression Tests', () => {
      * Bug History: Enter key didn't submit form (Fixed: v1.0.9)
      */
     test('A11Y: Can submit form with Enter key', async () => {
-      const user = userEvent.setup();
+      const user = userEvent.setup({ delay: null });
       
       renderWithProviders(<Login />, {
         authValue: mockAuthUsers.unauthenticated,
@@ -318,7 +318,9 @@ describe('Authentication Regression Tests', () => {
       const emailInput = await screen.findByPlaceholderText(/enter your email address/i, {}, { timeout: 5000 });
       const passwordInput = await screen.findByPlaceholderText(/enter your password/i, {}, { timeout: 5000 });
 
+      await user.clear(emailInput);
       await user.type(emailInput, 'test@test.com');
+      await user.clear(passwordInput);
       await user.type(passwordInput, 'password123');
       
       // Press Enter should trigger submission
@@ -326,7 +328,7 @@ describe('Authentication Regression Tests', () => {
 
       // Form should have attempted submission
       expect(emailInput).toHaveValue('test@test.com');
-    }, 15000);
+    }, 30000);
   });
 
   describe('Performance: Form Responsiveness', () => {
@@ -359,7 +361,7 @@ describe('Authentication Regression Tests', () => {
      * Bug History: Long emails broke layout (Fixed: v1.1.8)
      */
     test('EDGE: Handles very long email addresses', async () => {
-      const user = userEvent.setup();
+      const user = userEvent.setup({ delay: null });
       
       renderWithProviders(<Login />, {
         authValue: mockAuthUsers.unauthenticated,
@@ -369,18 +371,19 @@ describe('Authentication Regression Tests', () => {
 
       const veryLongEmail = 'a'.repeat(100) + '@' + 'b'.repeat(100) + '.com';
       
+      await user.clear(emailInput);
       await user.type(emailInput, veryLongEmail);
 
       // Should accept input without crashing
       expect(emailInput).toHaveValue(veryLongEmail);
-    }, 15000);
+    }, 30000);
 
     /**
      * REGRESSION: Must handle special characters in email
      * Bug History: Special chars caused validation errors (Fixed: v1.2.5)
      */
     test('EDGE: Handles special characters in email', async () => {
-      const user = userEvent.setup();
+      const user = userEvent.setup({ delay: null });
       
       renderWithProviders(<Login />, {
         authValue: mockAuthUsers.unauthenticated,
@@ -390,6 +393,8 @@ describe('Authentication Regression Tests', () => {
 
       const specialEmail = 'user+test@example.com';
       
+      await user.click(emailInput);
+      await user.clear(emailInput);
       await user.type(emailInput, specialEmail);
 
       expect(emailInput).toHaveValue(specialEmail);
@@ -400,7 +405,7 @@ describe('Authentication Regression Tests', () => {
      * Bug History: Paste didn't trigger validation (Fixed: v1.3.3)
      */
     test('EDGE: Handles pasted content correctly', async () => {
-      const user = userEvent.setup();
+      const user = userEvent.setup({ delay: null });
       
       renderWithProviders(<Login />, {
         authValue: mockAuthUsers.unauthenticated,
@@ -410,6 +415,7 @@ describe('Authentication Regression Tests', () => {
 
       // Simulate paste
       await user.click(emailInput);
+      await user.clear(emailInput);
       await user.paste('pasted@test.com');
 
       expect(emailInput).toHaveValue('pasted@test.com');

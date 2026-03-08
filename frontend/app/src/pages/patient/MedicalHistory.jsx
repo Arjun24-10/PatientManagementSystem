@@ -21,20 +21,70 @@ import {
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
-import {
-   mockMedicalTimeline,
-   mockDiagnosesHistory,
-   mockTreatmentHistory,
-   mockProcedureHistory,
-   mockAllergies,
-   mockChronicConditions
-} from '../../mocks/medicalHistory';
+import IconButton from '../../components/common/IconButton';
+import api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const MedicalHistory = () => {
    const [activeTab, setActiveTab] = useState('timeline');
    const [expandedCards, setExpandedCards] = useState({});
    const [searchTerm, setSearchTerm] = useState('');
    const [filterType, setFilterType] = useState('all');
+
+   const [timeline, setTimeline] = useState([]);
+   const [diagnosesHistory, setDiagnosesHistory] = useState([]);
+   const [treatmentHistory] = useState([]);
+   const [procedureHistory] = useState([]);
+   const [allergies] = useState([]);
+   const [chronicConditions] = useState([]);
+
+   const { user } = useAuth();
+   const [patientId, setPatientId] = useState(null);
+
+   // First, fetch the actual patient profile to get the correct patientId
+   React.useEffect(() => {
+      const fetchPatientProfile = async () => {
+         try {
+            const pData = await api.patients.getMe();
+            if (pData && pData.id) {
+               setPatientId(pData.id);
+            }
+         } catch (err) {
+            console.error('Failed to fetch patient profile:', err);
+         }
+      };
+      fetchPatientProfile();
+   }, []);
+
+   // Fetch medical records once we have patientId
+   React.useEffect(() => {
+      if (!patientId) return;
+
+      const fetchRecords = async () => {
+         try {
+            const data = await api.medicalRecords.getByPatient(patientId);
+            if (Array.isArray(data)) {
+               // Assuming backend returns records mixed or just diagnoses, map them appropriately mappings
+               setDiagnosesHistory(data);
+               // Populate timeline loosely based on diagnoses date
+               setTimeline(data.map(d => ({
+                  id: d.id,
+                  type: 'visit',
+                  title: d.name,
+                  date: d.date,
+                  doctor: d.doctor,
+                  summary: d.notes || d.diagnosis,
+                  details: d.notes || d.diagnosis,
+                  department: 'General',
+                  status: d.status || 'completed'
+               })));
+            }
+         } catch (error) {
+            console.error('Failed to fetch medical history', error);
+         }
+      };
+      fetchRecords();
+   }, [patientId]);
 
    const tabs = [
       { key: 'timeline', label: 'Timeline', icon: Clock },
@@ -122,7 +172,7 @@ const MedicalHistory = () => {
    };
 
    // Filter timeline based on search and filter type
-   const filteredTimeline = mockMedicalTimeline.filter(item => {
+   const filteredTimeline = timeline.filter(item => {
       const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
          item.summary.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesFilter = filterType === 'all' || item.type === filterType;
@@ -141,13 +191,13 @@ const MedicalHistory = () => {
                   placeholder="Search medical history..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-8 pr-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100"
+                  className="w-full pl-8 pr-3 py-1.5 text-sm border border-gray-300 dark:border-slate-600 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100"
                />
             </div>
             <select
                value={filterType}
                onChange={(e) => setFilterType(e.target.value)}
-               className="px-3 py-2 text-sm border border-gray-300 dark:border-slate-600 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100"
+               className="px-3 py-1.5 text-sm border border-gray-300 dark:border-slate-600 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100"
             >
                <option value="all">All Events</option>
                <option value="visit">Visits</option>
@@ -155,10 +205,12 @@ const MedicalHistory = () => {
                <option value="prescription">Prescriptions</option>
                <option value="procedure">Procedures</option>
             </select>
-            <Button variant="outline" className="whitespace-nowrap h-[42px] px-4 flex items-center justify-center">
-               <Download className="w-4 h-4 mr-2" />
-               Export Timeline
-            </Button>
+            <IconButton 
+               icon={Download} 
+               label="Export" 
+               variant="outline" 
+               size="sm"
+            />
          </div>
 
          {/* Timeline */}
@@ -173,19 +225,19 @@ const MedicalHistory = () => {
                         {/* Timeline Dot */}
                         <div className="absolute left-2.5 top-4 w-3 h-3 rounded-full border-2 border-white dark:border-slate-800 bg-blue-500 shadow-sm z-10"></div>
 
-                        <Card className={`p-5 hover:shadow-sm transition-all border-l-4 ${getTimelineColor(event.type).split(' ')[0]}`}>
-                           <div className="flex flex-col md:flex-row justify-between md:items-start gap-3">
-                              <div className="flex items-start gap-4 flex-1">
-                                 <div className={`p-2.5 rounded-lg ${getTimelineColor(event.type)}`}>
-                                    {React.cloneElement(getTimelineIcon(event.type), { className: 'w-5 h-5' })}
+                        <Card className={`p-3 hover:shadow-sm transition-all border-l-4 ${getTimelineColor(event.type).split(' ')[0]}`}>
+                           <div className="flex flex-col md:flex-row justify-between md:items-start gap-2">
+                              <div className="flex items-start gap-3 flex-1">
+                                 <div className={`p-2 rounded ${getTimelineColor(event.type)}`}>
+                                    {React.cloneElement(getTimelineIcon(event.type), { className: 'w-4 h-4' })}
                                  </div>
                                  <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-1">
-                                       <h3 className="font-semibold text-gray-800 dark:text-slate-100 text-base">{event.title}</h3>
+                                    <div className="flex items-center gap-2 mb-0.5">
+                                       <h3 className="font-semibold text-gray-800 dark:text-slate-100 text-sm">{event.title}</h3>
                                     </div>
-                                    <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-slate-400 mb-2">
+                                    <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-slate-400 mb-1.5">
                                        <span className="flex items-center">
-                                          <Calendar className="w-4 h-4 mr-1.5" />
+                                          <Calendar className="w-3.5 h-3.5 mr-1" />
                                           {new Date(event.date).toLocaleDateString('en-US', {
                                              year: 'numeric',
                                              month: 'short',
@@ -193,18 +245,18 @@ const MedicalHistory = () => {
                                           })}
                                        </span>
                                        <span className="flex items-center">
-                                          <User className="w-4 h-4 mr-1.5" />
+                                          <User className="w-3.5 h-3.5 mr-1" />
                                           {event.doctor}
                                        </span>
                                     </div>
-                                    <p className="text-sm text-gray-600 dark:text-slate-300 mb-2">{event.summary}</p>
+                                    <p className="text-xs text-gray-600 dark:text-slate-300 mb-1.5">{event.summary}</p>
 
                                     {expandedCards[event.id] && (
-                                       <div className="mt-3 p-3.5 bg-gray-50 dark:bg-slate-800/50 rounded-lg border border-gray-200 dark:border-slate-700">
-                                          <h4 className="font-semibold text-gray-700 dark:text-slate-200 text-sm mb-1.5">Full Details</h4>
-                                          <p className="text-sm text-gray-600 dark:text-slate-300 leading-relaxed">{event.details}</p>
-                                          <div className="mt-3 pt-3 border-t border-gray-200 dark:border-slate-700 text-sm text-gray-500 dark:text-slate-400">
-                                             <span className="font-medium text-gray-700 dark:text-slate-300">Department:</span> {event.department}
+                                       <div className="mt-2 p-2.5 bg-gray-50 dark:bg-slate-800/50 rounded border border-gray-200 dark:border-slate-700">
+                                          <h4 className="font-semibold text-gray-700 dark:text-slate-200 text-xs mb-1">Full Details</h4>
+                                          <p className="text-xs text-gray-600 dark:text-slate-300 leading-relaxed">{event.details}</p>
+                                          <div className="mt-2 pt-2 border-t border-gray-200 dark:border-slate-700 text-xs text-gray-500 dark:text-slate-400">
+                                             <span className="font-medium">Department:</span> {event.department}
                                           </div>
                                        </div>
                                     )}
@@ -247,17 +299,17 @@ const MedicalHistory = () => {
 
    // Render Diagnoses Tab
    const renderDiagnoses = () => (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-         {mockDiagnosesHistory.map((diagnosis) => (
-            <Card key={diagnosis.id} className={`p-5 hover:shadow-sm transition-all border-l-4 ${diagnosis.status === 'active' ? 'border-red-500' :
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+         {diagnosesHistory.map((diagnosis) => (
+            <Card key={diagnosis.id} className={`p-3 hover:shadow-sm transition-all border-l-4 ${diagnosis.status === 'active' ? 'border-red-500' :
                diagnosis.status === 'chronic' ? 'border-orange-500' :
                   'border-gray-300 dark:border-slate-600'
                }`}>
-               <div className="flex justify-between items-start mb-3">
+               <div className="flex justify-between items-start mb-2">
                   <div>
-                     <h3 className="font-semibold text-gray-800 dark:text-slate-100 text-base">{diagnosis.name}</h3>
+                     <h3 className="font-semibold text-gray-800 dark:text-slate-100 text-sm">{diagnosis.name}</h3>
                      {diagnosis.icdCode && (
-                        <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">ICD-10: {diagnosis.icdCode}</p>
+                        <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">ICD-10: {diagnosis.icdCode}</p>
                      )}
                   </div>
                   <Badge type={getStatusBadge(diagnosis.status)}>
@@ -265,8 +317,8 @@ const MedicalHistory = () => {
                   </Badge>
                </div>
 
-               <div className="space-y-2 mb-3">
-                  <div className="flex items-center justify-between text-sm">
+               <div className="space-y-1 mb-2">
+                  <div className="flex items-center justify-between text-xs">
                      <span className="text-gray-500 dark:text-slate-400">Diagnosed:</span>
                      <span className="font-medium text-gray-700 dark:text-slate-200">
                         {new Date(diagnosis.dateRecorded).toLocaleDateString('en-US', {
@@ -276,11 +328,11 @@ const MedicalHistory = () => {
                         })}
                      </span>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center justify-between text-xs">
                      <span className="text-gray-500 dark:text-slate-400">Physician:</span>
                      <span className="font-medium text-gray-700 dark:text-slate-200">{diagnosis.physician}</span>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center justify-between text-xs">
                      <span className="text-gray-500 dark:text-slate-400">Severity:</span>
                      <Badge type={getSeverityBadge(diagnosis.severity)}>
                         {diagnosis.severity}
@@ -288,14 +340,17 @@ const MedicalHistory = () => {
                   </div>
                </div>
 
-               <div className="pt-3 border-t border-gray-200 dark:border-slate-700">
-                  <p className="text-sm text-gray-600 dark:text-slate-300 leading-relaxed">
-                     {expandedCards[diagnosis.id]
-                        ? diagnosis.notes
-                        : `${diagnosis.notes.substring(0, 80)}...`
-                     }
+               <div className="pt-2 border-t border-gray-200 dark:border-slate-700">
+                  <p className="text-xs text-gray-600 dark:text-slate-300 leading-relaxed">
+                     {diagnosis.notes ? (
+                        expandedCards[diagnosis.id]
+                           ? diagnosis.notes
+                           : `${diagnosis.notes.substring(0, 80)}...`
+                     ) : (
+                        <span className="text-gray-400 italic">No notes available</span>
+                     )}
                   </p>
-                  {diagnosis.notes.length > 80 && (
+                  {diagnosis.notes && diagnosis.notes.length > 80 && (
                      <button
                         onClick={() => toggleCard(diagnosis.id)}
                         className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-xs font-medium mt-1"
@@ -324,18 +379,18 @@ const MedicalHistory = () => {
 
    // Render Treatments Tab
    const renderTreatments = () => (
-      <div className="space-y-4">
-         {mockTreatmentHistory.map((treatment) => (
-            <Card key={treatment.id} className="p-5 hover:shadow-sm transition-all">
-               <div className="flex flex-col md:flex-row justify-between md:items-start gap-3 mb-3">
+      <div className="space-y-3">
+         {treatmentHistory.map((treatment) => (
+            <Card key={treatment.id} className="p-3 hover:shadow-sm transition-all">
+               <div className="flex flex-col md:flex-row justify-between md:items-start gap-2 mb-2">
                   <div className="flex-1">
-                     <div className="flex items-center gap-3 mb-1.5">
-                        <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg text-green-600 dark:text-green-400">
-                           <Activity className="w-5 h-5" />
+                     <div className="flex items-center gap-2 mb-1">
+                        <div className="p-1.5 bg-green-50 dark:bg-green-900/20 rounded text-green-600 dark:text-green-400">
+                           <Activity className="w-4 h-4" />
                         </div>
                         <div>
-                           <h3 className="font-semibold text-gray-800 dark:text-slate-100 text-base">{treatment.name}</h3>
-                           <p className="text-sm text-gray-500 dark:text-slate-400">{treatment.type}</p>
+                           <h3 className="font-semibold text-gray-800 dark:text-slate-100 text-sm">{treatment.name}</h3>
+                           <p className="text-xs text-gray-500 dark:text-slate-400">{treatment.type}</p>
                         </div>
                      </div>
                   </div>
@@ -344,10 +399,10 @@ const MedicalHistory = () => {
                   </Badge>
                </div>
 
-               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
+               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2">
                   <div>
-                     <p className="text-sm text-gray-500 dark:text-slate-400">Start Date</p>
-                     <p className="text-sm font-medium text-gray-700 dark:text-slate-200">
+                     <p className="text-xs text-gray-500 dark:text-slate-400">Start Date</p>
+                     <p className="text-xs font-medium text-gray-700 dark:text-slate-200">
                         {new Date(treatment.startDate).toLocaleDateString('en-US', {
                            year: 'numeric',
                            month: 'short',
@@ -356,8 +411,8 @@ const MedicalHistory = () => {
                      </p>
                   </div>
                   <div>
-                     <p className="text-sm text-gray-500 dark:text-slate-400">End Date</p>
-                     <p className="text-sm font-medium text-gray-700 dark:text-slate-200">
+                     <p className="text-xs text-gray-500 dark:text-slate-400">End Date</p>
+                     <p className="text-xs font-medium text-gray-700 dark:text-slate-200">
                         {treatment.endDate
                            ? new Date(treatment.endDate).toLocaleDateString('en-US', {
                               year: 'numeric',
@@ -369,18 +424,18 @@ const MedicalHistory = () => {
                      </p>
                   </div>
                   <div>
-                     <p className="text-sm text-gray-500 dark:text-slate-400">Prescribed By</p>
-                     <p className="text-sm font-medium text-gray-700 dark:text-slate-200">{treatment.prescribedBy}</p>
+                     <p className="text-xs text-gray-500 dark:text-slate-400">Prescribed By</p>
+                     <p className="text-xs font-medium text-gray-700 dark:text-slate-200">{treatment.prescribedBy}</p>
                   </div>
                   <div>
-                     <p className="text-sm text-gray-500 dark:text-slate-400">Department</p>
-                     <p className="text-sm font-medium text-gray-700 dark:text-slate-200">{treatment.department}</p>
+                     <p className="text-xs text-gray-500 dark:text-slate-400">Department</p>
+                     <p className="text-xs font-medium text-gray-700 dark:text-slate-200">{treatment.department}</p>
                   </div>
                </div>
 
-               <div className="mb-3">
-                  <p className="text-sm text-gray-500 dark:text-slate-400 mb-1">Purpose</p>
-                  <p className="text-sm text-gray-700 dark:text-slate-200">{treatment.purpose}</p>
+               <div className="mb-2">
+                  <p className="text-xs text-gray-500 dark:text-slate-400 mb-0.5">Purpose</p>
+                  <p className="text-xs text-gray-700 dark:text-slate-200">{treatment.purpose}</p>
                </div>
 
                {treatment.status === 'ongoing' && treatment.progress !== undefined && (
@@ -433,19 +488,19 @@ const MedicalHistory = () => {
 
    // Render Procedures Tab
    const renderProcedures = () => (
-      <div className="space-y-4">
-         {mockProcedureHistory.map((procedure) => (
-            <Card key={procedure.id} className="p-5 hover:shadow-sm transition-all">
-               <div className="flex flex-col md:flex-row justify-between md:items-start gap-3 mb-3">
-                  <div className="flex items-start gap-3 flex-1">
-                     <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-purple-600 dark:text-purple-400">
-                        <Syringe className="w-5 h-5" />
+      <div className="space-y-3">
+         {procedureHistory.map((procedure) => (
+            <Card key={procedure.id} className="p-3 hover:shadow-sm transition-all">
+               <div className="flex flex-col md:flex-row justify-between md:items-start gap-2 mb-2">
+                  <div className="flex items-start gap-2 flex-1">
+                     <div className="p-1.5 bg-purple-50 dark:bg-purple-900/20 rounded text-purple-600 dark:text-purple-400">
+                        <Syringe className="w-4 h-4" />
                      </div>
                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-800 dark:text-slate-100 text-base mb-1">{procedure.name}</h3>
-                        <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-slate-400">
+                        <h3 className="font-semibold text-gray-800 dark:text-slate-100 text-sm mb-0.5">{procedure.name}</h3>
+                        <div className="flex flex-wrap gap-3 text-xs text-gray-500 dark:text-slate-400">
                            <span className="flex items-center">
-                              <Calendar className="w-4 h-4 mr-1.5" />
+                              <Calendar className="w-3.5 h-3.5 mr-1" />
                               {new Date(procedure.date).toLocaleDateString('en-US', {
                                  year: 'numeric',
                                  month: 'short',
@@ -453,7 +508,7 @@ const MedicalHistory = () => {
                               })}
                            </span>
                            <span className="flex items-center">
-                              <User className="w-4 h-4 mr-1.5" />
+                              <User className="w-3.5 h-3.5 mr-1" />
                               {procedure.physician}
                            </span>
                         </div>
@@ -471,21 +526,21 @@ const MedicalHistory = () => {
                   </div>
                </div>
 
-               <div className="grid grid-cols-2 gap-4 mb-3">
+               <div className="grid grid-cols-2 gap-2 mb-2">
                   <div>
-                     <p className="text-sm text-gray-500 dark:text-slate-400">Location</p>
-                     <p className="text-sm font-medium text-gray-700 dark:text-slate-200">{procedure.location}</p>
+                     <p className="text-xs text-gray-500 dark:text-slate-400">Location</p>
+                     <p className="text-xs font-medium text-gray-700 dark:text-slate-200">{procedure.location}</p>
                   </div>
                   <div>
-                     <p className="text-sm text-gray-500 dark:text-slate-400">Department</p>
-                     <p className="text-sm font-medium text-gray-700 dark:text-slate-200">{procedure.department}</p>
+                     <p className="text-xs text-gray-500 dark:text-slate-400">Department</p>
+                     <p className="text-xs font-medium text-gray-700 dark:text-slate-200">{procedure.department}</p>
                   </div>
                </div>
 
                {procedure.indication && (
-                  <div className="mb-3">
-                     <p className="text-sm text-gray-500 dark:text-slate-400 mb-1">Indication</p>
-                     <p className="text-sm text-gray-700 dark:text-slate-200">{procedure.indication}</p>
+                  <div className="mb-2">
+                     <p className="text-xs text-gray-500 dark:text-slate-400 mb-0.5">Indication</p>
+                     <p className="text-xs text-gray-700 dark:text-slate-200">{procedure.indication}</p>
                   </div>
                )}
 
@@ -564,7 +619,7 @@ const MedicalHistory = () => {
    const renderAllergiesAndConditions = () => (
       <div className="space-y-4">
          {/* Critical Allergies Alert */}
-         {mockAllergies.some(a => a.severity === 'severe') && (
+         {allergies.some(a => a.severity === 'severe') && (
             <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-2.5 rounded-r">
                <div className="flex items-start">
                   <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400 mr-2 mt-0.5 flex-shrink-0" />
@@ -588,7 +643,7 @@ const MedicalHistory = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-               {mockAllergies.map((allergy) => (
+               {allergies.map((allergy) => (
                   <Card key={allergy.id} className={`p-3 border-l-4 ${allergy.severity === 'severe' ? 'border-red-500 bg-red-50 dark:bg-red-900/20' :
                      allergy.severity === 'moderate' ? 'border-orange-500' :
                         'border-yellow-500'
@@ -670,7 +725,7 @@ const MedicalHistory = () => {
             </div>
 
             <div className="space-y-2">
-               {mockChronicConditions.map((condition) => (
+               {chronicConditions.map((condition) => (
                   <Card key={condition.id} className="p-3 hover:shadow-md transition-all">
                      <div className="flex flex-col md:flex-row justify-between md:items-start gap-2 mb-2">
                         <div className="flex-1">
@@ -765,26 +820,30 @@ const MedicalHistory = () => {
    return (
       <div className="space-y-3">
          {/* Header */}
-         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
             <div>
-               <h2 className="text-2xl font-bold text-gray-800 dark:text-slate-100">Medical History</h2>
-               <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Medical records and health information</p>
+               <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">Medical History</h2>
+               <p className="text-xs text-gray-500 dark:text-slate-400">Medical records and health information</p>
             </div>
-            <div className="flex gap-3 w-full md:w-auto">
-               <Button variant="outline" className="whitespace-nowrap flex-1 md:flex-none px-4 py-2 flex items-center justify-center">
-                  <Printer className="w-5 h-5 mr-2" />
-                  Print History
-               </Button>
-               <Button className="whitespace-nowrap flex-1 md:flex-none px-4 py-2 flex items-center justify-center">
-                  <Download className="w-5 h-5 mr-2" />
-                  Export PDF
-               </Button>
+            <div className="flex items-center gap-2">
+               <IconButton 
+                  icon={Printer} 
+                  label="Print History" 
+                  variant="outline" 
+                  size="sm"
+               />
+               <IconButton 
+                  icon={Download} 
+                  label="Export PDF" 
+                  variant="outline" 
+                  size="sm"
+               />
             </div>
          </div>
 
          {/* Tabs */}
          <div className="border-b border-gray-200 dark:border-slate-700">
-            <nav className="-mb-px flex space-x-6 overflow-x-auto">
+            <nav className="-mb-px flex space-x-4 overflow-x-auto">
                {tabs.map((tab) => {
                   const Icon = tab.icon;
                   return (
@@ -792,7 +851,7 @@ const MedicalHistory = () => {
                         key={tab.key}
                         onClick={() => setActiveTab(tab.key)}
                         className={`
-                           whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors
+                           whitespace-nowrap py-2 px-0.5 border-b-2 font-medium text-xs flex items-center gap-1.5 transition-colors
                            ${activeTab === tab.key
                               ? 'border-blue-500 text-blue-600 dark:text-blue-400'
                               : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-300 hover:border-gray-300 dark:hover:border-slate-600'

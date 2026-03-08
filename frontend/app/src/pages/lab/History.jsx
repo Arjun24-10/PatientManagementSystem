@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Download, Calendar, Filter } from 'lucide-react';
+import { Search, Download, Filter } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
 import { mockLabOrders } from '../../mocks/labOrders';

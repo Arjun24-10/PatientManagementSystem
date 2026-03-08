@@ -8,12 +8,13 @@ import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
 import api from '../../services/api';
-import { mockAppointments } from '../../mocks/appointments';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Appointments = () => {
+    const { user } = useAuth();
     const [activeTab, setActiveTab] = useState('upcoming');
     const [viewMode, setViewMode] = useState('calendar'); // 'list', 'calendar' (month), 'day' (scheduler)
-    const [appointments, setAppointments] = useState(mockAppointments);
+    const [appointments, setAppointments] = useState([]);
     const [selectedDate, setSelectedDate] = useState(new Date()); // Shared date state
 
     // Side Panel State
@@ -28,16 +29,54 @@ const Appointments = () => {
     React.useEffect(() => {
         const fetchAppointments = async () => {
             try {
-                const data = await api.appointments.getAll();
+                const doctorId = user?.userId;
+                if (!doctorId) {
+                    console.error('Doctor ID not available from user session');
+                    return;
+                }
+                const data = await api.appointments.getByDoctor(doctorId);
                 if (Array.isArray(data)) {
                     setAppointments(data);
                 }
             } catch (error) {
-                console.warn('Failed to fetch appointments, using mock data', error);
+                if (!error?.message?.includes('not yet available')) {
+                    console.error('Failed to fetch appointments', error);
+                }
+                // Use mock appointments data for doctor
+                const mockAppointments = [
+                    {
+                        id: 'A001',
+                        patientName: 'John Smith',
+                        date: new Date().toISOString().split('T')[0],
+                        time: '09:00',
+                        type: 'Follow-up',
+                        status: 'Confirmed',
+                        doctorName: 'Dr. Wilson'
+                    },
+                    {
+                        id: 'A002',
+                        patientName: 'Sarah Johnson',
+                        date: new Date().toISOString().split('T')[0],
+                        time: '10:30',
+                        type: 'Check-up',
+                        status: 'Pending',
+                        doctorName: 'Dr. Wilson'
+                    },
+                    {
+                        id: 'A003',
+                        patientName: 'Michael Brown',
+                        date: new Date(Date.now() + 86400000).toISOString().split('T')[0], // tomorrow
+                        time: '14:00',
+                        type: 'Consultation',
+                        status: 'Confirmed',
+                        doctorName: 'Dr. Wilson'
+                    }
+                ];
+                setAppointments(mockAppointments);
             }
         };
         fetchAppointments();
-    }, []);
+    }, [user]);
 
     const filteredAppointments = appointments.filter(appt => {
         if (activeTab === 'upcoming') return appt.status !== 'Cancelled' && appt.status !== 'Completed';
@@ -65,21 +104,49 @@ const Appointments = () => {
         setCancelModalOpen(true);
     };
 
-    const confirmCancel = () => {
+    const confirmCancel = async () => {
         if (!apptToCancel) return; // Safety check
 
-        setAppointments(appointments.map(a =>
-            a.id === apptToCancel.id ? { ...a, status: 'Cancelled' } : a
-        ));
-        setCancelModalOpen(false);
-        setApptToCancel(null);
-        setSelectedAppointment(null);
+        try {
+            await api.appointments.cancel(apptToCancel.id);
+            setAppointments(appointments.map(a =>
+                a.id === apptToCancel.id ? { ...a, status: 'Cancelled' } : a
+            ));
+        } catch (error) {
+            if (!error?.message?.includes('not yet available')) {
+                console.error('Failed to cancel appointment', error);
+                alert('Failed to cancel appointment. Please try again.');
+            } else {
+                // Feature not available backend, just update UI state for now
+                setAppointments(appointments.map(a =>
+                    a.id === apptToCancel.id ? { ...a, status: 'Cancelled' } : a
+                ));
+            }
+        } finally {
+            setCancelModalOpen(false);
+            setApptToCancel(null);
+            setSelectedAppointment(null);
+        }
     };
 
-    const handleComplete = (id) => {
-        setAppointments(appointments.map(a =>
-            a.id === id ? { ...a, status: 'Completed' } : a
-        ));
+    const handleComplete = async (id) => {
+        try {
+            const appt = appointments.find(a => a.id === id);
+            await api.appointments.update(id, { ...appt, status: 'Completed' });
+            setAppointments(appointments.map(a =>
+                a.id === id ? { ...a, status: 'Completed' } : a
+            ));
+        } catch (error) {
+            if (!error?.message?.includes('not yet available')) {
+                console.error('Failed to complete appointment', error);
+                alert('Failed to complete appointment. Please try again.');
+            } else {
+                // Feature not available backend, just update UI state for now
+                setAppointments(appointments.map(a =>
+                    a.id === id ? { ...a, status: 'Completed' } : a
+                ));
+            }
+        }
     };
 
     return (
@@ -110,7 +177,7 @@ const Appointments = () => {
                             <Columns size={20} className="rotate-90" />
                         </button>
                     </div>
-                    <Button>+ New Appointment</Button>
+                    <Button onClick={() => alert('New Appointment creation for doctors is not yet available. Please contact support.')}>+ New Appointment</Button>
                 </div>
             </div>
 

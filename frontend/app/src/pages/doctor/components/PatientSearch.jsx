@@ -1,6 +1,7 @@
 import React from 'react';
 import { Search, Filter } from 'lucide-react';
 import Button from '../../../components/common/Button';
+import IconButton from '../../../components/common/IconButton';
 
 const PatientSearch = ({ onSearch, searchTerm, setSearchTerm }) => {
     return (
@@ -22,10 +23,11 @@ const PatientSearch = ({ onSearch, searchTerm, setSearchTerm }) => {
                 </div>
 
                 <div className="flex gap-2 w-full md:w-auto">
-                    <Button variant="outline" className="flex items-center justify-center">
-                        <Filter className="w-4 h-4 mr-2" />
-                        Filters
-                    </Button>
+                    <IconButton 
+                       icon={Filter} 
+                       label="Filters" 
+                       variant="outline"
+                    />
                     <Button onClick={onSearch}>Search</Button>
                 </div>
             </div>

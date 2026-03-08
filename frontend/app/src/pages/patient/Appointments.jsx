@@ -5,25 +5,86 @@ import {
 } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
+import IconOnlyButton from '../../components/common/IconOnlyButton';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
 import Alert from '../../components/common/Alert';
 import Input from '../../components/common/Input';
-import { mockAppointments } from '../../mocks/appointments';
-import { mockDepartments, mockDoctors, mockTimeSlots, appointmentTypes, cancellationReasons } from '../../mocks/doctors';
+import AvailableSlotSelector from '../../components/appointments/AvailableSlotSelector';
+import api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 import { format, addDays, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, parseISO, differenceInDays, differenceInHours, differenceInMinutes } from 'date-fns';
 
+// Static ENUM-like arrays
+const appointmentTypes = ['General Checkup', 'Follow-up', 'Consultation', 'Specialist', 'Routine', 'Emergency'];
+const cancellationReasons = ['Schedule Conflict', 'Feeling Better', 'Transportation Issue', 'Financial Reasons', 'Other'];
+const timeSlots = {
+   morning: ['09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM'],
+   afternoon: ['01:00 PM', '01:30 PM', '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM'],
+   evening: ['05:00 PM', '05:30 PM', '06:00 PM', '06:30 PM']
+};
+
 const PatientAppointments = () => {
-   const patientId = 'P001';
-   const [appointments, setAppointments] = useState(
-      mockAppointments.filter(a => a.patientId === patientId)
-   );
+   const { user } = useAuth();
+   const [patientId, setPatientId] = useState(null);
+   const [appointments, setAppointments] = useState([]);
+   const [error, setError] = useState(null);
+
+   const [doctors, setDoctors] = useState([]);
+   const [departments, setDepartments] = useState([]);
+
+   // First, fetch the actual patient profile to get the correct patientId
+   React.useEffect(() => {
+      const fetchPatientProfile = async () => {
+         try {
+            const pData = await api.patients.getMe();
+            if (pData && pData.id) {
+               setPatientId(pData.id);
+            }
+         } catch (err) {
+            console.error('Failed to fetch patient profile:', err);
+            setError('Unable to load your profile. Please refresh the page.');
+         }
+      };
+      fetchPatientProfile();
+   }, []);
+
+   // Fetch appointments and doctors once we have patientId
+   React.useEffect(() => {
+      if (!patientId) return;
+
+      const fetchAppointmentsAndDoctors = async () => {
+         try {
+            setError(null);
+            const data = await api.appointments.getByPatient(patientId);
+            if (Array.isArray(data)) setAppointments(data);
+         } catch (error) {
+            console.error('Failed to fetch appointments', error);
+            setError('Failed to load your appointments. Please try refreshing the page.');
+         }
+
+         try {
+            const docData = await api.doctors.getAll();
+            if (Array.isArray(docData)) {
+               setDoctors(docData);
+               const uniqueDepts = Array.from(new Set(docData.map(d => d.department || d.specialization).filter(Boolean)));
+               setDepartments(uniqueDepts.map(name => ({ id: name, name })));
+            }
+         } catch (error) {
+            console.error('Failed to fetch doctors', error);
+            // Don't overwrite parent error, just log this one
+         }
+      };
+      fetchAppointmentsAndDoctors();
+   }, [patientId]);
    const [activeTab, setActiveTab] = useState('upcoming');
    const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
 
    // Request Appointment Modal State
    const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
    const [requestStep, setRequestStep] = useState(1);
+   const [showSlotSelector, setShowSlotSelector] = useState(false);
+   const [selectedSlot, setSelectedSlot] = useState(null);
    const [requestForm, setRequestForm] = useState({
       department: '',
       doctor: '',
@@ -38,18 +99,6 @@ const PatientAppointments = () => {
    const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
    const [appointmentToCancel, setAppointmentToCancel] = useState(null);
    const [cancellationReason, setCancellationReason] = useState('');
-
-   // Details View Modal State
-   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-   const [selectedAppointment, setSelectedAppointment] = useState(null);
-
-   // Reschedule Modal State
-   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
-   const [appointmentToReschedule, setAppointmentToReschedule] = useState(null);
-   const [rescheduleData, setRescheduleData] = useState({ date: '', time: '' });
-
-   // Calendar Added Events State
-   const [calendarAddedEvents, setCalendarAddedEvents] = useState([]);
 
    // Calendar State
    const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -79,14 +128,14 @@ const PatientAppointments = () => {
    // Get doctors filtered by selected department
    const filteredDoctors = useMemo(() => {
       if (!requestForm.department) return [];
-      return mockDoctors.filter(d => d.department === requestForm.department);
-   }, [requestForm.department]);
+      return doctors.filter(d => (d.department || d.specialization) === requestForm.department);
+   }, [requestForm.department, doctors]);
 
    // Get available time slots for selected date
    const availableTimeSlots = useMemo(() => {
       if (!requestForm.date) return [];
       // In a real app, this would check doctor's availability
-      return [...mockTimeSlots.morning, ...mockTimeSlots.afternoon, ...mockTimeSlots.evening];
+      return [...timeSlots.morning, ...timeSlots.afternoon, ...timeSlots.evening];
    }, [requestForm.date]);
 
    // Calendar days for current month
@@ -115,109 +164,73 @@ const PatientAppointments = () => {
    };
 
    // Handle request appointment submission
-   const handleRequestSubmit = (e) => {
+   const handleRequestSubmit = async (e) => {
       e.preventDefault();
       if (requestStep < 3) {
          setRequestStep(requestStep + 1);
       } else {
-         // Submit the request
-         const selectedDoctor = mockDoctors.find(d => d.id === requestForm.doctor);
-         const newAppointment = {
-            id: `A${appointments.length + 1}`.padStart(4, '0'),
-            patientId,
-            patientName: 'Emily Blunt',
-            doctorName: selectedDoctor?.name || 'TBD',
-            doctorId: requestForm.doctor,
-            department: mockDepartments.find(d => d.id === requestForm.department)?.name,
-            date: requestForm.date,
-            time: requestForm.time,
-            duration: 30,
-            type: requestForm.type,
-            status: 'Pending',
-            room: 'TBD',
-            location: 'TBD',
-            reason: requestForm.reason,
-            cancellationReason: null,
-         };
+         try {
+            // Create appointment with correct payload format
+            // Backend AppointmentRequest expects: doctorId, appointmentDate (LocalDateTime), reasonForVisit, patientId
+            const newAppointment = {
+               patientId,
+               doctorId: requestForm.doctor,
+               appointmentDate: `${requestForm.date}T${requestForm.time}:00`, // Combine date+time in ISO format
+               reasonForVisit: requestForm.reason,
+            };
 
-         setAppointments([...appointments, newAppointment]);
-         setIsRequestModalOpen(false);
-         setRequestStep(1);
-         setRequestForm({
-            department: '',
-            doctor: '',
-            date: '',
-            time: '',
-            type: '',
-            reason: '',
-            specialRequirements: '',
-         });
-         alert('✅ Appointment request submitted! We will confirm shortly.');
+            const created = await api.appointments.create(newAppointment);
+            setAppointments([...appointments, created]);
+            setIsRequestModalOpen(false);
+            setRequestStep(1);
+            setRequestForm({
+               department: '',
+               doctor: '',
+               date: '',
+               time: '',
+               type: '',
+               reason: '',
+               specialRequirements: '',
+            });
+            alert('✅ Appointment request submitted!');
+         } catch (err) {
+            console.error('Failed to request appointment:', err);
+            alert('Failed to request appointment. Please try again.');
+         }
       }
    };
 
    // Handle cancel appointment
-   const handleCancelAppointment = () => {
+   const handleCancelAppointment = async () => {
       if (!cancellationReason) {
          alert('Please select a cancellation reason');
          return;
       }
 
-      setAppointments(
-         appointments.map(a =>
-            a.id === appointmentToCancel.id
-               ? { ...a, status: 'Cancelled', cancellationReason }
-               : a
-         )
-      );
+      try {
+         await api.appointments.cancel(appointmentToCancel.id);
+         setAppointments(
+            appointments.map(a =>
+               a.id === appointmentToCancel.id
+                  ? { ...a, status: 'Cancelled', cancellationReason }
+                  : a
+            )
+         );
 
-      setIsCancelModalOpen(false);
-      setAppointmentToCancel(null);
-      setCancellationReason('');
-      alert('📧 Appointment cancelled. Confirmation email sent.');
+         setIsCancelModalOpen(false);
+         setAppointmentToCancel(null);
+         setCancellationReason('');
+         alert('📧 Appointment cancelled.');
+      } catch (err) {
+         console.error('Failed to cancel appointment:', err);
+         alert('Failed to cancel appointment. Please try again.');
+      }
    };
 
    // Open cancel modal
    const openCancelModal = (appointment) => {
       setAppointmentToCancel(appointment);
       setIsCancelModalOpen(true);
-   };
-
-   // Open details modal
-   const openDetailsModal = (appointment) => {
-      setSelectedAppointment(appointment);
-      setIsDetailsModalOpen(true);
-   };
-
-   // Open reschedule modal
-   const openRescheduleModal = (appointment) => {
-      setAppointmentToReschedule(appointment);
-      setRescheduleData({ date: appointment.date, time: appointment.time });
-      setIsRescheduleModalOpen(true);
-   };
-
-   // Handle reschedule submit
-   const handleRescheduleSubmit = (e) => {
-      e.preventDefault();
-      setAppointments(
-         appointments.map(a =>
-            a.id === appointmentToReschedule.id
-               ? { ...a, date: rescheduleData.date, time: rescheduleData.time, status: 'Pending' }
-               : a
-         )
-      );
-      setIsRescheduleModalOpen(false);
-      setAppointmentToReschedule(null);
-      alert('🔄 Reschedule request submitted successfully!');
-   };
-
-   // Handle toggle add to calendar
-   const handleToggleCalendar = (appointmentId) => {
-      if (calendarAddedEvents.includes(appointmentId)) {
-         setCalendarAddedEvents(calendarAddedEvents.filter(id => id !== appointmentId));
-      } else {
-         setCalendarAddedEvents([...calendarAddedEvents, appointmentId]);
-      }
    };
 
    // Render appointment card - Compact
@@ -287,73 +300,38 @@ const PatientAppointments = () => {
             </div>
 
             {/* Action Buttons - Compact */}
-            <div className="mt-2 md:mt-0 flex gap-2">
+            <div className="mt-2 md:mt-0 flex gap-1">
                {activeTab === 'upcoming' && appt.status !== 'Cancelled' && (
                   <>
-                     <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => { e.stopPropagation(); openDetailsModal(appt); }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-700 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 font-medium bg-white dark:bg-slate-800"
-                        title="View Details"
-                     >
+                     <button className="w-7 h-7 rounded hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center justify-center text-gray-500" title="View Details">
                         <Calendar className="w-3.5 h-3.5" />
-                        View
-                     </Button>
-                     <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => { e.stopPropagation(); openRescheduleModal(appt); }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-700 hover:text-orange-600 dark:text-slate-300 dark:hover:text-orange-400 font-medium bg-white dark:bg-slate-800"
-                        title="Reschedule"
-                     >
+                     </button>
+                     <button className="w-7 h-7 rounded hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center justify-center text-gray-500" title="Reschedule">
                         <RefreshCw className="w-3.5 h-3.5" />
-                        Reschedule
-                     </Button>
-                     <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => { e.stopPropagation(); openCancelModal(appt); }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-700 hover:text-red-600 border-gray-200 hover:border-red-300 dark:text-slate-300 dark:hover:text-red-400 dark:border-slate-700 dark:hover:border-red-800 font-medium bg-white dark:bg-slate-800"
+                     </button>
+                     <button
+                        className="w-7 h-7 rounded hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center text-red-500"
+                        onClick={() => openCancelModal(appt)}
                         title="Cancel"
                      >
                         <AlertCircle className="w-3.5 h-3.5" />
-                        Cancel
-                     </Button>
+                     </button>
                   </>
                )}
                {activeTab === 'past' && (
                   <>
-                     <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-700 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 font-medium bg-white dark:bg-slate-800"
-                        title="View Summary"
-                     >
+                     <button className="w-7 h-7 rounded hover:bg-gray-100 dark:hover:bg-slate-700 flex items-center justify-center text-gray-500" title="View Summary">
                         <Calendar className="w-3.5 h-3.5" />
-                        Summary
-                     </Button>
-                     <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-blue-700 hover:text-blue-800 border-blue-200 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:border-blue-800 dark:hover:bg-blue-900/30 font-medium bg-white dark:bg-slate-800"
-                        title="Book Follow-up"
-                     >
+                     </button>
+                     <button className="w-7 h-7 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center justify-center text-blue-500" title="Book Follow-up">
                         <Plus className="w-3.5 h-3.5" />
-                        Follow-up
-                     </Button>
+                     </button>
                   </>
                )}
                {activeTab === 'cancelled' && (
-                  <Button
-                     variant="outline"
-                     size="sm"
-                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-blue-700 hover:text-blue-800 border-blue-200 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:border-blue-800 dark:hover:bg-blue-900/30 font-medium bg-white dark:bg-slate-800"
-                     title="Rebook"
-                  >
+                  <button className="w-7 h-7 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center justify-center text-blue-500" title="Rebook">
                      <RefreshCw className="w-3.5 h-3.5" />
-                     Rebook
-                  </Button>
+                  </button>
                )}
             </div>
          </Card>
@@ -385,16 +363,20 @@ const PatientAppointments = () => {
                      <LayoutGrid size={16} />
                   </button>
                </div>
-               <Button
-                  onClick={() => setIsRequestModalOpen(true)}
-                  size="sm"
-                  className="flex items-center gap-1.5"
-               >
-                  <Plus className="w-4 h-4" />
-                  New
+               <Button onClick={() => setIsRequestModalOpen(true)} size="sm">
+                  <Plus className="w-3.5 h-3.5 mr-1" />New
                </Button>
             </div>
          </div>
+
+         {error && (
+            <Alert 
+               type="error" 
+               title="Error Loading Appointments"
+               message={error}
+               onClose={() => setError(null)}
+            />
+         )}
 
          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
             {/* Main Content */}
@@ -503,7 +485,6 @@ const PatientAppointments = () => {
                                     {dayAppointments.slice(0, 2).map(appt => (
                                        <div
                                           key={appt.id}
-                                          onClick={(e) => { e.stopPropagation(); openDetailsModal(appt); }}
                                           className={`text-xs px-1 py-0.5 rounded truncate ${appt.status === 'Confirmed'
                                              ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                                              : appt.status === 'Pending'
@@ -580,24 +561,9 @@ const PatientAppointments = () => {
                               <p className="text-xs text-gray-400 dark:text-slate-500">
                                  {format(parseISO(appt.date), 'MMM dd')} at {appt.time}
                               </p>
-                              <button
-                                 onClick={() => handleToggleCalendar(appt.id)}
-                                 className={`mt-1.5 w-full text-xs py-1.5 px-2 rounded border transition-colors flex items-center justify-center gap-1.5 ${calendarAddedEvents.includes(appt.id)
-                                    ? 'bg-blue-50 dark:bg-blue-900/40 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300'
-                                    : 'border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300'
-                                    }`}
-                              >
-                                 {calendarAddedEvents.includes(appt.id) ? (
-                                    <>
-                                       <Check className="w-3 h-3" />
-                                       Remove from Calendar
-                                    </>
-                                 ) : (
-                                    <>
-                                       <Calendar className="w-3 h-3" />
-                                       Add to Calendar
-                                    </>
-                                 )}
+                              <button className="mt-1.5 w-full inline-flex items-center justify-center gap-1 text-xs py-1 px-2 rounded border border-gray-200 dark:border-slate-700 hover:bg-gray-100 dark:hover:bg-slate-700">
+                                 <Download className="w-3 h-3" />
+                                 <span>Add to Calendar</span>
                               </button>
                            </div>
                         ))
@@ -655,9 +621,9 @@ const PatientAppointments = () => {
                            required
                         >
                            <option value="">Choose a department</option>
-                           {mockDepartments.map(dept => (
+                           {departments.map(dept => (
                               <option key={dept.id} value={dept.id}>
-                                 {dept.icon} {dept.name}
+                                 {dept.name}
                               </option>
                            ))}
                         </select>
@@ -669,9 +635,9 @@ const PatientAppointments = () => {
                            <div className="space-y-2 max-h-48 overflow-y-auto">
                               {filteredDoctors.map(doctor => (
                                  <div
-                                    key={doctor.id}
-                                    onClick={() => setRequestForm({ ...requestForm, doctor: doctor.id })}
-                                    className={`p-2 border rounded cursor-pointer transition-colors ${requestForm.doctor === doctor.id
+                                    key={doctor.id || doctor.doctorId}
+                                    onClick={() => setRequestForm({ ...requestForm, doctor: doctor.id || doctor.doctorId })}
+                                    className={`p-2 border rounded cursor-pointer transition-colors ${requestForm.doctor === (doctor.id || doctor.doctorId)
                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                                        : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600'
                                        }`}
@@ -679,14 +645,14 @@ const PatientAppointments = () => {
                                     <div className="flex items-center justify-between">
                                        <div className="flex items-center gap-2">
                                           <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-medium">
-                                             {doctor.avatar}
+                                             {(doctor.full_name || doctor.fullName || doctor.name || 'D').charAt(0)}
                                           </div>
                                           <div>
-                                             <p className="text-sm font-medium text-gray-800 dark:text-slate-100">{doctor.name}</p>
-                                             <p className="text-xs text-gray-500 dark:text-slate-400">{doctor.specialization}</p>
+                                             <p className="text-sm font-medium text-gray-800 dark:text-slate-100">{doctor.full_name || doctor.fullName || doctor.name}</p>
+                                             <p className="text-xs text-gray-500 dark:text-slate-400">{doctor.specialization || doctor.department}</p>
                                           </div>
                                        </div>
-                                       <span className="text-xs text-yellow-600">{doctor.rating}⭐</span>
+                                       <span className="text-xs text-yellow-600">⭐ {doctor.rating || '4.8'}</span>
                                     </div>
                                  </div>
                               ))}
@@ -880,108 +846,6 @@ const PatientAppointments = () => {
                      </Button>
                   </div>
                </div>
-            )}
-         </Modal>
-
-         {/* Details Modal */}
-         <Modal
-            isOpen={isDetailsModalOpen}
-            onClose={() => {
-               setIsDetailsModalOpen(false);
-               setSelectedAppointment(null);
-            }}
-            title="Appointment Details"
-         >
-            {selectedAppointment && (
-               <div className="space-y-4 text-sm text-gray-700 dark:text-slate-300">
-                  <div className="flex justify-between items-center mb-2">
-                     <h4 className="text-base font-semibold text-gray-800 dark:text-slate-100">{selectedAppointment.type}</h4>
-                     <Badge type={selectedAppointment.status === 'Confirmed' ? 'green' : selectedAppointment.status === 'Pending' ? 'yellow' : 'blue'}>
-                        {selectedAppointment.status}
-                     </Badge>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 bg-gray-50 dark:bg-slate-800/50 p-3 rounded-lg">
-                     <div>
-                        <p className="text-xs text-gray-500 mb-1">Doctor</p>
-                        <p className="font-medium flex items-center gap-1.5"><User className="w-3.5 h-3.5 text-gray-400" /> {selectedAppointment.doctorName}</p>
-                     </div>
-                     <div>
-                        <p className="text-xs text-gray-500 mb-1">Date & Time</p>
-                        <p className="font-medium flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-gray-400" /> {format(parseISO(selectedAppointment.date), 'MMM dd, yyyy')} at {selectedAppointment.time}</p>
-                     </div>
-                     <div>
-                        <p className="text-xs text-gray-500 mb-1">Department</p>
-                        <p className="font-medium flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5 text-gray-400" /> {selectedAppointment.department}</p>
-                     </div>
-                     <div>
-                        <p className="text-xs text-gray-500 mb-1">Location / Room</p>
-                        <p className="font-medium flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-gray-400" /> {selectedAppointment.location || 'Main Clinic'}, Room {selectedAppointment.room || 'TBD'}</p>
-                     </div>
-                  </div>
-
-                  {selectedAppointment.reason && (
-                     <div>
-                        <p className="text-xs text-gray-500 mb-1">Reason for Visit</p>
-                        <p className="bg-white dark:bg-slate-800 p-2.5 rounded border border-gray-200 dark:border-slate-700">{selectedAppointment.reason}</p>
-                     </div>
-                  )}
-
-                  <div className="pt-4 border-t dark:border-slate-700 flex justify-end">
-                     <Button variant="secondary" onClick={() => setIsDetailsModalOpen(false)}>Close</Button>
-                  </div>
-               </div>
-            )}
-         </Modal>
-
-         {/* Reschedule Modal */}
-         <Modal
-            isOpen={isRescheduleModalOpen}
-            onClose={() => {
-               setIsRescheduleModalOpen(false);
-               setAppointmentToReschedule(null);
-            }}
-            title="Reschedule Appointment"
-         >
-            {appointmentToReschedule && (
-               <form onSubmit={handleRescheduleSubmit} className="space-y-4">
-                  <Alert type="info" message={`Rescheduling ${appointmentToReschedule.type} with ${appointmentToReschedule.doctorName}.`} />
-
-                  <Input
-                     type="date"
-                     label="New Preferred Date *"
-                     value={rescheduleData.date}
-                     onChange={e => setRescheduleData({ ...rescheduleData, date: e.target.value, time: '' })}
-                     min={format(new Date(), 'yyyy-MM-dd')}
-                     required
-                  />
-
-                  {rescheduleData.date && (
-                     <div>
-                        <label className="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Select New Time *</label>
-                        <div className="grid grid-cols-4 gap-1 max-h-48 overflow-y-auto">
-                           {[...mockTimeSlots.morning, ...mockTimeSlots.afternoon, ...mockTimeSlots.evening].map(slot => (
-                              <button
-                                 key={slot}
-                                 type="button"
-                                 onClick={() => setRescheduleData({ ...rescheduleData, time: slot })}
-                                 className={`p-1.5 text-xs border rounded transition-colors ${rescheduleData.time === slot
-                                    ? 'border-blue-500 bg-blue-500 text-white'
-                                    : 'border-gray-300 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100'
-                                    }`}
-                              >
-                                 {slot}
-                              </button>
-                           ))}
-                        </div>
-                     </div>
-                  )}
-
-                  <div className="flex justify-end gap-2 pt-3 border-t dark:border-slate-700">
-                     <Button type="button" variant="secondary" onClick={() => setIsRescheduleModalOpen(false)}>Cancel</Button>
-                     <Button type="submit" disabled={!rescheduleData.date || !rescheduleData.time}>Submit Request</Button>
-                  </div>
-               </form>
             )}
          </Modal>
       </div>

@@ -6,27 +6,76 @@ import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
 import PatientSearch from './components/PatientSearch';
 import api from '../../services/api';
-import { mockPatients } from '../../mocks/patients';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Patients = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [searchTerm, setSearchTerm] = useState('');
-    const [patients, setPatients] = useState(mockPatients);
+    const [patients, setPatients] = useState([]);
 
     // Fetch Patients
     React.useEffect(() => {
         const fetchPatients = async () => {
             try {
-                const data = await api.patients.getAll();
+                const doctorId = user?.userId;
+                if (!doctorId) {
+                   console.warn('Doctor ID not available - loading mock patients');
+                   setPatients([]);
+                   return;
+                }
+                const data = await api.doctors.getPatientsByDoctor(doctorId);
                 if (Array.isArray(data)) {
                     setPatients(data);
                 }
             } catch (error) {
-                console.warn('Failed to fetch patients, using mock data', error);
+                if (!error?.message?.includes('not yet available')) {
+                    console.error('Failed to fetch patients', error);
+                }
+                // Use mock data for doctors when API is not available
+                const mockPatients = [
+                    {
+                        id: 'P001',
+                        name: 'John Smith',
+                        email: 'john.smith@example.com',
+                        phone: '+1-555-0123',
+                        age: 45,
+                        gender: 'Male',
+                        condition: 'Hypertension',
+                        status: 'Stable',
+                        lastVisit: '2024-02-15',
+                        avatar: 'JS'
+                    },
+                    {
+                        id: 'P002',
+                        name: 'Sarah Johnson',
+                        email: 'sarah.j@example.com',
+                        phone: '+1-555-0124',
+                        age: 32,
+                        gender: 'Female',
+                        condition: 'Diabetes',
+                        status: 'Needs Review',
+                        lastVisit: '2024-02-20',
+                        avatar: 'SJ'
+                    },
+                    {
+                        id: 'P003',
+                        name: 'Michael Brown',
+                        email: 'mike.brown@example.com',
+                        phone: '+1-555-0125',
+                        age: 58,
+                        gender: 'Male',
+                        condition: 'Heart Disease',
+                        status: 'Stable',
+                        lastVisit: '2024-02-10',
+                        avatar: 'MB'
+                    }
+                ];
+                setPatients(mockPatients);
             }
         };
         fetchPatients();
-    }, []);
+    }, [user]);
 
     // Basic filtering
     const filteredPatients = patients.filter(p =>
@@ -38,7 +87,6 @@ const Patients = () => {
         <div className="space-y-3">
             <div className="flex justify-between items-center">
                 <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">My Patients</h2>
-                <Button>+ Add Patient</Button>
             </div>
 
             <PatientSearch

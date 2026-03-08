@@ -29,7 +29,7 @@ const defaultAuthUser = {
 const IntegrationWrapper = ({ children, authValue, initialRoute = '/' }) => {
   return (
     <AuthContext.Provider value={{ ...defaultAuthUser, ...authValue }}>
-      <MemoryRouter initialEntries={[initialRoute]}>
+      <MemoryRouter initialEntries={[initialRoute]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         {children}
       </MemoryRouter>
     </AuthContext.Provider>
@@ -58,14 +58,14 @@ export const renderWithProviders = (ui, options = {}) => {
  * Render the full App for end-to-end integration tests
  */
 export const renderApp = (options = {}) => {
-  const { authValue, initialRoute = '/' } = options;
-  
+  const { authValue } = options;
+
   // Import App dynamically to avoid circular dependencies
   const App = require('./App').default;
-  
+
   return render(
     <AuthContext.Provider value={{ ...defaultAuthUser, ...authValue }}>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <App />
       </BrowserRouter>
     </AuthContext.Provider>

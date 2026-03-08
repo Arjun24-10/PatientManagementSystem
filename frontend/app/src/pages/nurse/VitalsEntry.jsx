@@ -5,6 +5,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
+import IconButton from '../../components/common/IconButton';
 import Input from '../../components/common/Input';
 import { mockNursePatients } from '../../mocks/nursePatients';
 
@@ -72,9 +73,13 @@ const VitalsEntry = () => {
 
     return (
         <div className="space-y-6 max-w-4xl mx-auto">
-            <Button variant="ghost" onClick={() => navigate(`/dashboard/nurse/patient/${id}`)} className="pl-0 hover:pl-2 transition-all">
-                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Patient
-            </Button>
+            <IconButton 
+               icon={ArrowLeft} 
+               label="Back to Patient" 
+               variant="ghost"
+               onClick={() => navigate(`/dashboard/nurse/patient/${id}`)}
+               className="pl-0 hover:pl-2 transition-all"
+            />
 
             <div className="flex justify-between items-center">
                 <div>
@@ -190,10 +195,12 @@ const VitalsEntry = () => {
                                 <Button variant="ghost" onClick={() => navigate(-1)}>
                                     Cancel
                                 </Button>
-                                <Button type="submit" variant="primary">
-                                    <Save className="w-4 h-4 mr-2" />
-                                    Save Vitals
-                                </Button>
+                                <IconButton 
+                                   icon={Save} 
+                                   label="Save Vitals" 
+                                   variant="primary"
+                                   type="submit"
+                                />
                             </div>
                         </form>
                     </Card>
