@@ -45,15 +45,21 @@ public class NurseService {
         long pendingTasks = nurseTaskRepository.countByAssignedNurse_UserIdAndCompletedFalse(nurseId);
         long overdueTasks = nurseTaskRepository.countByAssignedNurse_UserIdAndCompletedFalseAndDueTimeBefore(nurseId, LocalDateTime.now());
         long highPriorityTasks = nurseTaskRepository.countByAssignedNurse_UserIdAndCompletedFalseAndPriority(nurseId, "high");
-        
-        // 3. Vitals (Using mocked stats for now until VitalSign connects to Nurse workflow)
-        long pendingVitals = 4;
-        long overdueVitals = 1;
+        // 3. Vitals (Tracked as NurseTasks with category "vitals")
+        long pendingVitals = nurseTaskRepository.countByAssignedNurse_UserIdAndCompletedFalseAndCategoryIgnoreCase(nurseId, "vitals");
+        long overdueVitals = nurseTaskRepository.countByAssignedNurse_UserIdAndCompletedFalseAndCategoryIgnoreCaseAndDueTimeBefore(nurseId, "vitals", LocalDateTime.now());
 
-        // 4. Medications (Mocked for now)
-        long medicationsDue = 8;
-        long overdueMedications = 0;
-        long nextMedicationIn = 45;
+        // 4. Medications (Tracked as NurseTasks with category "medication")
+        long medicationsDue = nurseTaskRepository.countByAssignedNurse_UserIdAndCompletedFalseAndCategoryIgnoreCase(nurseId, "medication");
+        long overdueMedications = nurseTaskRepository.countByAssignedNurse_UserIdAndCompletedFalseAndCategoryIgnoreCaseAndDueTimeBefore(nurseId, "medication", LocalDateTime.now());
+        
+        Optional<NurseTask> nextMed = nurseTaskRepository.findFirstByAssignedNurse_UserIdAndCompletedFalseAndCategoryIgnoreCaseOrderByDueTimeAsc(nurseId, "medication");
+        long nextMedicationIn = -1; // -1 indicates no pending medications
+        if (nextMed.isPresent() && nextMed.get().getDueTime().isAfter(LocalDateTime.now())) {
+            nextMedicationIn = java.time.Duration.between(LocalDateTime.now(), nextMed.get().getDueTime()).toMinutes();
+        } else if (nextMed.isPresent() && nextMed.get().getDueTime().isBefore(LocalDateTime.now())) {
+            nextMedicationIn = 0; // It's overdue/due right now
+        }
 
         Map<String, Object> stats = new HashMap<>();
         stats.put("assignedPatients", assignedPatientsCount);
