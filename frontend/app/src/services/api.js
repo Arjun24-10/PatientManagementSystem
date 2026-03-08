@@ -761,17 +761,17 @@ export const adminAuditAPI = {
       });
    },
 
-   // Get audit logs by user ID
-   getAuditLogsByUser: async (userId, params = {}) => {
+   // Get audit logs by user email
+   getAuditLogsByUser: async (email, params = {}) => {
       const query = new URLSearchParams(params).toString();
-      return apiCall(`/admin/audit-logs/${userId}${query ? `?${query}` : ''}`, {
+      return apiCall(`/admin/audit-logs/${encodeURIComponent(email)}${query ? `?${query}` : ''}`, {
          method: 'GET',
       });
    },
 
    // Get system metrics
    getSystemMetrics: async () => {
-      return apiCall('/admin/system-metrics', {
+      return apiCall('/admin/metrics', {
          method: 'GET',
       });
    },

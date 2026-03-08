@@ -5,13 +5,14 @@ import com.securehealth.backend.service.AdminService;
 import com.securehealth.backend.service.AppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,47 +27,27 @@ public class AdminController {
     private AppointmentService appointmentService;
 
     @GetMapping("/metrics")
-    public ResponseEntity<?> getDashboardMetrics(Authentication auth) {
-        // Enforce strict RBAC: Only ADMIN can access metrics
-        String role = auth.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse("");
-        if (!role.equals("ADMIN")) {
-            return ResponseEntity.status(403).body("Forbidden: Administrator access required.");
-        }
-
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<?> getDashboardMetrics() {
         AdminMetricsDTO metrics = adminService.getDashboardMetrics();
         return ResponseEntity.ok(metrics);
     }
 
     @GetMapping("/appointments/pending")
-    public ResponseEntity<?> getPendingAppointments(Authentication auth) {
-        // Enforce strict RBAC: Only ADMIN can view the queue
-        String role = auth.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse("");
-        if (!role.equals("ADMIN")) {
-            return ResponseEntity.status(403).body("Forbidden: Administrator access required.");
-        }
-
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<?> getPendingAppointments() {
         return ResponseEntity.ok(appointmentService.getPendingAppointments());
     }
 
     @GetMapping("/staff")
-    public ResponseEntity<?> getAllStaff(Authentication auth) {
-        // Enforce strict RBAC
-        String role = auth.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse("");
-        if (!role.equals("ADMIN")) {
-            return ResponseEntity.status(403).body("Forbidden: Administrator access required.");
-        }
-
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<?> getAllStaff() {
         return ResponseEntity.ok(adminService.getAllStaff());
     }
 
     @DeleteMapping("/staff/{userId}")
-    public ResponseEntity<?> removeStaffMember(@PathVariable Long userId, Authentication auth) {
-        // Enforce strict RBAC
-        String role = auth.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse("");
-        if (!role.equals("ADMIN")) {
-            return ResponseEntity.status(403).body("Forbidden: Administrator access required.");
-        }
-
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<?> removeStaffMember(@PathVariable Long userId) {
         try {
             adminService.removeStaffMember(userId);
             return ResponseEntity.ok("Staff member removed successfully.");
@@ -76,32 +57,45 @@ public class AdminController {
     }
 
     @GetMapping("/patients")
-    public ResponseEntity<?> getAllPatients(Authentication auth) {
-        // Enforce strict RBAC: Only ADMIN can view the master patient list
-        String role = auth.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse("");
-        if (!role.equals("ADMIN")) {
-            return ResponseEntity.status(403).body("Forbidden: Administrator access required.");
-        }
-
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<?> getAllPatients() {
         return ResponseEntity.ok(adminService.getAllPatients());
     }
 
     @PutMapping("/staff/{userId}/role")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<?> updateStaffRole(
             @PathVariable Long userId,
-            @RequestBody com.securehealth.backend.dto.RoleUpdateDTO request,
-            Authentication auth) {
-
-        // Enforce strict RBAC: Only ADMIN can promote/demote staff
-        String role = auth.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse("");
-        if (!role.equals("ADMIN")) {
-            return ResponseEntity.status(403).body("Forbidden: Administrator access required.");
-        }
+            @RequestBody com.securehealth.backend.dto.RoleUpdateDTO request) {
 
         try {
             return ResponseEntity.ok(adminService.updateStaffRole(userId, request.getNewRole()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(400).body(e.getMessage());
         }
+    }
+
+    // 3. Get user activity summary
+    @GetMapping("/user-activity")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<?> getUserActivity(@RequestParam(defaultValue = "24h") String timeframe) {
+        // Mock implemented for now. Can be connected to a service later.
+        return ResponseEntity.ok(java.util.Collections.singletonMap("message", "User activity for " + timeframe));
+    }
+
+    // 4. Get security events
+    @GetMapping("/security-events")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<?> getSecurityEvents() {
+        // Mock implemented for now.
+        return ResponseEntity.ok(java.util.Collections.emptyList());
+    }
+
+    // 5. Generate audit report
+    @PostMapping("/audit-report")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<?> generateAuditReport(@RequestBody java.util.Map<String, Object> params) {
+        // Mock implemented for now.
+        return ResponseEntity.ok(java.util.Collections.singletonMap("message", "Audit report generated"));
     }
 }
