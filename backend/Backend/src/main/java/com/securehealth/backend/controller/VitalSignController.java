@@ -7,7 +7,7 @@ import com.securehealth.backend.security.PatientAccessValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -28,13 +28,8 @@ public class VitalSignController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('DOCTOR', 'ADMIN', 'NURSE')")
     public ResponseEntity<?> createVitalSign(@RequestBody com.securehealth.backend.dto.VitalSignRequest request, Authentication auth) {
-        // Allow DOCTOR or ADMIN (or NURSE if you have that role) to add vitals
-        String role = auth.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse("");
-        if (!role.equals("DOCTOR") && !role.equals("ADMIN") && !role.equals("NURSE")) {
-            return ResponseEntity.status(403).body("Forbidden: Insufficient privileges to add vital signs.");
-        }
-
         try {
             VitalSign newVital = vitalSignService.createVitalSign(request, auth.getName());
             return ResponseEntity.ok(newVital);

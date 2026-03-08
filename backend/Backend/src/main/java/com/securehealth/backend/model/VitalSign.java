@@ -13,6 +13,7 @@ public class VitalSign {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "vital_id")
     private Long vitalSignId;
 
     @ManyToOne(fetch = FetchType.LAZY)
