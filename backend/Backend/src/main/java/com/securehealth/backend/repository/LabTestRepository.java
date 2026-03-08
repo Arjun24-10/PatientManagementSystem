@@ -22,4 +22,6 @@ public interface LabTestRepository extends JpaRepository<LabTest, Long> {
 
     // Frontend: GET /lab-results/patient/:patientId
     List<LabTest> findByPatient_ProfileIdOrderByOrderedAtDesc(Long patientId);
+
+    List<LabTest> findByPatient_ProfileId(Long patientId);
 }

@@ -177,9 +177,10 @@ public class AuthService {
                 emailService.sendOtp(user.getEmail(), otp);
 
                 logEvent(email, "OTP_REQUIRED", ipAddress, userAgent, "OTP sent to email");
-
-                return new LoginResponse(null, null, user.getRole().name(), "OTP_REQUIRED");
+                // Return "OTP_REQUIRED" status with NULL tokens
+                return new LoginResponse(null, null, user.getRole().name(), "OTP_REQUIRED", user.getUserId());
             }
+
 
             String accessToken = jwtUtil.generateAccessToken(user.getEmail(), user.getRole().name(), user.getUserId());
             String refreshToken = jwtUtil.generateRefreshToken();
@@ -198,7 +199,7 @@ public class AuthService {
             rateLimiterService.resetLoginAttempts(email);
             tokenBlacklistService.updateLastActive(email);
 
-            return new LoginResponse(accessToken, refreshToken, user.getRole().name(), "LOGIN_SUCCESS");
+            return new LoginResponse(accessToken, refreshToken, user.getRole().name(), "LOGIN_SUCCESS",  user.getUserId());
 
         } catch (RuntimeException ex) {
 
@@ -241,13 +242,10 @@ public class AuthService {
                 session.setExpiresAt(LocalDateTime.now().plusDays(7));
                 sessionRepository.save(session);
 
-                logEvent(email, "LOGIN_SUCCESS", ipAddress, userAgent, "2FA Verified");
-
                 tokenBlacklistService.updateLastActive(email);
-
-                return new LoginResponse(accessToken, refreshToken, user.getRole().name(), "LOGIN_SUCCESS");
+                logEvent(email, "LOGIN_SUCCESS", ipAddress, userAgent, "2FA Verified");
+            return new LoginResponse(accessToken, refreshToken, user.getRole().name(), "LOGIN_SUCCESS",user.getUserId());
             }
-
             rateLimiterService.registerFailedOtp(email, ipAddress, userAgent);
             logEvent(email, "LOGIN_FAILED", ipAddress, userAgent, "Invalid/Expired OTP");
 
@@ -587,7 +585,7 @@ public class AuthService {
         // Log the success
         logEvent(user.getEmail(), "TOKEN_REFRESHED", ipAddress, userAgent, "Token rotated successfully");
 
-        return new LoginResponse(newAccessToken, newRefreshToken, user.getRole().name(), "SUCCESS");
+        return new LoginResponse(newAccessToken, newRefreshToken, user.getRole().name(), "SUCCESS",user.getUserId());
     }
 
     private void createSession(Login user, String refreshToken, String ipAddress, String userAgent) {

@@ -11,4 +11,7 @@ public interface MedicalRecordRepository extends JpaRepository<MedicalRecord, Lo
 
     // Frontend: GET /medical-records/patient/:patientId
     List<MedicalRecord> findByPatient_ProfileIdOrderByCreatedAtDesc(Long patientId);
+
+    // Make sure java.util.List is imported
+    List<MedicalRecord> findByPatient_ProfileId(Long patientId);
 }
