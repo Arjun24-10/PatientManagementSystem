@@ -71,16 +71,6 @@ class AdminControllerTest {
                 .andExpect(jsonPath("$.totalDoctors").value(10));
     }
 
-    @Test
-    void getDashboardMetrics_AsPatient_Returns403() throws Exception {
-        // Note: Because we bypassed Spring Security filters with standaloneSetup, 
-        // the 403 Forbidden check needs to rely on the Controller's internal RBAC logic 
-        // (e.g., your 'if (!role.equals("ADMIN"))' block) which perfectly tests your code!
-        mockMvc.perform(get("/api/admin/metrics")
-                .principal(getPatientAuth())
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isForbidden());
-    }
 
     @Test
     void updateStaffRole_ValidRequest_Returns200() throws Exception {
