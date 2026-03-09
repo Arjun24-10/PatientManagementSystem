@@ -32,6 +32,9 @@ public class MedicalRecord {
     @Column(columnDefinition = "TEXT")
     private String treatmentProvided;
 
+    // Path to uploaded file attachment (encrypted at rest)
+    private String attachmentUrl;
+
     @Column(updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
