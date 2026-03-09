@@ -93,29 +93,29 @@ const Patients = () => {
                                         <td className="px-4 py-2 whitespace-nowrap">
                                             <div className="flex items-center">
                                                 <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 text-xs font-bold">
-                                                    {patient.avatar}
+                                                    {`${patient.firstName?.charAt(0) || ''}${patient.lastName?.charAt(0) || ''}`}
                                                 </div>
                                                 <div className="ml-2">
                                                     <div className="text-xs font-medium text-gray-900 dark:text-slate-100">{patient.firstName} {patient.lastName}</div>
                                                     <div className="text-xs text-gray-500 dark:text-slate-400">ID: {patient.id}</div>
-                                                    <div className="text-xs text-gray-400 dark:text-slate-500">{patient.age} yrs, {patient.gender}</div>
+                                                    <div className="text-xs text-gray-400 dark:text-slate-500">{patient.dateOfBirth ? Math.floor((Date.now() - new Date(patient.dateOfBirth)) / (365.25 * 24 * 60 * 60 * 1000)) + ' yrs' : 'N/A'}, {patient.gender}</div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-4 py-2 whitespace-nowrap">
                                             <div className="text-xs text-gray-900 dark:text-slate-100">{patient.email}</div>
-                                            <div className="text-xs text-gray-500 dark:text-slate-400">{patient.phone}</div>
+                                            <div className="text-xs text-gray-500 dark:text-slate-400">{patient.contactNumber || 'N/A'}</div>
                                         </td>
                                         <td className="px-4 py-2 whitespace-nowrap">
-                                            <span className="text-xs text-gray-900 dark:text-slate-100">{patient.condition}</span>
+                                            <span className="text-xs text-gray-900 dark:text-slate-100">{patient.medicalHistory || 'N/A'}</span>
                                         </td>
                                         <td className="px-4 py-2 whitespace-nowrap">
-                                            <Badge type={patient.status === 'Needs Review' ? 'red' : 'green'}>
-                                                {patient.status}
+                                            <Badge type="green">
+                                                Active
                                             </Badge>
                                         </td>
                                         <td className="px-4 py-2 whitespace-nowrap text-xs text-gray-500 dark:text-slate-400">
-                                            {patient.lastVisit}
+                                            N/A
                                         </td>
                                         <td className="px-4 py-2 whitespace-nowrap text-right text-xs font-medium">
                                             <button

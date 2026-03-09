@@ -37,7 +37,18 @@ const Appointments = () => {
             setError(null);
             try {
                 const data = await api.appointments.getByDoctor(doctorId);
-                setAppointments(data || []);
+                const transformed = (data || []).map(a => ({
+                    id: a.appointmentId,
+                    date: a.appointmentDate ? a.appointmentDate.split('T')[0] : '',
+                    time: a.appointmentDate
+                        ? new Date(a.appointmentDate).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                        : '',
+                    patientName: a.patientName || 'Unknown',
+                    type: a.reasonForVisit || 'Consultation',
+                    status: a.status || 'PENDING_APPROVAL',
+                    duration: 30,
+                }));
+                setAppointments(transformed);
             } catch (err) {
                 console.error('Failed to fetch appointments:', err);
                 setError('Failed to load appointments. Please refresh the page.');
@@ -79,7 +90,7 @@ const Appointments = () => {
         if (!apptToCancel) return; // Safety check
 
         setAppointments(appointments.map(a =>
-            a.id === apptToCancel.id ? { ...a, status: 'Cancelled' } : a
+            a.id === apptToCancel.id ? { ...a, status: 'CANCELLED' } : a
         ));
         setCancelModalOpen(false);
         setApptToCancel(null);
@@ -88,7 +99,7 @@ const Appointments = () => {
 
     const handleComplete = (id) => {
         setAppointments(appointments.map(a =>
-            a.id === id ? { ...a, status: 'Completed' } : a
+            a.id === id ? { ...a, status: 'COMPLETED' } : a
         ));
     };
 
@@ -183,16 +194,16 @@ const Appointments = () => {
                                             </div>
                                             <div className="flex items-center text-xs text-gray-500 dark:text-slate-400 mt-0.5">
                                                 <User size={12} className="mr-1" />
-                                                Patient ID: {appt.patientId}
+                                                {appt.type}
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="mt-2 md:mt-0 flex items-center space-x-2">
                                         <Badge type={
-                                            appt.status === 'Confirmed' ? 'green' :
-                                                appt.status === 'Pending' ? 'yellow' :
-                                                    appt.status === 'Cancelled' ? 'red' : 'gray'
+                                            appt.status === 'SCHEDULED' ? 'green' :
+                                                appt.status === 'PENDING_APPROVAL' ? 'yellow' :
+                                                    appt.status === 'CANCELLED' ? 'red' : 'gray'
                                         }>
                                             {appt.status}
                                         </Badge>

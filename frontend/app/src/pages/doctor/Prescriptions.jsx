@@ -51,7 +51,12 @@ const Prescriptions = () => {
             for (const patient of doctorPatients) {
                 try {
                     const patientPrescriptions = await api.prescriptions.getByPatient(patient.id);
-                    allPrescriptions.push(...patientPrescriptions);
+                    const enriched = (patientPrescriptions || []).map(rx => ({
+                        ...rx,
+                        patientName: `${patient.firstName} ${patient.lastName}`,
+                        patientId: patient.id,
+                    }));
+                    allPrescriptions.push(...enriched);
                 } catch (err) {
                     console.error(`Failed to load prescriptions for patient ${patient.id}`);
                 }
@@ -117,7 +122,7 @@ const Prescriptions = () => {
         setEditRxData({
             dosage: rx.dosage,
             frequency: rx.frequency,
-            active: rx.active
+            active: rx.status === 'ACTIVE'
         });
         setIsManageModalOpen(true);
     };
@@ -134,9 +139,9 @@ const Prescriptions = () => {
                 ...editRxData
             };
 
-            await api.prescriptions.update(selectedRx.id, editRxData);
+            await api.prescriptions.update(selectedRx.prescriptionId, editRxData);
             setPrescriptions(prescriptions.map(rx =>
-                rx.id === selectedRx.id ? updatedPrescription : rx
+                rx.prescriptionId === selectedRx.prescriptionId ? updatedPrescription : rx
             ));
             setIsManageModalOpen(false);
             setSelectedRx(null);
@@ -196,7 +201,7 @@ const Prescriptions = () => {
             ) : (
                 <div className="grid gap-2">
                     {filteredPrescriptions.map(rx => (
-                        <Card key={rx.id} className="p-3 flex flex-col md:flex-row justify-between items-center hover:shadow-md transition-shadow dark:bg-slate-800">
+                        <Card key={rx.prescriptionId} className="p-3 flex flex-col md:flex-row justify-between items-center hover:shadow-md transition-shadow dark:bg-slate-800">
                         <div className="flex items-center gap-3 w-full md:w-auto">
                             <div className="p-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded">
                                 <Pill size={16} />
@@ -217,10 +222,10 @@ const Prescriptions = () => {
                         <div className="flex items-center gap-4 mt-2 md:mt-0 w-full md:w-auto justify-between md:justify-end">
                             <div className="text-right mr-2">
                                 <div className="text-xs text-gray-500 dark:text-slate-400">Prescribed By</div>
-                                <div className="font-medium text-xs text-gray-800 dark:text-slate-100">{rx.prescribedBy}</div>
+                                <div className="font-medium text-xs text-gray-800 dark:text-slate-100">{rx.doctorName || 'N/A'}</div>
                             </div>
-                            <Badge type={rx.active ? 'green' : 'gray'}>
-                                {rx.active ? 'Active' : 'Discontinued'}
+                            <Badge type={rx.status === 'ACTIVE' ? 'green' : 'gray'}>
+                                {rx.status === 'ACTIVE' ? 'Active' : 'Discontinued'}
                             </Badge>
                             <Button
                                 variant="outline"

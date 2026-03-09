@@ -155,7 +155,7 @@ const AppointmentCalendar = ({ appointments }) => {
                               <div key={appt.id} className={`p-3 rounded-lg border ${getTypeColorClass(appt.type)}`}>
                                  <div className="flex justify-between items-start mb-2">
                                     <div className="font-bold">{appt.patientName}</div>
-                                    <Badge type={appt.status === 'Confirmed' ? 'green' : 'yellow'}>{appt.status}</Badge>
+                                    <Badge type={appt.status === 'SCHEDULED' ? 'green' : appt.status === 'CANCELLED' ? 'red' : 'yellow'}>{appt.status}</Badge>
                                  </div>
                                  <div className="text-sm space-y-1 opacity-90">
                                     <div className="flex items-center">

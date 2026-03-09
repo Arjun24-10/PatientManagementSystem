@@ -42,7 +42,15 @@ const DoctorDashboard = () => {
             ]);
             
             setPatients(patientsData || []);
-            setAppointments(appointmentsData || []);
+            setAppointments((appointmentsData || []).map(a => ({
+               id: a.appointmentId,
+               date: a.appointmentDate,
+               time: a.appointmentDate
+                  ? new Date(a.appointmentDate).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                  : '',
+               patientName: a.patientName,
+               type: a.status || 'Appointment',
+            })));
          } catch (err) {
             console.error('Failed to fetch dashboard data:', err);
             setError('Failed to load dashboard data. Please refresh the page.');
@@ -64,7 +72,7 @@ const DoctorDashboard = () => {
    // Get today's appointments
    const today = new Date().toISOString().split('T')[0];
    const todaysAppointments = appointments.filter(a => 
-      a.startTime && a.startTime.split('T')[0] === today
+      a.date && a.date.split('T')[0] === today
    ).length;
 
    return (
@@ -165,28 +173,28 @@ const DoctorDashboard = () => {
                                     <td className="px-4 py-2 whitespace-nowrap">
                                        <div className="flex items-center">
                                           <div className="flex-shrink-0 h-8 w-8 rounded-full bg-brand-light dark:bg-brand-medium/20 flex items-center justify-center text-brand-deep dark:text-brand-light text-xs font-bold border border-brand-medium/10">
-                                             {patient.avatar}
+                                             {`${patient.firstName?.charAt(0) || ''}${patient.lastName?.charAt(0) || ''}`}
                                           </div>
                                           <div className="ml-2">
-                                             <div className="text-xs font-semibold text-gray-900 dark:text-slate-100 group-hover:text-brand-deep dark:group-hover:text-brand-light transition-colors">{patient.name}</div>
+                                             <div className="text-xs font-semibold text-gray-900 dark:text-slate-100 group-hover:text-brand-deep dark:group-hover:text-brand-light transition-colors">{patient.firstName} {patient.lastName}</div>
                                              <div className="text-xs text-gray-500 dark:text-slate-400">ID: {patient.id}</div>
                                           </div>
                                        </div>
                                     </td>
                                     <td className="px-4 py-2 whitespace-nowrap">
-                                       <div className="text-xs text-gray-900 dark:text-slate-100">{patient.age} yrs</div>
+                                       <div className="text-xs text-gray-900 dark:text-slate-100">{patient.dateOfBirth ? Math.floor((Date.now() - new Date(patient.dateOfBirth)) / (365.25 * 24 * 60 * 60 * 1000)) + ' yrs' : 'N/A'}</div>
                                        <div className="text-xs text-gray-500 dark:text-slate-400">{patient.gender}</div>
                                     </td>
                                     <td className="px-4 py-2 whitespace-nowrap">
-                                       <span className="text-xs text-gray-700 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{patient.condition}</span>
+                                       <span className="text-xs text-gray-700 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{patient.medicalHistory || 'N/A'}</span>
                                     </td>
                                     <td className="px-4 py-2 whitespace-nowrap">
-                                       <Badge type={patient.status === 'Needs Review' ? 'red' : 'green'}>
-                                          {patient.status}
+                                       <Badge type="green">
+                                          Active
                                        </Badge>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">
-                                       {patient.lastVisit}
+                                       N/A
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                        <button

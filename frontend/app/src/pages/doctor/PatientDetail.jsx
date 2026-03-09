@@ -88,6 +88,11 @@ const PatientDetail = () => {
     if (isLoading && !patient) return <div className="p-6 dark:text-slate-100">Loading patient details...</div>;
     if (!patient) return <div className="p-6 dark:text-slate-100">Patient not found</div>;
 
+    const patientFullName = `${patient.firstName || ''} ${patient.lastName || ''}`.trim() || patient.name || 'Unknown';
+    const patientAge = patient.dateOfBirth
+        ? Math.floor((Date.now() - new Date(patient.dateOfBirth)) / (365.25 * 24 * 60 * 60 * 1000))
+        : patient.age || 'N/A';
+
     const handleAddRx = (e) => {
         e.preventDefault();
         const rx = {
@@ -111,7 +116,7 @@ const PatientDetail = () => {
             prescribedBy: 'Dr. Smith'
         };
         setPrescriptions([renewedRx, ...prescriptions]);
-        alert(`Prescription for ${rx.name} renewed successfully.`);
+        alert(`Prescription for ${rx.medicationName || rx.name} renewed successfully.`);
     };
 
     const handleDeleteRx = (rxId) => {
@@ -129,8 +134,8 @@ const PatientDetail = () => {
         setTreatments([newTreatment, ...treatments]);
     };
 
-    const activePrescriptions = prescriptions.filter(rx => rx.active);
-    const historyPrescriptions = prescriptions.filter(rx => !rx.active);
+    const activePrescriptions = prescriptions.filter(rx => rx.active === true || rx.status === 'ACTIVE');
+    const historyPrescriptions = prescriptions.filter(rx => rx.active === false || (rx.status && rx.status !== 'ACTIVE'));
 
     return (
         <div className="space-y-3">
@@ -140,15 +145,15 @@ const PatientDetail = () => {
                     <ArrowLeft size={16} />
                 </Button>
                 <div>
-                    <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">{patient.name}</h2>
+                    <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">{patientFullName}</h2>
                     <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-slate-400">
                         <span>ID: {patient.id}</span>
                         <span>•</span>
-                        <span>{patient.age} yrs, {patient.gender}</span>
+                        <span>{patientAge} yrs, {patient.gender}</span>
                     </div>
                 </div>
                 <div className="ml-auto">
-                    <Badge type={patient.status === 'Needs Review' ? 'red' : 'green'}>{patient.status}</Badge>
+                    <Badge type="green">Active</Badge>
                 </div>
             </div>
 
@@ -184,7 +189,7 @@ const PatientDetail = () => {
                             <div className="space-y-2">
                                 <div className="flex justify-between border-b dark:border-slate-700 pb-1 text-sm">
                                     <span className="text-gray-600 dark:text-slate-400">Condition</span>
-                                    <span className="font-medium dark:text-slate-100">{patient.condition}</span>
+                                    <span className="font-medium dark:text-slate-100">{patient.medicalHistory || 'N/A'}</span>
                                 </div>
                                 <div className="flex justify-between border-b dark:border-slate-700 pb-1 text-sm">
                                     <span className="text-gray-600 dark:text-slate-400">Blood Pressure</span>
@@ -240,7 +245,7 @@ const PatientDetail = () => {
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-1.5">
-                                                    <h4 className="font-bold text-gray-800 dark:text-slate-100 text-sm">{rx.name}</h4>
+                                                    <h4 className="font-bold text-gray-800 dark:text-slate-100 text-sm">{rx.name || rx.medicationName}</h4>
                                                     <Badge type="green">Active</Badge>
                                                 </div>
                                                 <div className="text-xs text-gray-600 dark:text-slate-400 font-medium">{rx.dosage} • {rx.frequency}</div>
@@ -276,7 +281,7 @@ const PatientDetail = () => {
                                     {historyPrescriptions.map((rx, idx) => (
                                         <div key={rx.id} className={`p-2.5 flex justify-between items-center ${idx !== historyPrescriptions.length - 1 ? 'border-b border-gray-200 dark:border-slate-700' : ''}`}>
                                             <div className="opacity-70">
-                                                <h4 className="font-bold text-sm text-gray-700 dark:text-slate-300">{rx.name}</h4>
+                                                <h4 className="font-bold text-sm text-gray-700 dark:text-slate-300">{rx.name || rx.medicationName}</h4>
                                                 <p className="text-xs text-gray-500 dark:text-slate-400">{rx.dosage} • {rx.frequency}</p>
                                                 <p className="text-xs text-gray-400 dark:text-slate-500">Ended: {rx.date}</p>
                                             </div>

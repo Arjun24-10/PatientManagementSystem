@@ -217,6 +217,21 @@ public class AppointmentService {
 
 
     @Transactional(readOnly = true)
+    public List<AppointmentDTO> getAppointmentsByDoctor(Long doctorId) {
+        return appointmentRepository.findByDoctor_UserIdOrderByAppointmentDateAsc(doctorId).stream().map(app -> {
+            AppointmentDTO dto = new AppointmentDTO();
+            dto.setAppointmentId(app.getAppointmentId());
+            dto.setDoctorId(app.getDoctor().getUserId());
+            dto.setDoctorName(app.getDoctor().getEmail());
+            dto.setPatientName(app.getPatient().getFirstName() + " " + app.getPatient().getLastName());
+            dto.setAppointmentDate(app.getAppointmentDate());
+            dto.setStatus(app.getStatus());
+            dto.setReasonForVisit(app.getReasonForVisit());
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public List<AppointmentDTO> getAppointmentsByPatient(Long patientId) {
         return appointmentRepository.findByPatient_ProfileId(patientId).stream().map(app -> {
             AppointmentDTO dto = new AppointmentDTO();

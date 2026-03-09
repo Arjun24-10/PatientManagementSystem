@@ -102,9 +102,6 @@ const PatientAppointments = () => {
          ]);
          setAppointments((appointmentsData || []).map(normalizeAppointment));
          setDoctors(doctorsData);
-         
-         // Debug: Log doctors to check department data
-         console.log('Loaded doctors:', doctorsData);
       } catch (err) {
          console.error('Failed to load appointments:', err);
          setError('Failed to load appointments. Please refresh the page.');
@@ -153,7 +150,7 @@ const PatientAppointments = () => {
       const deptName = selectedDept.name.trim();
       
       // Filter doctors based on department match
-      const filtered = doctors.filter(doctor => {
+      return doctors.filter(doctor => {
          const doctorDept = doctor.department || doctor.specialty || '';
          const doctorSpecialty = doctor.specialty || '';
          
@@ -167,8 +164,6 @@ const PatientAppointments = () => {
          return doctorDept.toLowerCase().includes(deptName.toLowerCase()) ||
                 doctorSpecialty.toLowerCase().includes(deptName.toLowerCase());
       });
-      
-      return filtered;
    }, [doctors, requestForm.department]);
 
    // Calendar days for current month
