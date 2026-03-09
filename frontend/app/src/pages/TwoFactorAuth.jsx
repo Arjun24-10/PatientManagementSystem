@@ -12,7 +12,6 @@ export default function TwoFactorAuth() {
   const navigate = useNavigate();
   
   // Get stored 2FA session data
-  const [tempToken] = useState(() => sessionStorage.getItem('2fa_temp_token'));
   const [user] = useState(() => {
     const userData = sessionStorage.getItem('2fa_user');
     return userData ? JSON.parse(userData) : null;

@@ -16,10 +16,18 @@ public interface LabTestRepository extends JpaRepository<LabTest, Long> {
 
     // For the Lab Tech Dashboard: "Show me all tests that need to be processed"
     List<LabTest> findByStatusOrderByOrderedAtAsc(String status); // Will search for "PENDING"
+    
+    // For Dashboard Stats
+    long countByStatusIgnoreCase(String status);
+    
+    // For getting recent activity
+    List<LabTest> findTop10ByOrderByOrderedAtDesc();
 
     // For the Doctor Dashboard: "Show me the status of tests I ordered"
     List<LabTest> findByOrderedByOrderByOrderedAtDesc(Login doctor);
 
     // Frontend: GET /lab-results/patient/:patientId
     List<LabTest> findByPatient_ProfileIdOrderByOrderedAtDesc(Long patientId);
+
+    List<LabTest> findByPatient_ProfileId(Long patientId);
 }

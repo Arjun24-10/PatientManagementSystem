@@ -1,11 +1,14 @@
 package com.securehealth.backend.controller;
 
 import com.securehealth.backend.model.LabTest;
+import com.securehealth.backend.dto.LabTestDTO;
 import com.securehealth.backend.repository.LabTestRepository;
 import com.securehealth.backend.security.PatientAccessValidator;
+import com.securehealth.backend.service.LabTestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,10 +19,29 @@ public class LabResultController {
 
     @Autowired private LabTestRepository labTestRepository;
     @Autowired private PatientAccessValidator accessValidator;
+    @Autowired private LabTestService labTestService;
 
     @GetMapping("/patient/{patientId}")
-    public ResponseEntity<List<LabTest>> getByPatient(@PathVariable Long patientId, Authentication auth) {
+    public ResponseEntity<List<LabTestDTO>> getByPatient(@PathVariable Long patientId, Authentication auth) {
         accessValidator.validateAccess(patientId, auth);
-        return ResponseEntity.ok(labTestRepository.findByPatient_ProfileIdOrderByOrderedAtDesc(patientId));
+        return ResponseEntity.ok(labTestService.getLabTestsByPatient(patientId));
+    }
+
+    
+
+    @PostMapping
+    public ResponseEntity<?> createLabTest(@RequestBody com.securehealth.backend.dto.LabTestRequest request, Authentication auth) {
+        // Allow DOCTOR or ADMIN to add lab results
+        String role = auth.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse("");
+        if (!role.equals("DOCTOR") && !role.equals("ADMIN") && !role.equals("LAB_TECHNICIAN")) {
+            return ResponseEntity.status(403).body("Forbidden: Insufficient privileges to add lab results.");
+        }
+
+        try {
+            LabTest newLabTest = labTestService.createLabTest(request, auth.getName());
+            return ResponseEntity.ok(newLabTest);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

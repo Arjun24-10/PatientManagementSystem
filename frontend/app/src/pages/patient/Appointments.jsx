@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import {
-   Calendar, Clock, MapPin, Plus, AlertCircle, User, Building2, Check, ChevronRight, ChevronLeft, Bell, Download, List, LayoutGrid,
+   Calendar, Clock, MapPin, Plus, AlertCircle, User, Building2, Check, ChevronRight, ChevronLeft, Bell, List, LayoutGrid,
    RefreshCw,
 } from 'lucide-react';
 import Card from '../../components/common/Card';

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Activity, Calendar, Pill, AlertCircle, Clock, Stethoscope, Scale, AlertTriangle, RefreshCw, CalendarClock, FileText } from 'lucide-react';
+import { Activity, Calendar, Pill, AlertCircle, Clock, Stethoscope, AlertTriangle, RefreshCw, CalendarClock, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
@@ -37,7 +37,7 @@ const PatientDashboard = () => {
          }
       };
       fetchProfile();
-   }, []);
+   }, [user]);
 
    // Fetch API Data once we have patientId
    React.useEffect(() => {

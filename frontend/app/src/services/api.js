@@ -396,6 +396,47 @@ export const vitalSignsAPI = {
    },
 };
 
+// ============================================
+// ADMIN APIs
+// ============================================
+
+export const adminAPI = {
+   // Get all audit logs (Admin only)
+   getAuditLogs: async () => {
+      return apiCall('/admin/audit-logs', {
+         method: 'GET',
+      });
+   },
+
+   // Get audit logs for a specific user
+   getAuditLogsByEmail: async (email) => {
+      return apiCall(`/admin/audit-logs/${email}`, {
+         method: 'GET',
+      });
+   },
+
+   // Get all users (patients)
+   getAllUsers: async () => {
+      return apiCall('/patients', {
+         method: 'GET',
+      });
+   },
+
+   // Get all appointments (for admin dashboard)
+   getAllAppointments: async () => {
+      return apiCall('/appointments', {
+         method: 'GET',
+      });
+   },
+
+   // Get all doctors
+   getAllDoctors: async () => {
+      return apiCall('/doctors', {
+         method: 'GET',
+      });
+   },
+};
+
 const api = {
    auth: authAPI,
    patients: patientAPI,
@@ -405,6 +446,7 @@ const api = {
    labResults: labResultAPI,
    doctors: doctorAPI,
    vitalSigns: vitalSignsAPI,
+   admin: adminAPI,
 };
 
 export default api;

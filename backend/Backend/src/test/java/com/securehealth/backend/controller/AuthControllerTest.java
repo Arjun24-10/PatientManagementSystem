@@ -75,7 +75,7 @@ public class AuthControllerTest {
         LoginRequest request = new LoginRequest("test@example.com", "password1234");
 
         LoginResponse mockResponse = new LoginResponse("access-token-123", "refresh-token-456", "PATIENT",
-                "LOGIN_SUCCESS");
+                "LOGIN_SUCCESS", 1L);
 
         // [FIX] Use any() for the last two arguments to handle nulls
         when(authService.login(anyString(), anyString(), any(), any()))

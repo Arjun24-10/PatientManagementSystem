@@ -16,4 +16,6 @@ public interface DoctorProfileRepository extends JpaRepository<DoctorProfile, Lo
 
     // Frontend: GET /doctors/specialty/:specialty
     List<DoctorProfile> findBySpecialtyIgnoreCase(String specialty);
-} 
+
+    Optional<DoctorProfile> findByUser_UserId(Long userId);
+}

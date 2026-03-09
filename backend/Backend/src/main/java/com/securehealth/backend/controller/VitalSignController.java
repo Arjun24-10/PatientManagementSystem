@@ -2,11 +2,14 @@ package com.securehealth.backend.controller;
 
 import com.securehealth.backend.model.VitalSign;
 import com.securehealth.backend.repository.VitalSignRepository;
+import com.securehealth.backend.service.VitalSignService;
 import com.securehealth.backend.security.PatientAccessValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.util.List;
 
@@ -16,10 +19,22 @@ public class VitalSignController {
 
     @Autowired private VitalSignRepository vitalSignRepository;
     @Autowired private PatientAccessValidator accessValidator;
+    @Autowired private VitalSignService vitalSignService;
 
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<List<VitalSign>> getByPatient(@PathVariable Long patientId, Authentication auth) {
         accessValidator.validateAccess(patientId, auth);
         return ResponseEntity.ok(vitalSignRepository.findByPatient_ProfileIdOrderByRecordedAtDesc(patientId));
+    }
+
+    @PostMapping
+    @PreAuthorize("hasAnyAuthority('DOCTOR', 'ADMIN', 'NURSE')")
+    public ResponseEntity<?> createVitalSign(@RequestBody com.securehealth.backend.dto.VitalSignRequest request, Authentication auth) {
+        try {
+            VitalSign newVital = vitalSignService.createVitalSign(request, auth.getName());
+            return ResponseEntity.ok(newVital);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

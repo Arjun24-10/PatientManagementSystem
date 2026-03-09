@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, FileText, ArrowRight, Activity, Bell, Search, Pill } from 'lucide-react';
+import { Users, FileText, ArrowRight, Activity, Bell, Search } from 'lucide-react';
 
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
@@ -10,7 +10,6 @@ import AppointmentList from '../../components/AppointmentList';
 import MiniCalendar from '../../components/MiniCalendar';
 import { mockPatients } from '../../mocks/patients';
 import { mockAppointments } from '../../mocks/appointments';
-import { mockPrescriptions } from '../../mocks/records';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -60,7 +59,6 @@ const DoctorDashboard = () => {
    );
 
    const todaysAppointments = appointments.filter(a => a.date === '2023-12-15');
-   const activePrescriptionsCount = mockPrescriptions.filter(p => p.active).length;
 
    return (
       <div className="space-y-4">
