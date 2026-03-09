@@ -1,86 +1,79 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '../../test-utils';
 import { act } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import UploadResults from './UploadResults';
+import api from '../../services/api';
 
-// Mock the lab orders data
-jest.mock('../../mocks/labOrders', () => ({
-    mockLabOrders: [
-        {
-            id: 'LAB001',
-            patientName: 'John Smith',
-            testType: 'Complete Blood Count',
-            status: 'Pending',
-        },
-        {
-            id: 'LAB002',
-            patientName: 'Jane Doe',
-            testType: 'Lipid Panel',
-            status: 'Collected',
-        },
-        {
-            id: 'LAB003',
-            patientName: 'Bob Wilson',
-            testType: 'Metabolic Panel',
-            status: 'Completed',
-        },
-    ],
+jest.mock('../../services/api', () => ({
+    labTechnician: {
+        getOrders: jest.fn(),
+        uploadResults: jest.fn()
+    }
 }));
+
+const mockOrders = [
+    { testId: 'LAB001', patientName: 'John Smith', testName: 'Complete Blood Count', status: 'Pending' },
+    { testId: 'LAB002', patientName: 'Jane Doe', testName: 'Lipid Panel', status: 'Collected' },
+    { testId: 'LAB003', patientName: 'Bob Wilson', testName: 'Metabolic Panel', status: 'Completed' },
+];
 
 describe('Upload Results Page', () => {
     beforeEach(() => {
-        jest.useFakeTimers();
+        // NO fake timers here — useFakeTimers breaks waitFor/findBy* for all tests
+        jest.clearAllMocks();
+        api.labTechnician.getOrders.mockResolvedValue(mockOrders);
+        api.labTechnician.uploadResults.mockResolvedValue({});
     });
 
-    afterEach(() => {
-        jest.useRealTimers();
-    });
-
-    test('renders upload results page with title', () => {
+    test('renders upload results page with title', async () => {
         render(<UploadResults />);
 
-        expect(screen.getByText(/upload lab results/i)).toBeInTheDocument();
+        expect(await screen.findByText(/upload lab results/i)).toBeInTheDocument();
         expect(screen.getByText(/attach files or enter manual results/i)).toBeInTheDocument();
     });
 
-    test('renders order selection dropdown', () => {
+    test('renders order selection dropdown', async () => {
         render(<UploadResults />);
 
-        expect(screen.getByText(/select lab order/i)).toBeInTheDocument();
+        expect(await screen.findByText(/select lab order/i)).toBeInTheDocument();
         expect(screen.getByRole('combobox')).toBeInTheDocument();
     });
 
-    test('only shows non-completed orders in dropdown', () => {
+    test('only shows non-completed orders in dropdown', async () => {
         render(<UploadResults />);
 
         const dropdown = screen.getByRole('combobox');
+        // Wait for options to populate in DOM (happens after async state update)
+        await waitFor(() => expect(dropdown.options.length).toBeGreaterThan(1));
 
-        // Check dropdown options - Completed orders should not be shown
-        expect(screen.getByText(/lab001 - john smith/i)).toBeInTheDocument();
-        expect(screen.getByText(/lab002 - jane doe/i)).toBeInTheDocument();
-        expect(screen.queryByText(/lab003 - bob wilson/i)).not.toBeInTheDocument();
+        // Completed order (LAB003) should not be in the options
+        const optionValues = Array.from(dropdown.options).map(o => o.value);
+        expect(optionValues).not.toContain('LAB003');
+        expect(optionValues).toContain('LAB001');
+        expect(optionValues).toContain('LAB002');
     });
 
-    test('renders file upload area', () => {
+    test('renders file upload area', async () => {
         render(<UploadResults />);
 
-        expect(screen.getByText(/upload report file/i)).toBeInTheDocument();
+        expect(await screen.findByText(/reference report file/i)).toBeInTheDocument();
         expect(screen.getByText(/upload a file/i)).toBeInTheDocument();
         expect(screen.getByText(/or drag and drop/i)).toBeInTheDocument();
     });
 
-    test('renders manual result entry textarea', () => {
+    test('renders manual result entry textarea', async () => {
         render(<UploadResults />);
 
-        expect(screen.getByText(/manual result entry/i)).toBeInTheDocument();
-        expect(screen.getByPlaceholderText(/enter test values/i)).toBeInTheDocument();
+        expect(await screen.findByText(/Test Result Value/i)).toBeInTheDocument();
+        expect(screen.getByPlaceholderText(/enter test results/i)).toBeInTheDocument();
     });
 
     test('allows selecting a lab order', async () => {
         render(<UploadResults />);
 
         const dropdown = screen.getByRole('combobox');
+        await waitFor(() => expect(dropdown.options.length).toBeGreaterThan(1));
+
         fireEvent.change(dropdown, { target: { value: 'LAB001' } });
 
         expect(dropdown).toHaveValue('LAB001');
@@ -89,23 +82,23 @@ describe('Upload Results Page', () => {
     test('allows entering manual results', async () => {
         render(<UploadResults />);
 
-        const textarea = screen.getByPlaceholderText(/enter test values/i);
+        const textarea = await screen.findByPlaceholderText(/enter test results/i);
         fireEvent.change(textarea, { target: { value: 'WBC: 7.5 x10^9/L' } });
 
         expect(textarea).toHaveValue('WBC: 7.5 x10^9/L');
     });
 
-    test('renders submit button', () => {
+    test('renders submit button', async () => {
         render(<UploadResults />);
 
-        expect(screen.getByRole('button', { name: /submit results/i })).toBeInTheDocument();
+        expect(await screen.findByRole('button', { name: /submit/i })).toBeInTheDocument();
     });
 
     test('shows file info when file is selected', async () => {
         render(<UploadResults />);
 
         const file = new File(['test content'], 'test-report.pdf', { type: 'application/pdf' });
-        const fileInput = screen.getByLabelText(/upload a file/i);
+        const fileInput = await screen.findByLabelText(/upload a file/i);
 
         Object.defineProperty(fileInput, 'files', {
             value: [file],
@@ -122,7 +115,7 @@ describe('Upload Results Page', () => {
         render(<UploadResults />);
 
         const file = new File(['test content'], 'test-report.pdf', { type: 'application/pdf' });
-        const fileInput = screen.getByLabelText(/upload a file/i);
+        const fileInput = await screen.findByLabelText(/upload a file/i);
 
         Object.defineProperty(fileInput, 'files', {
             value: [file],
@@ -144,49 +137,42 @@ describe('Upload Results Page', () => {
         render(<UploadResults />);
 
         const dropdown = screen.getByRole('combobox');
+        await waitFor(() => expect(dropdown.options.length).toBeGreaterThan(1));
         fireEvent.change(dropdown, { target: { value: 'LAB001' } });
 
-        // Need to enter testValues or file to enable submit
-        const textarea = screen.getByPlaceholderText(/enter test values/i);
+        const textarea = screen.getByPlaceholderText(/enter test results/i);
         fireEvent.change(textarea, { target: { value: 'WBC: 7.5' } });
 
-        const submitButton = screen.getByRole('button', { name: /submit results/i });
+        const submitButton = screen.getByRole('button', { name: /submit/i });
+        await waitFor(() => expect(submitButton).not.toBeDisabled());
         fireEvent.click(submitButton);
 
-        expect(screen.getByText(/uploading/i)).toBeInTheDocument();
+        expect(await screen.findByText(/uploading/i)).toBeInTheDocument();
     });
 
     test('shows success state after upload', async () => {
         render(<UploadResults />);
 
         const dropdown = screen.getByRole('combobox');
+        await waitFor(() => expect(dropdown.options.length).toBeGreaterThan(1));
         fireEvent.change(dropdown, { target: { value: 'LAB001' } });
 
-        // Need to enter testValues or file to enable submit
-        const textarea = screen.getByPlaceholderText(/enter test values/i);
+        const textarea = screen.getByPlaceholderText(/enter test results/i);
         fireEvent.change(textarea, { target: { value: 'WBC: 7.5' } });
 
-        const submitButton = screen.getByRole('button', { name: /submit results/i });
+        const submitButton = screen.getByRole('button', { name: /submit/i });
+        await waitFor(() => expect(submitButton).not.toBeDisabled());
         fireEvent.click(submitButton);
 
-        // Fast-forward timers to complete upload simulation
-        act(() => {
-            jest.advanceTimersByTime(1500);
-        });
-
+        // uploadResults resolves immediately, success state should appear
         await waitFor(() => {
             expect(screen.getByText(/results uploaded successfully/i)).toBeInTheDocument();
         });
-
-        // Fast-forward the rest of the timers so they don't fire after test completes
-        act(() => {
-            jest.runAllTimers();
-        });
     });
 
-    test('displays file type restrictions', () => {
+    test('displays file type restrictions', async () => {
         render(<UploadResults />);
 
-        expect(screen.getByText(/pdf, png, jpg up to 10mb/i)).toBeInTheDocument();
+        expect(await screen.findByText(/pdf, png, jpg up to 10mb/i)).toBeInTheDocument();
     });
 });

@@ -22,8 +22,8 @@ const AuditLogs = () => {
             console.log('Using mock audit logs');
             // Use mock data on error
             setLogs([
-                { id: 1023, email: 'admin@hospital.com', action: 'Viewed Patient Record', ip: '192.168.1.10', timestamp: new Date(Date.now() - 600000).toISOString() },
-                { id: 1022, email: 'admin@hospital.com', action: 'Modified User Role', ip: '192.168.1.5', timestamp: new Date(Date.now() - 1800000).toISOString() },
+                { id: 1023, email: 'admin@hospital.com', action: 'Viewed Patient Record', ipAddress: '192.168.1.10', timestamp: new Date(Date.now() - 600000).toISOString() },
+                { id: 1022, email: 'admin@hospital.com', action: 'Modified User Role', ipAddress: '192.168.1.5', timestamp: new Date(Date.now() - 1800000).toISOString() },
             ]);
         } finally {
             setLoading(false);

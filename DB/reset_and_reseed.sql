@@ -410,23 +410,51 @@ WHERE l.email = 'nurse1@securehealth.com'
 LIMIT 5;
 
 -- Sample Lab Tests
+-- Completed tests (with results)
 INSERT INTO lab_tests (patient_profile_id, ordered_by_id, test_name, test_category, result_value, unit, status, ordered_at)
-SELECT pp.profile_id, l.user_id, 'Blood Glucose', 'Chemistry', '95', 'mg/dL', 'COMPLETED', NOW() - INTERVAL '7 days'
+SELECT pp.profile_id, l.user_id, 'Blood Glucose', 'Chemistry', '95', 'mg/dL', 'Completed', NOW() - INTERVAL '7 days'
 FROM patient_profiles pp, login l
 WHERE l.email = 'doctor1@securehealth.com'
 LIMIT 5;
 
 INSERT INTO lab_tests (patient_profile_id, ordered_by_id, test_name, test_category, result_value, unit, status, ordered_at)
-SELECT pp.profile_id, l.user_id, 'Hemoglobin A1C', 'Chemistry', '5.8', '%', 'COMPLETED', NOW() - INTERVAL '5 days'
+SELECT pp.profile_id, l.user_id, 'Hemoglobin A1C', 'Chemistry', '5.8', '%', 'Completed', NOW() - INTERVAL '5 days'
 FROM patient_profiles pp, login l
 WHERE l.email = 'doctor2@securehealth.com'
 LIMIT 5;
 
 INSERT INTO lab_tests (patient_profile_id, ordered_by_id, test_name, test_category, result_value, unit, status, ordered_at)
-SELECT pp.profile_id, l.user_id, 'Complete Blood Count', 'Hematology', 'Normal', 'cells/µL', 'COMPLETED', NOW() - INTERVAL '3 days'
+SELECT pp.profile_id, l.user_id, 'Complete Blood Count', 'Hematology', 'Normal', 'cells/uL', 'Completed', NOW() - INTERVAL '3 days'
 FROM patient_profiles pp, login l
 WHERE l.email = 'doctor1@securehealth.com'
 LIMIT 5;
+
+-- Pending tests (awaiting sample collection)
+INSERT INTO lab_tests (patient_profile_id, ordered_by_id, test_name, test_category, status, ordered_at)
+SELECT pp.profile_id, l.user_id, 'Lipid Panel', 'Chemistry', 'Pending', NOW() - INTERVAL '1 day'
+FROM patient_profiles pp, login l
+WHERE l.email = 'doctor1@securehealth.com'
+LIMIT 3;
+
+INSERT INTO lab_tests (patient_profile_id, ordered_by_id, test_name, test_category, status, ordered_at)
+SELECT pp.profile_id, l.user_id, 'Thyroid Function Test', 'Endocrinology', 'Pending', NOW() - INTERVAL '2 hours'
+FROM patient_profiles pp, login l
+WHERE l.email = 'doctor2@securehealth.com'
+LIMIT 2;
+
+-- Collected tests (sample received, awaiting analysis)
+INSERT INTO lab_tests (patient_profile_id, ordered_by_id, test_name, test_category, status, ordered_at)
+SELECT pp.profile_id, l.user_id, 'Urinalysis', 'Microbiology', 'Collected', NOW() - INTERVAL '4 hours'
+FROM patient_profiles pp, login l
+WHERE l.email = 'doctor1@securehealth.com'
+LIMIT 2;
+
+-- Results Pending tests (analysis done, awaiting upload)
+INSERT INTO lab_tests (patient_profile_id, ordered_by_id, test_name, test_category, status, ordered_at)
+SELECT pp.profile_id, l.user_id, 'Liver Function Test', 'Chemistry', 'Results Pending', NOW() - INTERVAL '6 hours'
+FROM patient_profiles pp, login l
+WHERE l.email = 'doctor2@securehealth.com'
+LIMIT 2;
 
 -- Sample Medical Records (updated to use created_at instead of recorded_at)
 INSERT INTO medical_records (patient_profile_id, doctor_id, diagnosis, symptoms, treatment_provided)
@@ -513,23 +541,51 @@ WHERE l.email = 'nurse1@securehealth.com'
 LIMIT 5;
 
 -- Sample Lab Tests
+-- Completed tests (with results)
 INSERT INTO lab_tests (patient_profile_id, ordered_by_id, test_name, test_category, result_value, unit, status, ordered_at)
-SELECT pp.profile_id, l.user_id, 'Blood Glucose', 'Chemistry', '95', 'mg/dL', 'COMPLETED', NOW() - INTERVAL '7 days'
+SELECT pp.profile_id, l.user_id, 'Blood Glucose', 'Chemistry', '95', 'mg/dL', 'Completed', NOW() - INTERVAL '7 days'
 FROM patient_profiles pp, login l
 WHERE l.email = 'doctor1@securehealth.com'
 LIMIT 5;
 
 INSERT INTO lab_tests (patient_profile_id, ordered_by_id, test_name, test_category, result_value, unit, status, ordered_at)
-SELECT pp.profile_id, l.user_id, 'Hemoglobin A1C', 'Chemistry', '5.8', '%', 'COMPLETED', NOW() - INTERVAL '5 days'
+SELECT pp.profile_id, l.user_id, 'Hemoglobin A1C', 'Chemistry', '5.8', '%', 'Completed', NOW() - INTERVAL '5 days'
 FROM patient_profiles pp, login l
 WHERE l.email = 'doctor2@securehealth.com'
 LIMIT 5;
 
 INSERT INTO lab_tests (patient_profile_id, ordered_by_id, test_name, test_category, result_value, unit, status, ordered_at)
-SELECT pp.profile_id, l.user_id, 'Complete Blood Count', 'Hematology', 'Normal', 'cells/ÂµL', 'COMPLETED', NOW() - INTERVAL '3 days'
+SELECT pp.profile_id, l.user_id, 'Complete Blood Count', 'Hematology', 'Normal', 'cells/uL', 'Completed', NOW() - INTERVAL '3 days'
 FROM patient_profiles pp, login l
 WHERE l.email = 'doctor1@securehealth.com'
 LIMIT 5;
+
+-- Pending tests (awaiting sample collection)
+INSERT INTO lab_tests (patient_profile_id, ordered_by_id, test_name, test_category, status, ordered_at)
+SELECT pp.profile_id, l.user_id, 'Lipid Panel', 'Chemistry', 'Pending', NOW() - INTERVAL '1 day'
+FROM patient_profiles pp, login l
+WHERE l.email = 'doctor1@securehealth.com'
+LIMIT 3;
+
+INSERT INTO lab_tests (patient_profile_id, ordered_by_id, test_name, test_category, status, ordered_at)
+SELECT pp.profile_id, l.user_id, 'Thyroid Function Test', 'Endocrinology', 'Pending', NOW() - INTERVAL '2 hours'
+FROM patient_profiles pp, login l
+WHERE l.email = 'doctor2@securehealth.com'
+LIMIT 2;
+
+-- Collected tests (sample received, awaiting analysis)
+INSERT INTO lab_tests (patient_profile_id, ordered_by_id, test_name, test_category, status, ordered_at)
+SELECT pp.profile_id, l.user_id, 'Urinalysis', 'Microbiology', 'Collected', NOW() - INTERVAL '4 hours'
+FROM patient_profiles pp, login l
+WHERE l.email = 'doctor1@securehealth.com'
+LIMIT 2;
+
+-- Results Pending tests (analysis done, awaiting upload)
+INSERT INTO lab_tests (patient_profile_id, ordered_by_id, test_name, test_category, status, ordered_at)
+SELECT pp.profile_id, l.user_id, 'Liver Function Test', 'Chemistry', 'Results Pending', NOW() - INTERVAL '6 hours'
+FROM patient_profiles pp, login l
+WHERE l.email = 'doctor2@securehealth.com'
+LIMIT 2;
 
 -- =================================================================================
 -- VERIFICATION

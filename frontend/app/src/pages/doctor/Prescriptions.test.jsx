@@ -1,15 +1,9 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '../../test-utils';
 import Prescriptions from './Prescriptions';
+import api from '../../services/api';
 
 // Mock dependencies
-jest.mock('../../components/common/Card', () => ({ children, className }) => <div className={`mock-card ${className}`}>{children}</div>);
-jest.mock('../../components/common/Button', () => ({ children, onClick, className }) => (
-   <button onClick={onClick} className={className}>
-      {children}
-   </button>
-));
-jest.mock('../../components/common/Badge', () => ({ children }) => <span>{children}</span>);
 jest.mock('../../components/common/Modal', () => ({ children, isOpen, title }) => (
    isOpen ? (
       <div data-testid="modal">
@@ -18,13 +12,6 @@ jest.mock('../../components/common/Modal', () => ({ children, isOpen, title }) =
       </div>
    ) : null
 ));
-jest.mock('../../components/common/Input', () => ({ value, onChange, placeholder }) => (
-   <input
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-   />
-));
 jest.mock('lucide-react', () => ({
    Plus: () => <span>PlusIcon</span>,
    Search: () => <span>SearchIcon</span>,
@@ -32,53 +19,72 @@ jest.mock('lucide-react', () => ({
    Pill: () => <span>PillIcon</span>,
 }));
 
-// Mock data
-jest.mock('../../mocks/records', () => ({
-   mockPrescriptions: [
-      {
-         id: 1,
-         name: 'Amoxicillin',
-         dosage: '500mg',
-         frequency: '3x daily',
-         prescribedBy: 'Dr. Smith',
-         active: true,
-      },
-      {
-         id: 2,
-         name: 'Ibuprofen',
-         dosage: '200mg',
-         frequency: 'As needed',
-         prescribedBy: 'Dr. Jones',
-         active: false,
-      }
-   ],
+jest.mock('../../services/api', () => ({
+   doctors: {
+      getPatients: jest.fn(),
+   },
+   prescriptions: {
+      getByPatient: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+   },
 }));
 
+const authValue = { user: { userId: 'D001', id: 'D001', name: 'Dr. Test' } };
+
 describe('Prescriptions Page', () => {
-   test('renders prescriptions list', () => {
-      render(<Prescriptions />);
-      expect(screen.getByText('Amoxicillin')).toBeInTheDocument();
+   beforeEach(() => {
+      jest.clearAllMocks();
+      api.doctors.getPatients.mockResolvedValue([
+         { id: 'P001', firstName: 'John', lastName: 'Smith' },
+         { id: 'P002', firstName: 'Jane', lastName: 'Doe' },
+      ]);
+      api.prescriptions.getByPatient
+         .mockResolvedValueOnce([
+            {
+               prescriptionId: 'RX001',
+               medicationName: 'Amoxicillin',
+               dosage: '500mg',
+               frequency: '3x daily',
+               status: 'ACTIVE',
+            }
+         ])
+         .mockResolvedValueOnce([
+            {
+               prescriptionId: 'RX002',
+               medicationName: 'Ibuprofen',
+               dosage: '200mg',
+               frequency: 'As needed',
+               status: 'DISCONTINUED',
+            }
+         ]);
+   });
+
+   test('renders prescriptions list', async () => {
+      render(<Prescriptions />, { authValue });
+      expect(await screen.findByText('Amoxicillin')).toBeInTheDocument();
       expect(screen.getByText('Ibuprofen')).toBeInTheDocument();
    });
 
-   test('filters prescriptions by search', () => {
-      render(<Prescriptions />);
-      const searchInput = screen.getByPlaceholderText('Search prescriptions...');
+   test('filters prescriptions by search', async () => {
+      render(<Prescriptions />, { authValue });
+      await screen.findByText('Amoxicillin');
 
+      const searchInput = screen.getByPlaceholderText('Search prescriptions...');
       fireEvent.change(searchInput, { target: { value: 'Amoxicillin' } });
 
       expect(screen.getByText('Amoxicillin')).toBeInTheDocument();
       expect(screen.queryByText('Ibuprofen')).not.toBeInTheDocument();
    });
 
-   test('opens new prescription modal', () => {
-      render(<Prescriptions />);
-      const newButton = screen.getByText(/New Prescription/i);
+   test('opens new prescription modal', async () => {
+      render(<Prescriptions />, { authValue });
+      await screen.findByText('Amoxicillin');
 
+      const newButton = screen.getByText(/New Prescription/i);
       fireEvent.click(newButton);
 
       expect(screen.getByTestId('modal')).toBeInTheDocument();
-      // Validate title inside modal specifically to avoid finding the button text
       const modal = screen.getByTestId('modal');
       expect(modal).toHaveTextContent('New Prescription');
    });

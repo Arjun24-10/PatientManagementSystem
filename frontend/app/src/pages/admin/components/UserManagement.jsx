@@ -18,15 +18,16 @@ const UserManagement = () => {
     const fetchUsers = async () => {
         try {
             setLoading(true);
-            const data = await api.admin.getAllUsers();
+            const data = await api.admin.getAllStaff();
             setUsers(data);
         } catch (err) {
             console.log('Using mock users');
-            // Use mock data on error
+            // Use mock data on error — fields match StaffDTO: userId, email, role
             setUsers([
-                { id: 1, fullName: 'Dr. Sarah Smith', email: 'sarah@hospital.com', role: 'DOCTOR' },
-                { id: 2, fullName: 'John Patient', email: 'john@email.com', role: 'PATIENT' },
-                { id: 3, fullName: 'Jane Nurse', email: 'jane@hospital.com', role: 'NURSE' },
+                { userId: 1, email: 'doctor1@securehealth.com', role: 'DOCTOR' },
+                { userId: 2, email: 'nurse1@securehealth.com', role: 'NURSE' },
+                { userId: 3, email: 'lab1@securehealth.com', role: 'LAB_TECHNICIAN' },
+                { userId: 4, email: 'admin@securehealth.com', role: 'ADMIN' },
             ]);
         } finally {
             setLoading(false);
@@ -34,7 +35,6 @@ const UserManagement = () => {
     };
 
     const filteredUsers = users.filter(user =>
-        user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -100,25 +100,23 @@ const UserManagement = () => {
             {!loading && filteredUsers.length > 0 && (
                 <Table>
                     <TableHead>
-                        <TableRow>
-                            <TableHeader>User</TableHeader>
-                            <TableHeader>Role</TableHeader>
-                            <TableHeader>Status</TableHeader>
-                            <TableHeader>Last Login</TableHeader>
-                            <TableHeader align="right">Actions</TableHeader>
-                        </TableRow>
+                        <TableHeader>User</TableHeader>
+                        <TableHeader>Role</TableHeader>
+                        <TableHeader>Status</TableHeader>
+                        <TableHeader>Last Login</TableHeader>
+                        <TableHeader align="right">Actions</TableHeader>
                     </TableHead>
                     <TableBody>
                         {filteredUsers.map((user) => (
-                            <TableRow key={user.id} hover>
+                            <TableRow key={user.userId} hover>
                                 <TableCell>
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-full bg-admin-primary/10 flex items-center justify-center text-admin-primary font-bold">
-                                            {user.fullName?.charAt(0) || user.email?.charAt(0)}
+                                            {user.email?.charAt(0)?.toUpperCase()}
                                         </div>
                                         <div>
-                                            <h3 className="text-sm font-medium text-slate-800 dark:text-white">{user.fullName || 'N/A'}</h3>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400">{user.email || 'N/A'}</p>
+                                            <h3 className="text-sm font-medium text-slate-800 dark:text-white">{user.email || 'N/A'}</h3>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">ID: {user.userId}</p>
                                         </div>
                                     </div>
                                 </TableCell>

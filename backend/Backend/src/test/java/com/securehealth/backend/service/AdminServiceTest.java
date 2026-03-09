@@ -45,7 +45,7 @@ class AdminServiceTest {
     void getDashboardMetrics_ReturnsAccurateCounts() {
         // Arrange
         when(patientProfileRepository.count()).thenReturn(150L);
-        when(loginRepository.countByRole(Role.DOCTOR.name())).thenReturn(12L);
+        when(loginRepository.countByRole(Role.DOCTOR)).thenReturn(12L);
         when(appointmentRepository.countByStatus(AppointmentStatus.PENDING_APPROVAL)).thenReturn(5L);
         when(appointmentRepository.countTodaysAppointments(any(), any())).thenReturn(20L);
 

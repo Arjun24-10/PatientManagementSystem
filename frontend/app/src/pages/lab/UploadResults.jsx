@@ -15,7 +15,7 @@ const UploadResults = () => {
     useEffect(() => {
         const fetchOrders = async () => {
             try {
-                const data = await api.labTechnician.getOrders('Pending');
+                const data = await api.labTechnician.getOrders(null);
                 if (data && Array.isArray(data)) {
                     setOrders(data);
                 } else {

@@ -480,6 +480,13 @@ export const labTechnicianAPI = {
 // ============================================
 
 export const adminAPI = {
+   // Get dashboard metrics
+   getMetrics: async () => {
+      return apiCall('/admin/metrics', {
+         method: 'GET',
+      });
+   },
+
    // Get all audit logs (Admin only)
    getAuditLogs: async () => {
       return apiCall('/admin/audit-logs', {
@@ -489,14 +496,21 @@ export const adminAPI = {
 
    // Get audit logs for a specific user
    getAuditLogsByEmail: async (email) => {
-      return apiCall(`/admin/audit-logs/${email}`, {
+      return apiCall(`/admin/audit-logs/${encodeURIComponent(email)}`, {
          method: 'GET',
       });
    },
 
-   // Get all users (patients)
+   // Get all staff members (non-patient users)
+   getAllStaff: async () => {
+      return apiCall('/admin/staff', {
+         method: 'GET',
+      });
+   },
+
+   // Get all patients (patient directory)
    getAllUsers: async () => {
-      return apiCall('/patients', {
+      return apiCall('/admin/patients', {
          method: 'GET',
       });
    },
@@ -508,10 +522,18 @@ export const adminAPI = {
       });
    },
 
-   // Get all doctors
-   getAllDoctors: async () => {
-      return apiCall('/doctors', {
-         method: 'GET',
+   // Delete a staff member
+   deleteStaff: async (userId) => {
+      return apiCall(`/admin/staff/${userId}`, {
+         method: 'DELETE',
+      });
+   },
+
+   // Update staff role
+   updateStaffRole: async (userId, newRole) => {
+      return apiCall(`/admin/staff/${userId}/role`, {
+         method: 'PUT',
+         body: JSON.stringify({ newRole }),
       });
    },
 };

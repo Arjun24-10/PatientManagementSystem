@@ -159,7 +159,7 @@ const AssignedPatientsPanel = ({
                                     </div>
                                 </div>
 
-                                {patient.specialAlerts.length > 0 && (
+                                {patient.specialAlerts?.length > 0 && (
                                     <div className="flex flex-wrap gap-1.5 text-[10px] text-gray-600 dark:text-slate-400">
                                         {patient.specialAlerts.includes('fall-risk') && (
                                             <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400" title="Fall risk">

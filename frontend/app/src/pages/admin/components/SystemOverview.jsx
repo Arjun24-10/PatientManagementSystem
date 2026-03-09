@@ -26,10 +26,10 @@ const StatCard = ({ title, value, change, icon: Icon, trend }) => (
 
 const SystemOverview = () => {
     const [stats, setStats] = useState({
-        totalUsers: 0,
-        activeSessions: 0,
-        securityAlerts: 0,
-        systemUptime: '99.99%',
+        totalPatients: 0,
+        totalDoctors: 0,
+        todaysAppointments: 0,
+        pendingApprovals: 0,
     });
     const [loading, setLoading] = useState(true);
 
@@ -40,32 +40,20 @@ const SystemOverview = () => {
     const fetchSystemStats = async () => {
         try {
             setLoading(true);
-            
-            // Fetch all users
-            const users = await api.admin.getAllUsers();
-            
-            // Fetch all appointments to estimate active sessions
-            const appointments = await api.admin.getAllAppointments();
-
-            // Calculate stats
-            const totalUsers = users.length;
-            const activeSessions = Math.min(Math.ceil(totalUsers * 0.3), appointments.length);
-            const securityAlerts = Math.floor(Math.random() * 30) + 5;
-
+            const metrics = await api.admin.getMetrics();
             setStats({
-                totalUsers: totalUsers,
-                activeSessions: activeSessions,
-                securityAlerts: securityAlerts,
-                systemUptime: '99.99%',
+                totalPatients: metrics.totalPatients,
+                totalDoctors: metrics.totalDoctors,
+                todaysAppointments: metrics.todaysAppointments,
+                pendingApprovals: metrics.pendingApprovals,
             });
         } catch (err) {
             console.log('Using mock system stats');
-            // Use default mock stats on error
             setStats({
-                totalUsers: 5432,
-                activeSessions: 843,
-                securityAlerts: 23,
-                systemUptime: '99.99%',
+                totalPatients: 5,
+                totalDoctors: 2,
+                todaysAppointments: 3,
+                pendingApprovals: 5,
             });
         } finally {
             setLoading(false);
@@ -78,30 +66,30 @@ const SystemOverview = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard
-                    title="Total Users"
-                    value={loading ? '...' : stats.totalUsers.toLocaleString()}
+                    title="Total Patients"
+                    value={loading ? '...' : stats.totalPatients.toLocaleString()}
                     change="12%"
                     trend="up"
                     icon={Users}
                 />
                 <StatCard
-                    title="Active Sessions"
-                    value={loading ? '...' : stats.activeSessions}
+                    title="Total Doctors"
+                    value={loading ? '...' : stats.totalDoctors}
                     change="5%"
                     trend="up"
                     icon={Activity}
                 />
                 <StatCard
-                    title="Security Alerts"
-                    value={loading ? '...' : stats.securityAlerts}
+                    title="Pending Approvals"
+                    value={loading ? '...' : stats.pendingApprovals}
                     change="2%"
                     trend="down"
                     icon={Shield}
                 />
                 <StatCard
-                    title="System Uptime"
-                    value={stats.systemUptime}
-                    change="0.01%"
+                    title="Today's Appointments"
+                    value={loading ? '...' : stats.todaysAppointments}
+                    change="0%"
                     trend="up"
                     icon={Clock}
                 />

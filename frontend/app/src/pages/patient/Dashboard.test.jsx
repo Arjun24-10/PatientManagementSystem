@@ -14,31 +14,25 @@ jest.mock('../../services/api', () => ({
    vitalSigns: { getByPatient: jest.fn().mockResolvedValue([]) },
 }));
 
+// Must include userId so the component's `if (!user?.userId) return` guard passes
+const authValue = {
+   user: { userId: 'U001', id: 'P001', firstName: 'Emily', lastName: 'Blunt' }
+};
+
 describe('Patient Dashboard', () => {
    beforeEach(() => {
       jest.clearAllMocks();
+      api.patients.getMe.mockResolvedValue({ id: 'P001', firstName: 'Emily', lastName: 'Blunt' });
    });
 
    test('renders dashboard', async () => {
-      api.patients.getMe.mockResolvedValueOnce({ id: 'P001', name: 'Emily Blunt' });
-
-      const { container } = render(<PatientDashboard />, {
-         authValue: {
-            user: { id: 'P001', fullName: 'Emily Blunt' }
-         }
-      });
+      const { container } = render(<PatientDashboard />, { authValue });
       expect(await screen.findByText(/welcome back/i)).toBeInTheDocument();
       expect(container).toBeInTheDocument();
    });
 
    test('displays patient welcome message', async () => {
-      api.patients.getMe.mockResolvedValueOnce({ id: 'P001', name: 'Emily Blunt' });
-
-      render(<PatientDashboard />, {
-         authValue: {
-            user: { id: 'P001', fullName: 'Emily Blunt' }
-         }
-      });
+      render(<PatientDashboard />, { authValue });
       expect(await screen.findByText(/welcome back/i)).toBeInTheDocument();
       expect(screen.getByText(/Emily Blunt/i)).toBeInTheDocument();
    });

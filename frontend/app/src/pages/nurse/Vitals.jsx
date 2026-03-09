@@ -210,6 +210,7 @@ const NurseVitals = () => {
    const [overview, setOverview] = useState({
       assignedPatients: [],
       vitalsStatus: 'done',
+      vitalsSchedule: [],
       nurse: { name: 'Nurse Profile', unit: 'ICU' },
       stats: {
          assignedPatients: 0,
@@ -273,7 +274,8 @@ const NurseVitals = () => {
                      acuityLevel: p.acuityLevel || "stable",
                      vitalsStatus: p.vitalsStatus || "done",
                      medicationStatus: p.medicationStatus || "all-given",
-                     codeStatus: p.codeStatus || "Full Code"
+                     codeStatus: p.codeStatus || "Full Code",
+                     specialAlerts: p.specialAlerts || []
                   }))
                }));
             }
@@ -302,7 +304,7 @@ const NurseVitals = () => {
          hour: 'numeric',
          minute: '2-digit',
       }),
-   [currentTime]);
+      [currentTime]);
 
    const segmentedPatients = useMemo(() => overview.assignedPatients.map((patient) => {
       let filterKey = 'stable';
@@ -557,7 +559,7 @@ const NurseVitals = () => {
       try {
          // Get patient ID - either from selected patient or first assigned patient
          const patientId = selectedPatientId || overview.assignedPatients?.[0]?.id;
-         
+
          if (!patientId) {
             triggerToast('error', 'Please select a patient before saving vital signs.');
             return;
@@ -575,7 +577,7 @@ const NurseVitals = () => {
 
          // Call backend API to save vital signs
          const response = await api.nurse.recordVitals(vitalSignsPayload);
-         
+
          if (!response) {
             throw new Error('No response from server');
          }
@@ -841,13 +843,12 @@ const NurseVitals = () => {
                               </div>
                               <div className="relative h-1.5 bg-white/60 dark:bg-slate-600/60 rounded-full overflow-hidden">
                                  <div
-                                    className={`absolute inset-y-0 left-0 rounded-full ${
-                                       slot.status === 'overdue'
-                                          ? 'bg-red-400'
-                                          : slot.status === 'completed'
-                                             ? 'bg-green-500'
-                                             : 'bg-brand-medium'
-                                    }`}
+                                    className={`absolute inset-y-0 left-0 rounded-full ${slot.status === 'overdue'
+                                       ? 'bg-red-400'
+                                       : slot.status === 'completed'
+                                          ? 'bg-green-500'
+                                          : 'bg-brand-medium'
+                                       }`}
                                     style={{ width: `${completion}%` }}
                                  />
                               </div>

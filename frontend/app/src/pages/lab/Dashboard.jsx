@@ -146,7 +146,7 @@ const LabDashboard = () => {
                             Priority Attention
                         </h3>
                         <p className="text-blue-100 text-xs mb-3 leading-relaxed">
-                            You have <span className="font-bold text-white">2 urgent samples</span> that need processing within the next hour.
+                            You have <span className="font-bold text-white">{pendingCount} pending order{pendingCount !== 1 ? 's' : ''}</span> that need processing.
                         </p>
                         <Button
                             className="w-full !bg-white !text-blue-900 hover:!bg-gray-50 border-none text-xs font-bold shadow-sm"
