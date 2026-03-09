@@ -97,6 +97,13 @@ public class Login {
     @Column(updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    // Track last login time for archival purposes
+    private LocalDateTime lastLoginAt;
+
+    // Whether the user has been archived due to inactivity
+    @Column(columnDefinition = "boolean default false")
+    private Boolean archived = false;
+
     // Compatibility methods for tests expecting snake_case naming
     public Long getUser_id() {
         return userId;

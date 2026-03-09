@@ -7,8 +7,9 @@ import com.securehealth.backend.service.MedicalRecordService;
 import com.securehealth.backend.security.PatientAccessValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,19 +28,32 @@ public class MedicalRecordController {
         return ResponseEntity.ok(medicalRecordService.getMedicalRecordsByPatient(patientId));
     }
 
-    @PostMapping
-    public ResponseEntity<?> createMedicalRecord(@RequestBody com.securehealth.backend.dto.MedicalRecordRequest request, Authentication auth) {
-        // Enforce RBAC: Only Doctors can create medical records
-        String role = auth.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse("");
-        if (!role.equals("DOCTOR")) {
-            return ResponseEntity.status(403).body("Forbidden: Only doctors can create medical records.");
-        }
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getById(@PathVariable Long id, Authentication auth) {
+        return medicalRecordRepository.findById(id)
+                .map(record -> ResponseEntity.ok((Object) record))
+                .orElse(ResponseEntity.status(404).body("Medical record not found with id: " + id));
+    }
 
+    @PostMapping
+    @PreAuthorize("hasAuthority('DOCTOR')")
+    public ResponseEntity<?> createMedicalRecord(@Valid @RequestBody com.securehealth.backend.dto.MedicalRecordRequest request, Authentication auth) {
         try {
             MedicalRecord newRecord = medicalRecordService.createMedicalRecord(request, auth.getName());
             return ResponseEntity.ok(newRecord);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<?> deleteMedicalRecord(@PathVariable Long id, Authentication auth) {
+        try {
+            medicalRecordService.deleteMedicalRecord(id, auth.getName());
+            return ResponseEntity.ok("Medical record deleted successfully.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
         }
     }
 }

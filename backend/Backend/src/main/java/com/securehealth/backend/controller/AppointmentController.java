@@ -3,6 +3,7 @@ package com.securehealth.backend.controller;
 import com.securehealth.backend.dto.AppointmentDTO;
 import com.securehealth.backend.dto.AppointmentRequest;
 import com.securehealth.backend.model.Appointment;
+import com.securehealth.backend.model.AppointmentStatus;
 import com.securehealth.backend.repository.AppointmentRepository;
 import com.securehealth.backend.security.PatientAccessValidator;
 import com.securehealth.backend.service.AppointmentService;
@@ -10,8 +11,9 @@ import com.securehealth.backend.service.AppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -34,16 +36,6 @@ public class AppointmentController {
 
     @GetMapping("/doctor/{doctorId}")
     public ResponseEntity<List<Appointment>> getByDoctor(@PathVariable Long doctorId, Authentication auth) {
-        // Strict Security Check: Ensure the logged-in doctor is checking their OWN schedule
-        String email = auth.getName();
-        String role = auth.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse("");
-        
-        // This assumes your Appointment entity links to a Doctor Login with that ID
-        if (!role.equals("ADMIN") && !email.equals(appointmentRepository.findById(doctorId).map(a -> a.getDoctor().getEmail()).orElse(""))) {
-             // In a production app, you'd check against the DoctorProfile, but this gives the idea!
-             // Let's actually keep it simple: doctors can view their own schedule by their user ID.
-        }
-        
         return ResponseEntity.ok(appointmentRepository.findByDoctor_UserIdOrderByAppointmentDateAsc(doctorId));
     }
 
@@ -58,7 +50,8 @@ public class AppointmentController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createAppointment(@RequestBody AppointmentRequest request, Authentication auth) {
+    @PreAuthorize("hasAuthority('PATIENT')")
+    public ResponseEntity<?> createAppointment(@Valid @RequestBody AppointmentRequest request, Authentication auth) {
         try {
             // Extract the email from the JWT token
             String email = auth.getName();
@@ -77,10 +70,12 @@ public class AppointmentController {
     }
 
     @PutMapping("/{id}/approve")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<?> approveAppointment(@PathVariable Long id, Authentication auth) {
-        // Enforce strict Role-Based Access Control (RBAC)
-        String role = auth.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse("");
-        if (!role.equals("ADMIN")) {
+        // Mock-safe security check for unit tests
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ADMIN"));
+        if (!isAdmin) {
             return ResponseEntity.status(403).body("Forbidden: Only administrative staff can approve appointments.");
         }
 
@@ -93,11 +88,13 @@ public class AppointmentController {
     }
 
     @PutMapping("/{id}/reject")
-    public ResponseEntity<?> rejectAppointment(@PathVariable Long id, Authentication auth, @RequestBody(required = false) String reason) {
-        // Enforce strict Role-Based Access Control (RBAC)
-        String role = auth.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse("");
-        if (!role.equals("ADMIN")) {
-            return ResponseEntity.status(403).body("Forbidden: Only administrative staff can reject appointments.");
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<?> rejectAppointment(@PathVariable Long id, @RequestBody(required = false) String reason, Authentication auth) {
+        // Mock-safe security check for unit tests
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ADMIN"));
+        if (!isAdmin) {
+            return ResponseEntity.status(403).body("Forbidden: Only administrative staff can approve appointments.");
         }
 
         try {
@@ -109,27 +106,38 @@ public class AppointmentController {
     }
     
     @GetMapping
-    public ResponseEntity<?> getAllAppointments(Authentication auth) {
-        // Enforce RBAC: Block Patients
-        String role = auth.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse("");
-        if (role.equals("PATIENT")) {
-            return ResponseEntity.status(403).body("Forbidden: Patients cannot view the global clinic schedule.");
-        }
-
-        // Allow ADMIN and DOCTOR
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DOCTOR')")
+    public ResponseEntity<?> getAllAppointments() {
         return ResponseEntity.ok(appointmentService.getAllAppointments());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getById(@PathVariable Long id, Authentication auth) {
+        return appointmentRepository.findById(id)
+                .map(appt -> ResponseEntity.ok((Object) appt))
+                .orElse(ResponseEntity.status(404).body("Appointment not found with id: " + id));
+    }
+
+    @GetMapping("/status/{status}")
+    public ResponseEntity<List<Appointment>> getByStatus(@PathVariable String status) {
+        return ResponseEntity.ok(appointmentRepository.findByStatus(AppointmentStatus.valueOf(status.toUpperCase())));
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<?> getStats() {
+        java.util.Map<String, Object> stats = new java.util.HashMap<>();
+        stats.put("total", appointmentRepository.count());
+        stats.put("pending", appointmentRepository.countByStatus(AppointmentStatus.PENDING_APPROVAL));
+        stats.put("scheduled", appointmentRepository.countByStatus(AppointmentStatus.SCHEDULED));
+        stats.put("completed", appointmentRepository.countByStatus(AppointmentStatus.COMPLETED));
+        stats.put("cancelled", appointmentRepository.countByStatus(AppointmentStatus.CANCELLED));
+        return ResponseEntity.ok(stats);
+    }
+
     @PutMapping("/{id}/complete")
+    @PreAuthorize("hasAuthority('DOCTOR')")
     public ResponseEntity<?> completeAppointment(@PathVariable Long id, Authentication auth) {
-        // Enforce RBAC: Only Doctors can mark as complete
-        String role = auth.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse("");
-        if (!role.equals("DOCTOR")) {
-            return ResponseEntity.status(403).body("Forbidden: Only Doctors can complete appointments.");
-        }
-        
         try {
-            // auth.getName() safely gets the logged-in doctor's email from the JWT
             return ResponseEntity.ok(appointmentService.completeAppointment(id, auth.getName()));
         } catch (RuntimeException e) {
             return ResponseEntity.status(400).body(e.getMessage());
@@ -137,19 +145,35 @@ public class AppointmentController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('DOCTOR')")
     public ResponseEntity<?> updateAppointment(
             @PathVariable Long id, 
             @RequestBody com.securehealth.backend.dto.AppointmentDTO request, 
             Authentication auth) {
-            
-        // Enforce RBAC: Only Doctors can update
-        String role = auth.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse("");
-        if (!role.equals("DOCTOR")) {
-            return ResponseEntity.status(403).body("Forbidden: Only Doctors can modify appointments.");
-        }
-        
         try {
             return ResponseEntity.ok(appointmentService.updateAppointment(id, request, auth.getName()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}/cancel")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DOCTOR', 'PATIENT')")
+    public ResponseEntity<?> cancelAppointment(@PathVariable Long id, Authentication auth) {
+        try {
+            String role = auth.getAuthorities().stream().findFirst().get().getAuthority();
+            return ResponseEntity.ok(appointmentService.cancelAppointment(id, auth.getName(), role));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<?> deleteAppointment(@PathVariable Long id) {
+        try {
+            appointmentService.deleteAppointment(id);
+            return ResponseEntity.ok("Appointment deleted successfully.");
         } catch (RuntimeException e) {
             return ResponseEntity.status(400).body(e.getMessage());
         }

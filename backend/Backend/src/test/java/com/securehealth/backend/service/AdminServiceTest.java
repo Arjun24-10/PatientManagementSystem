@@ -2,6 +2,7 @@ package com.securehealth.backend.service;
 
 import com.securehealth.backend.dto.AdminMetricsDTO;
 import com.securehealth.backend.dto.StaffDTO;
+import com.securehealth.backend.model.AppointmentStatus;
 import com.securehealth.backend.model.Login;
 import com.securehealth.backend.model.Role;
 import com.securehealth.backend.repository.AppointmentRepository;
@@ -45,7 +46,7 @@ class AdminServiceTest {
         // Arrange
         when(patientProfileRepository.count()).thenReturn(150L);
         when(loginRepository.countByRole(Role.DOCTOR.name())).thenReturn(12L);
-        when(appointmentRepository.countByStatus("PENDING_APPROVAL")).thenReturn(5L);
+        when(appointmentRepository.countByStatus(AppointmentStatus.PENDING_APPROVAL)).thenReturn(5L);
         when(appointmentRepository.countTodaysAppointments(any(), any())).thenReturn(20L);
 
         // Act

@@ -2,6 +2,7 @@ package com.securehealth.backend;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * The main entry point for the Secure Health Backend API.
@@ -16,6 +17,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @since 2024-01-01
  */
 @SpringBootApplication
+@EnableScheduling
 public class SecureHealthApplication {
 
     /**

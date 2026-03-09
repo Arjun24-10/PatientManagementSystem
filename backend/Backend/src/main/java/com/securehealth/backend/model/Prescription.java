@@ -41,6 +41,12 @@ public class Prescription {
     @Column(updatable = false)
     private LocalDateTime issuedAt = LocalDateTime.now();
     
+    private LocalDateTime startDate;
+    
+    private LocalDateTime endDate;
+    
+    private Integer refillsRemaining = 0;
+
     // Status: ACTIVE, COMPLETED, CANCELLED
     private String status = "ACTIVE";
 }

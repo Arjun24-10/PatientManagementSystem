@@ -6,6 +6,7 @@ import com.securehealth.backend.dto.LoginResponse;
 import com.securehealth.backend.dto.RegistrationRequest;
 import com.securehealth.backend.dto.ResetPasswordRequest;
 import com.securehealth.backend.model.Login;
+import com.securehealth.backend.repository.LoginRepository;
 import com.securehealth.backend.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,6 +36,32 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private LoginRepository loginRepository;
+
+    /**
+     * Returns the current authenticated user's profile.
+     * Endpoint: GET /api/auth/me
+     */
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(org.springframework.security.core.Authentication authentication) {
+        if (authentication == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Not authenticated"));
+        }
+        String email = authentication.getName();
+        return loginRepository.findByEmail(email)
+                .map(user -> {
+                    Map<String, Object> profile = new HashMap<>();
+                    profile.put("id", user.getUserId());
+                    profile.put("email", user.getEmail());
+                    profile.put("role", user.getRole().name());
+                    profile.put("twoFactorEnabled", user.isTwoFactorEnabled());
+                    profile.put("createdAt", user.getCreatedAt());
+                    return ResponseEntity.ok(profile);
+                })
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "User not found")));
+    }
 
     /**
      * Register a new user.
