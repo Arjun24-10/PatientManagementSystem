@@ -7,8 +7,8 @@ import com.securehealth.backend.security.PatientAccessValidator;
 import com.securehealth.backend.service.LabTestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,13 +37,8 @@ public class LabResultController {
     
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('DOCTOR', 'ADMIN', 'LAB_TECHNICIAN')")
     public ResponseEntity<?> createLabTest(@RequestBody com.securehealth.backend.dto.LabTestRequest request, Authentication auth) {
-        // Allow DOCTOR or ADMIN to add lab results
-        String role = auth.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse("");
-        if (!role.equals("DOCTOR") && !role.equals("ADMIN") && !role.equals("LAB_TECHNICIAN")) {
-            return ResponseEntity.status(403).body("Forbidden: Insufficient privileges to add lab results.");
-        }
-
         try {
             LabTest newLabTest = labTestService.createLabTest(request, auth.getName());
             return ResponseEntity.ok(newLabTest);

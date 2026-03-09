@@ -7,8 +7,8 @@ import com.securehealth.backend.service.PrescriptionService;
 import com.securehealth.backend.security.PatientAccessValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,13 +35,8 @@ public class PrescriptionController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('DOCTOR')")
     public ResponseEntity<?> createPrescription(@RequestBody com.securehealth.backend.dto.PrescriptionRequest request, Authentication auth) {
-        // Enforce RBAC: Only Doctors can write prescriptions
-        String role = auth.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse("");
-        if (!role.equals("DOCTOR")) {
-            return ResponseEntity.status(403).body("Forbidden: Only doctors can write prescriptions.");
-        }
-
         try {
             Prescription newPrescription = prescriptionService.createPrescription(request, auth.getName());
             return ResponseEntity.ok(newPrescription);
