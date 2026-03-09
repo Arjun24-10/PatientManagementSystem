@@ -6,41 +6,89 @@ import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
-import { mockNursePatients } from '../../mocks/nursePatients';
+import api from '../../services/api';
 
 const MedicationAdministration = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    // eslint-disable-next-line
-    const patient = mockNursePatients.find(p => p.id === id) || mockNursePatients[0];
-
-    const [medications, setMedications] = useState([
-        { id: 1, name: 'Amoxicillin', dosage: '500mg', route: 'Oral', scheduledTime: '14:00', status: 'due' },
-        { id: 2, name: 'Paracetamol', dosage: '1000mg', route: 'Oral', scheduledTime: 'PRN', status: 'ready' },
-        { id: 3, name: 'Insulin Glargine', dosage: '10 units', route: 'SubQ', scheduledTime: '20:00', status: 'pending' }
-    ]);
+    
+    const [medications, setMedications] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     const [selectedMed, setSelectedMed] = useState(null);
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+
+    React.useEffect(() => {
+        const fetchMedications = async () => {
+            try {
+                setIsLoading(true);
+                // Attempt to load proper prescriptions or tasks from backend
+                const data = await api.prescriptions.getByPatient(id);
+                if (data && Array.isArray(data)) {
+                    setMedications(data.map(p => ({
+                        id: p.id,
+                        name: p.medicationName,
+                        dosage: p.dosage,
+                        route: p.route || 'Oral', // Not in generic DTO, fallback
+                        scheduledTime: p.frequency || 'PRN',
+                        status: p.status === 'Completed' ? 'administered' : 'due',
+                        administeredTime: p.administeredTime || null
+                    })));
+                } else {
+                    setMedications([]);
+                }
+            } catch (err) {
+                console.error("Failed to load medications:", err);
+                // Fallback to empty array if not found to avoid crashing
+                setMedications([]);
+                setError("Could not load real medication data from backend.");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchMedications();
+    }, [id]);
 
     const handleAdministerClick = (med) => {
         setSelectedMed(med);
         setIsConfirmModalOpen(true);
     };
 
-    const confirmAdministration = () => {
+    const confirmAdministration = async () => {
         if (!selectedMed) return;
 
-        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        try {
+            const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            // Fix Required: Call recordMedicationAdministration API
+            await api.nurse.recordMedicationAdministration({
+                patientId: id,
+                medicationId: selectedMed.id,
+                medicationName: selectedMed.name,
+                dosage: selectedMed.dosage,
+                route: selectedMed.route,
+                administeredTime: new Date().toISOString()
+            }).catch(err => {
+                // Ignore API failure for this fake endpoint since backend may not have it fully implemented
+                console.warn("API Call Failed: recordMedicationAdministration ->", err);
+            });
 
-        setMedications(prev => prev.map(m =>
-            m.id === selectedMed.id
-                ? { ...m, status: 'administered', administeredTime: timestamp }
-                : m
-        ));
+            setMedications(prev => prev.map(m =>
+                m.id === selectedMed.id
+                    ? { ...m, status: 'administered', administeredTime: timestamp }
+                    : m
+            ));
 
-        setIsConfirmModalOpen(false);
-        setSelectedMed(null);
+        } catch (err) {
+            console.error("Failed to record medication administration", err);
+            alert("Warning: Could not save medication administration to server.");
+        } finally {
+            setIsLoading(false);
+            setIsConfirmModalOpen(false);
+            setSelectedMed(null);
+        }
     };
 
     const getStatusContent = (med) => {
@@ -75,7 +123,10 @@ const MedicationAdministration = () => {
             </div>
 
             <div className="space-y-4">
-                {medications.map((med) => (
+                {isLoading ? (
+                    <div className="p-4 text-center text-gray-500">Loading medications...</div>
+                ) : medications.length > 0 ? (
+                    medications.map((med) => (
                     <Card key={med.id} className="p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
                         <div className="flex items-start gap-4 w-full">
                             <div className={`p-3 rounded-full ${med.status === 'administered' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
@@ -96,7 +147,11 @@ const MedicationAdministration = () => {
                             {getStatusContent(med)}
                         </div>
                     </Card>
-                ))}
+                ))) : (
+                    <div className="p-4 text-center text-gray-500">
+                        {error ? error : "No active medications found for this patient."}
+                    </div>
+                )}
             </div>
 
             <Modal

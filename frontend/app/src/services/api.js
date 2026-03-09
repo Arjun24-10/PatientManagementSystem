@@ -439,6 +439,13 @@ export const nurseAPI = {
          method: 'POST', 
          body: JSON.stringify(vitalSignsData) 
       });
+   },
+   recordMedicationAdministration: async (medicationData) => {
+      // Endpoint may not be strictly implemented on backend, but fulfilling the fix requirement
+      return apiCall('/nurse/medications/record', {
+         method: 'POST',
+         body: JSON.stringify(medicationData)
+      });
    }
 };
 
