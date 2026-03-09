@@ -144,97 +144,48 @@ public class AuthService {
      */
     public LoginResponse login(String email, String rawPassword, String ipAddress, String userAgent) {
 
-        rateLimiterService.checkLoginAttempts(email, ipAddress, userAgent);
+        try {
 
-        // 1. Verify User
-        Login user = loginRepository.findByEmail(email)
-                .orElseThrow(() -> {
-                    logEvent(email, "LOGIN_FAILED", ipAddress, userAgent, "User not found");
-                    rateLimiterService.registerFailedLogin(email, ipAddress, userAgent);
-                    return new RuntimeException("Invalid credentials");
-                });
+            rateLimiterService.checkLoginAttempts(email, ipAddress, userAgent);
 
-        if (user.isLocked()) {
-            logEvent(email, "LOGIN_FAILED", ipAddress, userAgent, "Account locked");
-            throw new RuntimeException("Account locked");
-        }
+            Login user = loginRepository.findByEmail(email)
+                    .orElseThrow(() -> {
+                        logEvent(email, "LOGIN_FAILED", ipAddress, userAgent, "User not found");
+                        rateLimiterService.registerFailedLogin(email, ipAddress, userAgent);
+                        return new RuntimeException("Invalid credentials");
+                    });
 
-        if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
-            rateLimiterService.registerFailedLogin(email, ipAddress, userAgent);
+            if (user.isLocked()) {
+                logEvent(email, "LOGIN_FAILED", ipAddress, userAgent, "Account locked");
+                throw new RuntimeException("Account locked");
+            }
 
-            logEvent(email, "LOGIN_FAILED", ipAddress, userAgent, "Invalid password");
-            throw new RuntimeException("Invalid credentials");
-        }
+            if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
+                rateLimiterService.registerFailedLogin(email, ipAddress, userAgent);
+                logEvent(email, "LOGIN_FAILED", ipAddress, userAgent, "Invalid password");
+                throw new RuntimeException("Invalid credentials");
+            }
 
-        // --- 1. 2FA CHECK (Priority) ---
-        // If user is DOCTOR/ADMIN and has 2FA enabled, stop and send OTP.
-        if ((user.getRole() == Role.DOCTOR || user.getRole() == Role.ADMIN)
-                && user.isTwoFactorEnabled()) {
+            if ((user.getRole() == Role.DOCTOR || user.getRole() == Role.ADMIN)
+                    && user.isTwoFactorEnabled()) {
 
-            String otp = generateOtp();
-            user.setOtp(otp);
-            user.setOtpExpiry(LocalDateTime.now().plusMinutes(5));
-            loginRepository.save(user);
+                String otp = generateOtp();
+                user.setOtp(otp);
+                user.setOtpExpiry(LocalDateTime.now().plusMinutes(5));
+                loginRepository.save(user);
 
-            emailService.sendOtp(user.getEmail(), otp);
+                emailService.sendOtp(user.getEmail(), otp);
 
-            logEvent(email, "OTP_REQUIRED", ipAddress, userAgent, "OTP sent to email");
-            // Return "OTP_REQUIRED" status with NULL tokens
-            return new LoginResponse(null, null, user.getRole().name(), "OTP_REQUIRED", user.getUserId());
-        }
+                logEvent(email, "OTP_REQUIRED", ipAddress, userAgent, "OTP sent to email");
+                // Return "OTP_REQUIRED" status with NULL tokens
+                return new LoginResponse(null, null, user.getRole().name(), "OTP_REQUIRED", user.getUserId());
+            }
 
-        // --- 2. GENERATE TOKENS (Standard Login) ---
-        // If 2FA is not required (or disabled), proceed to generate JWTs.
-        String accessToken = jwtUtil.generateAccessToken(user.getEmail(), user.getRole().name(), user.getUserId());
-        String refreshToken = jwtUtil.generateRefreshToken();
 
-        // 3. Hash Refresh Token
-        String refreshTokenHash = hashToken(refreshToken);
-
-        // 4. Create Session in DB
-        Session session = new Session();
-        session.setUser(user);
-        session.setRefreshTokenHash(refreshTokenHash);
-        session.setIpAddress(ipAddress);
-        session.setUserAgent(userAgent);
-        session.setExpiresAt(LocalDateTime.now().plusDays(7));
-        sessionRepository.save(session);
-
-        logEvent(email, "LOGIN_SUCCESS", ipAddress, userAgent, "Standard login");
-        rateLimiterService.resetLoginAttempts(email);
-        
-        // Initialize the active session in Redis so the first API call doesn't fail
-        tokenBlacklistService.updateLastActive(email);
-        
-        return new LoginResponse(accessToken, refreshToken, user.getRole().name(), "LOGIN_SUCCESS", user.getUserId());
-    }
-
-    /**
-     * Verifies OTP and Completes Login (Generates Tokens).
-     */
-    public LoginResponse verifyOtp(String email, String otp, String ipAddress, String userAgent) {
-
-        rateLimiterService.checkOtpAttempts(email, ipAddress, userAgent);
-
-        Login user = loginRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if (user.getOtp() != null &&
-                user.getOtp().equals(otp) &&
-                user.getOtpExpiry().isAfter(LocalDateTime.now())) {
-
-            // 1. Clear OTP to prevent reuse
-            user.setOtp(null);
-            loginRepository.save(user);
-
-            rateLimiterService.resetOtpAttempts(email);
-
-            // 2. Generate Tokens (Login is now successful!)
             String accessToken = jwtUtil.generateAccessToken(user.getEmail(), user.getRole().name(), user.getUserId());
             String refreshToken = jwtUtil.generateRefreshToken();
             String refreshTokenHash = hashToken(refreshToken);
 
-            // 3. Create Session
             Session session = new Session();
             session.setUser(user);
             session.setRefreshTokenHash(refreshTokenHash);
@@ -243,20 +194,69 @@ public class AuthService {
             session.setExpiresAt(LocalDateTime.now().plusDays(7));
             sessionRepository.save(session);
 
-            logEvent(email, "LOGIN_SUCCESS", ipAddress, userAgent, "2FA Verified");
-            
-            // Initialize the active session in Redis
+            logEvent(email, "LOGIN_SUCCESS", ipAddress, userAgent, "Standard login");
+
+            rateLimiterService.resetLoginAttempts(email);
             tokenBlacklistService.updateLastActive(email);
 
-            return new LoginResponse(accessToken, refreshToken, user.getRole().name(), "LOGIN_SUCCESS",user.getUserId());
+            return new LoginResponse(accessToken, refreshToken, user.getRole().name(), "LOGIN_SUCCESS",  user.getUserId());
+
+        } catch (RuntimeException ex) {
+
+            // Log unexpected system errors
+            logEvent(email, "SYSTEM_ERROR", ipAddress, userAgent, ex.getMessage());
+            throw ex;
         }
-        rateLimiterService.registerFailedOtp(email, ipAddress, userAgent);
-
-        logEvent(email, "LOGIN_FAILED", ipAddress, userAgent, "Invalid/Expired OTP");
-
-        throw new RuntimeException("Invalid or expired OTP");
     }
 
+    /**
+     * Verifies OTP and Completes Login (Generates Tokens).
+     */
+    public LoginResponse verifyOtp(String email, String otp, String ipAddress, String userAgent) {
+
+        try {
+
+            rateLimiterService.checkOtpAttempts(email, ipAddress, userAgent);
+
+            Login user = loginRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            if (user.getOtp() != null &&
+                    user.getOtp().equals(otp) &&
+                    user.getOtpExpiry().isAfter(LocalDateTime.now())) {
+
+                user.setOtp(null);
+                loginRepository.save(user);
+
+                rateLimiterService.resetOtpAttempts(email);
+
+                String accessToken = jwtUtil.generateAccessToken(user.getEmail(), user.getRole().name(), user.getUserId());
+                String refreshToken = jwtUtil.generateRefreshToken();
+                String refreshTokenHash = hashToken(refreshToken);
+
+                Session session = new Session();
+                session.setUser(user);
+                session.setRefreshTokenHash(refreshTokenHash);
+                session.setIpAddress(ipAddress);
+                session.setUserAgent(userAgent);
+                session.setExpiresAt(LocalDateTime.now().plusDays(7));
+                sessionRepository.save(session);
+
+                tokenBlacklistService.updateLastActive(email);
+                logEvent(email, "LOGIN_SUCCESS", ipAddress, userAgent, "2FA Verified");
+            return new LoginResponse(accessToken, refreshToken, user.getRole().name(), "LOGIN_SUCCESS",user.getUserId());
+            }
+            rateLimiterService.registerFailedOtp(email, ipAddress, userAgent);
+            logEvent(email, "LOGIN_FAILED", ipAddress, userAgent, "Invalid/Expired OTP");
+
+            throw new RuntimeException("Invalid or expired OTP");
+
+        } catch (RuntimeException ex) {
+
+            logEvent(email, "SYSTEM_ERROR", ipAddress, userAgent, ex.getMessage());
+            throw ex;
+        }
+    }
     /**
      * Revokes a session (Logout).
      */
@@ -545,7 +545,11 @@ public class AuthService {
         String hash = hashToken(oldRefreshToken);
 
         Session session = sessionRepository.findByRefreshTokenHash(hash)
-                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+                .orElseThrow(() -> {
+                    logEvent("UNKNOWN", "INVALID_REFRESH_TOKEN", ipAddress, userAgent,
+                            "Invalid refresh token attempt");
+                    return new RuntimeException("Invalid refresh token");
+                });
 
         // 2. SECURITY CHECK: Reuse Detection (Theft)
         if (session.isRevoked()) {
@@ -617,6 +621,8 @@ public class AuthService {
 
     private void logEvent(String email, String action, String ip, String agent, String details) {
         try {
+            System.out.println("AUDIT LOG TRIGGERED: " + action);
+
             AuditLog log = new AuditLog(email, action, ip, agent, details);
             auditLogRepository.save(log);
         } catch (Exception e) {

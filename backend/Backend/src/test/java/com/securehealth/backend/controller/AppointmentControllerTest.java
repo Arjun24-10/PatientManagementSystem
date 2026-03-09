@@ -5,6 +5,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.util.List;
 import com.securehealth.backend.model.Appointment;
 import com.securehealth.backend.repository.AppointmentRepository;
+import com.securehealth.backend.repository.AuditLogRepository;
 import com.securehealth.backend.security.PatientAccessValidator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +71,11 @@ public class AppointmentControllerTest {
 
     @MockBean
     private com.securehealth.backend.service.TokenBlacklistService tokenBlacklistService;
+
+    // FIX: AuditLogRepository must be mocked so the RequestLoggingFilter
+    // (which Spring wires even in WebMvcTest) can be satisfied during context load.
+    @MockBean
+    private AuditLogRepository auditLogRepository;
 
     @Test
     @WithMockUser(username = "patient@mail.com", authorities = {"PATIENT"})

@@ -40,6 +40,7 @@ public class DoctorControllerTest {
     @MockBean private com.securehealth.backend.util.JwtUtil jwtUtil;
     @MockBean private org.springframework.security.core.userdetails.UserDetailsService userDetailsService;
     @MockBean private com.securehealth.backend.service.TokenBlacklistService tokenBlacklistService;
+    @MockBean private com.securehealth.backend.repository.AuditLogRepository auditLogRepository;
 
     @Test
     void getPatientsByDoctor_Returns200() throws Exception {

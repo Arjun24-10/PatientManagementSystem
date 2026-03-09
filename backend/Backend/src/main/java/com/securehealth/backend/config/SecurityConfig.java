@@ -1,5 +1,7 @@
 package com.securehealth.backend.config;
 
+import com.securehealth.backend.model.AuditLog;
+import com.securehealth.backend.repository.AuditLogRepository;
 import com.securehealth.backend.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +18,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import java.util.List;
 
 @Configuration
@@ -23,9 +29,11 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    // 1. Inject the Filter (You must have this class created!)
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Autowired
+    private AuditLogRepository auditLogRepository;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -34,29 +42,62 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
 
-                // 2. Set Session to STATELESS (Critical for JWT)
-                // We don't want Spring creating JSESSIONID cookies.
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
-                        // Allow CORS preflight requests
+                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
-
-                        // 3. Explicitly allow Admin Access (Active Defense)
-                        // Using hasAuthority matches the exact string "ADMIN" in DB
                         .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
+                        .anyRequest().authenticated()
+                )
 
-                        .anyRequest().authenticated())
+                // 🔐 PROMINENT SECURITY LOGGING
+                .exceptionHandling(ex -> ex
 
-                // 4. Add the JWT Filter BEFORE the standard login filter
+                        // 401 - UNAUTHORIZED
+                        .authenticationEntryPoint((request, response, authException) -> {
+
+                            saveSecurityLog("UNAUTHORIZED_ACCESS", request);
+
+                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                        })
+
+                        // 403 - FORBIDDEN
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+
+                            saveSecurityLog("FORBIDDEN_ACCESS", request);
+
+                            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                        })
+                )
+
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    private void saveSecurityLog(String action, HttpServletRequest request) {
+        try {
+            AuditLog log = new AuditLog(
+                    "SYSTEM",   // ✅ Never null
+                    action,
+                    request.getRemoteAddr(),
+                    request.getHeader("User-Agent"),
+                    request.getRequestURI()
+            );
+
+            auditLogRepository.save(log);
+
+        } catch (Exception ignored) {
+            // Security logging should never break request flow
+        }
     }
 
     @Bean
