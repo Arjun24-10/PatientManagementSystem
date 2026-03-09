@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, MoreVertical, Edit, Trash2, Shield, UserCheck, UserX, Key } from 'lucide-react';
+import { Search, Filter, Edit, UserCheck, UserX, Key } from 'lucide-react';
 import Card from '../../../components/common/Card';
 import Badge from '../../../components/common/Badge';
 import Button from '../../../components/common/Button';

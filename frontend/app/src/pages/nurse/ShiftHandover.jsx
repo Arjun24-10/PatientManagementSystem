@@ -3,6 +3,7 @@ import { Send, Clock, User } from 'lucide-react';
 
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
+import IconButton from '../../components/common/IconButton';
 
 import Badge from '../../components/common/Badge';
 
@@ -50,10 +51,13 @@ const ShiftHandover = () => {
                     ></textarea>
                     <div className="flex justify-between items-center mt-3">
                         <span className="text-sm text-gray-500">Visible to incoming shift staff only.</span>
-                        <Button type="submit" variant="primary" disabled={!newNote.trim()}>
-                            <Send className="w-4 h-4 mr-2" />
-                            Submit Note
-                        </Button>
+                        <IconButton 
+                           icon={Send} 
+                           label="Submit Note" 
+                           variant="primary"
+                           type="submit"
+                           disabled={!newNote.trim()}
+                        />
                     </div>
                 </form>
             </Card>

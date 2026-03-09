@@ -38,7 +38,27 @@ const clearSession = () => {
 
 const getSession = () => {
    const data = localStorage.getItem(STORAGE_KEY);
-   return data ? JSON.parse(data) : null;
+   if (!data) return null;
+   const user = JSON.parse(data);
+   
+   // If userId is missing but we have a token, extract it from JWT
+   if (!user.userId && user.accessToken) {
+      try {
+         const parts = user.accessToken.split('.');
+         if (parts.length === 3) {
+            const payload = JSON.parse(atob(parts[1]));
+            if (payload.userId) {
+               user.userId = payload.userId;
+               // Update localStorage with extracted userId
+               saveSession(user);
+            }
+         }
+      } catch (e) {
+         console.warn('Failed to extract userId from JWT token');
+      }
+   }
+   
+   return user;
 };
 
 const getProfiles = () => {
@@ -74,9 +94,19 @@ export const signup = async (email, password, userData = {}) => {
          body: JSON.stringify(body),
       });
 
+      let data = {};
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+         try {
+            data = await response.json();
+         } catch (e) {
+            console.warn('Failed to parse response as JSON:', e);
+            data = {};
+         }
+      }
+
       if (!response.ok) {
-         const error = await response.json().catch(() => ({}));
-         throw new Error(error.message || 'Registration failed');
+         throw new Error(data.message || 'Registration failed');
       }
 
       // Backend returns success message but no user object for register
@@ -115,29 +145,74 @@ export const login = async (email, password) => {
          body: JSON.stringify({ email, password }),
       });
 
-      if (!response.ok) {
-         const error = await response.json().catch(() => ({}));
-         throw new Error(error.message || 'Login failed');
+      let data = {};
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/json')) {
+         try {
+            const responseText = await response.text();
+            data = JSON.parse(responseText);
+         } catch (e) {
+            console.warn('Failed to parse response as JSON:', e);
+            data = {};
+         }
       }
 
-      let data = await response.json();
+      if (!response.ok) {
+         throw new Error(data.message || 'Login failed');
+      }
+
       const status = data.status || data.message || 'LOGIN_SUCCESS';
       const resolvedEmail = data.email || email;
       const storedName = getProfileName(resolvedEmail);
       const fullName = data.full_name || data.fullName || storedName;
 
       const accessToken = data.accessToken || null;
-      let userId = null;
-      if (accessToken) {
+      
+      // Extract role EARLY - needed for fallback logic below
+      const roleFromResponse = data.role || 'PATIENT';
+      
+      // CRITICAL: Get userId from response body (backend returns it in LoginResponse DTO)
+      let userId = data.userId || null;
+      
+      // Fallback: try to parse from JWT token if not in response body
+      if (!userId && accessToken) {
          try {
-            const payload = JSON.parse(atob(accessToken.split('.')[1]));
-            userId = payload.userId;
+            const parts = accessToken.split('.');
+            if (parts.length === 3) {
+               const payload = JSON.parse(atob(parts[1]));
+               userId = payload.userId || payload.sub;
+            }
          } catch (e) {
-            console.error('Failed to parse JWT token', e);
+            console.error('Failed to parse JWT token:', e);
          }
       }
 
-      const user = { email: resolvedEmail, role: data.role || 'PATIENT', fullName, accessToken, userId };
+      // Fallback: If still no userId, fetch from /patients/me or /doctors/{email} endpoint
+      if (!userId && accessToken && roleFromResponse) {
+         try {
+            const headers = {
+               'Content-Type': 'application/json',
+               'Authorization': `Bearer ${accessToken}`
+            };
+            
+            // Try to get profile based on role
+            let profileUrl = `${API_BASE_URL}/patients/me`;
+            if (roleFromResponse === 'DOCTOR' || roleFromResponse === 'NURSE' || roleFromResponse === 'ADMIN' || roleFromResponse === 'LAB_TECHNICIAN') {
+               profileUrl = `${API_BASE_URL}/doctors/${email}`;
+            }
+            
+            const profileResponse = await fetch(profileUrl, { headers, credentials: 'include' });
+            if (profileResponse.ok) {
+               const profileData = await profileResponse.json();
+               userId = profileData.userId || profileData.id || profileData.user_id;
+            }
+         } catch (e) {
+            console.error('Failed to fetch profile:', e);
+         }
+      }
+      
+      const user = { email: resolvedEmail, role: roleFromResponse, fullName, accessToken, userId };
       if (status === 'OTP_REQUIRED') {
          return { status, user };
       }
@@ -145,6 +220,7 @@ export const login = async (email, password) => {
          saveProfileName(resolvedEmail, fullName);
       }
       saveSession(user);
+      console.log('✓ Login successful - User stored:', user);
       return { status, user, ...data };
    } catch (error) {
       throw error;
@@ -235,7 +311,16 @@ export const forgotPassword = async (email) => {
          body: JSON.stringify({ email }),
       });
 
-      const data = await response.json();
+      let data = {};
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+         try {
+            data = await response.json();
+         } catch (e) {
+            console.warn('Failed to parse response as JSON:', e);
+            data = {};
+         }
+      }
 
       if (response.ok) {
          return { success: true, message: data.message || 'Password reset email sent successfully' };
@@ -258,7 +343,16 @@ export const validateResetToken = async (token) => {
          },
       });
 
-      const data = await response.json();
+      let data = {};
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+         try {
+            data = await response.json();
+         } catch (e) {
+            console.warn('Failed to parse response as JSON:', e);
+            data = {};
+         }
+      }
 
       if (response.ok) {
          return { valid: true, message: data.message };
@@ -282,7 +376,16 @@ export const resetPassword = async (token, newPassword, confirmPassword) => {
          body: JSON.stringify({ token, newPassword, confirmPassword }),
       });
 
-      const data = await response.json();
+      let data = {};
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+         try {
+            data = await response.json();
+         } catch (e) {
+            console.warn('Failed to parse response as JSON:', e);
+            data = {};
+         }
+      }
 
       if (response.ok) {
          return { success: true, message: data.message || 'Password reset successfully' };
@@ -303,19 +406,60 @@ export const verifyOtp = async (email, otp) => {
          headers: { 'Content-Type': 'application/json' },
          body: JSON.stringify({ email, otp }),
       });
-      const data = await response.json();
+
+      // Check if response has content before parsing JSON
+      let data = {};
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+         try {
+            data = await response.json();
+         } catch (e) {
+            console.warn('Failed to parse response as JSON:', e);
+            data = {};
+         }
+      }
+
       if (response.ok) {
          const resolvedEmail = email;
          const storedName = getProfileName(resolvedEmail);
          const fullName = data.full_name || data.fullName || storedName;
-         const user = { email: resolvedEmail, role: data.role || 'PATIENT', fullName };
+         
+         // Extract userId from response (CRITICAL FIX for OTP flow)
+         let userId = data.userId || null;
+         console.log('✓ userId from OTP response.userId:', userId);
+         
+         // Fallback: try to parse from JWT token if not in response body
+         const accessToken = data.accessToken;
+         if (!userId && accessToken) {
+            try {
+               const parts = accessToken.split('.');
+               if (parts.length === 3) {
+                  const payload = JSON.parse(atob(parts[1]));
+                  console.log('✓ OTP Verify - JWT Payload:', payload);
+                  userId = payload.userId || payload.sub;
+                  console.log('✓ OTP userId from JWT:', userId);
+               }
+            } catch (e) {
+               console.error('✗ OTP Verify - Failed to parse JWT token:', e);
+            }
+         }
+         
+         console.log('✓ OTP Verify Final - userId:', userId);
+         const user = { email: resolvedEmail, role: data.role || 'PATIENT', fullName, accessToken, userId };
          if (fullName) {
             saveProfileName(resolvedEmail, fullName);
          }
          saveSession(user);
          return { success: true, user, ...data };
       } else {
-         return { success: false, error: data.message || 'Invalid or expired OTP' };
+         // Better error messages for different status codes
+         if (response.status === 401) {
+            return { success: false, error: 'Invalid or expired OTP. Please try again.' };
+         } else if (response.status === 400) {
+            return { success: false, error: data.message || 'Invalid OTP format. Please check and try again.' };
+         } else {
+            return { success: false, error: data.message || 'OTP verification failed. Please try again.' };
+         }
       }
    } catch (error) {
       console.error('Verify OTP error:', error);

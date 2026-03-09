@@ -4,7 +4,9 @@ import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import { mockMessages } from '../../mocks/communication';
 
+
 const Messages = () => {
+    const [messages] = useState(mockMessages);
     const [activeMessage, setActiveMessage] = useState(mockMessages[0]);
     const [replyText, setReplyText] = useState('');
 
@@ -25,7 +27,7 @@ const Messages = () => {
                 </div>
 
                 <div className="flex-1 overflow-y-auto">
-                    {mockMessages.map(msg => (
+                    {messages.map(msg => (
                         <div
                             key={msg.id}
                             onClick={() => setActiveMessage(msg)}

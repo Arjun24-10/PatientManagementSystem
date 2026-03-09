@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, FileText, ArrowRight, Activity, Bell, Search, Pill } from 'lucide-react';
+import { Users, FileText, ArrowRight, Activity, Bell, Search } from 'lucide-react';
 
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
@@ -8,9 +8,6 @@ import Badge from '../../components/common/Badge';
 
 import AppointmentList from '../../components/AppointmentList';
 import MiniCalendar from '../../components/MiniCalendar';
-import { mockPatients } from '../../mocks/patients';
-import { mockAppointments } from '../../mocks/appointments';
-import { mockPrescriptions } from '../../mocks/records';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -23,30 +20,92 @@ const DoctorDashboard = () => {
    const doctorName = user?.fullName || user?.full_name || 'Doctor';
 
    // State for data
-   const [patients, setPatients] = useState(mockPatients);
-   const [appointments, setAppointments] = useState(mockAppointments);
+   const [patients, setPatients] = useState([]);
+   const [appointments, setAppointments] = useState([]);
 
    // Fetch data from API
    React.useEffect(() => {
       const fetchData = async () => {
+         // Fetch patients with graceful fallback
          try {
-            // Attempt to fetch patients
-            const patientsData = await api.patients.getAll();
+            const doctorId = user?.userId;
+            if (!doctorId) {
+               console.warn('Doctor ID not available - using mock data');
+               setPatients([]);
+               return;
+            }
+            const patientsData = await api.doctors.getPatientsByDoctor(doctorId);
             if (Array.isArray(patientsData)) {
                setPatients(patientsData);
             }
          } catch (error) {
-            console.log('Using mock patient data (API backend not reachable)');
+            if (!error?.message?.includes('not yet available')) {
+               console.error('Failed to fetch patients', error);
+            }
+            // Use mock patient data for doctor dashboard
+            const mockPatients = [
+               {
+                  id: 'P001',
+                  name: 'John Smith',
+                  email: 'john.smith@example.com',
+                  age: 45,
+                  gender: 'Male',
+                  condition: 'Hypertension',
+                  status: 'Stable',
+                  lastVisit: '2024-02-15',
+                  avatar: 'JS'
+               },
+               {
+                  id: 'P002',
+                  name: 'Sarah Johnson',
+                  email: 'sarah.j@example.com',
+                  age: 32,
+                  gender: 'Female',
+                  condition: 'Diabetes',
+                  status: 'Needs Review',
+                  lastVisit: '2024-02-20',
+                  avatar: 'SJ'
+               }
+            ];
+            setPatients(mockPatients);
          }
 
+         // Fetch appointments with graceful fallback
          try {
-            // Attempt to fetch appointments
-            const appointmentsData = await api.appointments.getAll();
+            const doctorId = user?.userId;
+            if (!doctorId) {
+               console.warn('Doctor ID not available - using mock appointments');
+               setAppointments([]);
+               return;
+            }
+            const appointmentsData = await api.appointments.getByDoctor(doctorId);
             if (Array.isArray(appointmentsData)) {
                setAppointments(appointmentsData);
             }
          } catch (error) {
-            console.log('Using mock appointment data (API backend not reachable)');
+            if (!error?.message?.includes('not yet available')) {
+               console.error('Failed to fetch appointments', error);
+            }
+            // Use mock appointments data
+            const mockAppointments = [
+               {
+                  id: 'A001',
+                  patientName: 'John Smith',
+                  date: new Date().toISOString().split('T')[0],
+                  time: '09:00',
+                  type: 'Follow-up',
+                  status: 'Confirmed'
+               },
+               {
+                  id: 'A002',
+                  patientName: 'Sarah Johnson',
+                  date: new Date().toISOString().split('T')[0],
+                  time: '10:30',
+                  type: 'Check-up',
+                  status: 'Pending'
+               }
+            ];
+            setAppointments(mockAppointments);
          }
       };
 
@@ -59,8 +118,9 @@ const DoctorDashboard = () => {
       p.id.toLowerCase().includes(searchTerm.toLowerCase())
    );
 
-   const todaysAppointments = appointments.filter(a => a.date === '2023-12-15');
-   const activePrescriptionsCount = mockPrescriptions.filter(p => p.active).length;
+   const todayStr = new Date().toISOString().split('T')[0];
+   const todaysAppointments = appointments.filter(a => a.date === todayStr);
+
 
    return (
       <div className="space-y-4">

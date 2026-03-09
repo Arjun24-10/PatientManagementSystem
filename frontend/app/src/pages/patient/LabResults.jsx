@@ -18,9 +18,55 @@ import {
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
-import { mockLabResults, mockLabStats, mockTrendData } from '../../mocks/labResults';
+import IconButton from '../../components/common/IconButton';
+import api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
+import { mockLabResults } from '../../mocks/labResults';
 
 const LabResults = () => {
+   const { user } = useAuth();
+   const [patientId, setPatientId] = useState(null);
+
+   const [labResults, setLabResults] = useState([]);
+   const [labStats] = useState({
+      totalTests: 0,
+      pendingResults: 0,
+      recentAbnormal: 0
+   });
+   const [trendData] = useState({});
+
+   // First, fetch the actual patient profile to get the correct patientId
+   React.useEffect(() => {
+      const fetchPatientProfile = async () => {
+         try {
+            const pData = await api.patients.getMe();
+            if (pData && pData.id) {
+               setPatientId(pData.id);
+            }
+         } catch (err) {
+            console.error('Failed to fetch patient profile:', err);
+         }
+      };
+      fetchPatientProfile();
+   }, []);
+
+   // Fetch lab results once we have patientId
+   React.useEffect(() => {
+      if (!patientId) return;
+
+      const fetchLabs = async () => {
+         try {
+            const data = await api.labResults.getByPatient(patientId);
+            if (Array.isArray(data)) setLabResults(data);
+         } catch (error) {
+            console.error('Failed to fetch labs', error);
+            // Fallback to mock data for testing
+            setLabResults(mockLabResults);
+         }
+      };
+      fetchLabs();
+   }, [patientId]);
+
    const [searchTerm, setSearchTerm] = useState('');
    const [expandedResults, setExpandedResults] = useState({});
    const [showTrendModal, setShowTrendModal] = useState(false);
@@ -36,7 +82,7 @@ const LabResults = () => {
    };
 
    // Filter and sort results
-   const filteredResults = mockLabResults
+   const filteredResults = labResults
       .filter(result => {
          const matchesSearch = result.testName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             result.orderingPhysician.toLowerCase().includes(searchTerm.toLowerCase());
@@ -128,10 +174,10 @@ const LabResults = () => {
          trendKey = 'vitaminD';
       }
 
-      if (trendKey && mockTrendData[trendKey]) {
+      if (trendKey && trendData[trendKey]) {
          setSelectedTrendData({
             testName: result.testName,
-            data: mockTrendData[trendKey],
+            data: trendData[trendKey],
             parameter: trendKey
          });
          setShowTrendModal(true);
@@ -148,10 +194,12 @@ const LabResults = () => {
                <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">Lab Results</h2>
                <p className="text-xs text-gray-500 dark:text-slate-400">View and download your laboratory test results</p>
             </div>
-            <Button variant="outline" className="flex items-center gap-1.5 whitespace-nowrap text-sm">
-               <Download className="w-4 h-4" />
-               Download All
-            </Button>
+            <IconButton 
+               icon={Download} 
+               label="Download All" 
+               variant="outline" 
+               size="default"
+            />
          </div>
 
          {/* Summary Stats */}
@@ -160,7 +208,7 @@ const LabResults = () => {
                <div className="flex items-center justify-between">
                   <div>
                      <p className="text-xs text-gray-500 dark:text-slate-400 mb-0.5">Total Tests</p>
-                     <p className="text-xl font-bold text-gray-800 dark:text-slate-100">{mockLabStats.totalTests}</p>
+                     <p className="text-xl font-bold text-gray-800 dark:text-slate-100">{labStats.totalTests}</p>
                   </div>
                   <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
                      <FileText className="w-4 h-4 text-blue-600" />
@@ -172,7 +220,7 @@ const LabResults = () => {
                <div className="flex items-center justify-between">
                   <div>
                      <p className="text-xs text-gray-500 dark:text-slate-400 mb-0.5">Pending Results</p>
-                     <p className="text-xl font-bold text-gray-800 dark:text-slate-100">{mockLabStats.pendingResults}</p>
+                     <p className="text-xl font-bold text-gray-800 dark:text-slate-100">{labStats.pendingResults}</p>
                   </div>
                   <div className="p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded">
                      <Clock className="w-4 h-4 text-yellow-600" />
@@ -184,7 +232,7 @@ const LabResults = () => {
                <div className="flex items-center justify-between">
                   <div>
                      <p className="text-xs text-gray-500 dark:text-slate-400 mb-0.5">Recent Abnormal</p>
-                     <p className="text-xl font-bold text-gray-800 dark:text-slate-100">{mockLabStats.recentAbnormal}</p>
+                     <p className="text-xl font-bold text-gray-800 dark:text-slate-100">{labStats.recentAbnormal}</p>
                   </div>
                   <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded">
                      <AlertCircle className="w-4 h-4 text-red-600" />
@@ -276,43 +324,37 @@ const LabResults = () => {
                               <div className="flex gap-1.5">
                                  {result.status === 'completed' && (
                                     <>
-                                       <Button
-                                          variant="primary"
-                                          size="sm"
+                                       <button
                                           onClick={() => toggleExpand(result.id)}
-                                          className="flex items-center gap-1.5 whitespace-nowrap"
+                                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition text-xs font-medium"
                                        >
                                           {isExpanded ? (
                                              <>
-                                                <ChevronUp className="w-4 h-4" />
-                                                Hide
+                                                <ChevronUp className="w-3.5 h-3.5" />
+                                                <span>Hide</span>
                                              </>
                                           ) : (
                                              <>
-                                                <ChevronDown className="w-4 h-4" />
-                                                View
+                                                <ChevronDown className="w-3.5 h-3.5" />
+                                                <span>View</span>
                                              </>
                                           )}
-                                       </Button>
-                                       <Button
+                                       </button>
+                                       <IconButton
+                                          icon={Download}
+                                          label="PDF"
                                           variant="outline"
                                           size="sm"
                                           onClick={() => handleDownload(result)}
-                                          className="flex items-center gap-1.5 whitespace-nowrap"
-                                       >
-                                          <Download className="w-4 h-4" />
-                                          PDF
-                                       </Button>
+                                       />
                                        {result.canCompare && (
-                                          <Button
-                                             variant="outline"
-                                             size="sm"
+                                          <button
                                              onClick={() => handleViewTrend(result)}
-                                             className="flex items-center gap-1.5 whitespace-nowrap"
+                                             className="px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-200 rounded hover:bg-gray-50 dark:hover:bg-slate-700/50 transition text-xs font-medium inline-flex items-center whitespace-nowrap"
                                           >
-                                             <TrendingUp className="w-4 h-4" />
+                                             <TrendingUp className="w-3.5 h-3.5 mr-1" />
                                              Trend
-                                          </Button>
+                                          </button>
                                        )}
                                     </>
                                  )}
@@ -378,15 +420,21 @@ const LabResults = () => {
 
                                  {/* Download Full Report */}
                                  <div className="mt-4 flex gap-2">
-                                    <Button variant="outline" size="sm" className="flex items-center gap-1.5" onClick={() => handleDownload(result)}>
-                                       <Download className="w-4 h-4" />
-                                       Download Report
-                                    </Button>
+                                    <IconButton 
+                                       icon={Download} 
+                                       label="Download Report" 
+                                       variant="outline" 
+                                       size="sm" 
+                                       onClick={() => handleDownload(result)}
+                                    />
                                     {result.canCompare && (
-                                       <Button variant="outline" size="sm" className="flex items-center gap-1.5" onClick={() => handleViewTrend(result)}>
-                                          <TrendingUp className="w-4 h-4" />
-                                          Trend Analysis
-                                       </Button>
+                                       <IconButton 
+                                          icon={TrendingUp} 
+                                          label="View Trend" 
+                                          variant="outline" 
+                                          size="sm" 
+                                          onClick={() => handleViewTrend(result)}
+                                       />
                                     )}
                                  </div>
                               </div>

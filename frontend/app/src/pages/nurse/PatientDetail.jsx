@@ -14,6 +14,7 @@ import {
 
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
+import IconButton from '../../components/common/IconButton';
 import Badge from '../../components/common/Badge';
 import { mockNursePatients } from '../../mocks/nursePatients';
 
@@ -58,9 +59,13 @@ const PatientDetail = () => {
 
     return (
         <div className="space-y-6 max-w-7xl mx-auto">
-            <Button variant="ghost" onClick={() => navigate('/dashboard/nurse/patients')} className="pl-0 hover:pl-2 transition-all">
-                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Patients
-            </Button>
+            <IconButton 
+               icon={ArrowLeft} 
+               label="Back to Patients" 
+               variant="ghost"
+               onClick={() => navigate('/dashboard/nurse/patients')}
+               className="pl-0 hover:pl-2 transition-all"
+            />
 
             {/* Header / Basic Info */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

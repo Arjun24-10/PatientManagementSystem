@@ -1,6 +1,27 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import Prescriptions from './Prescriptions';
+import { renderWithProviders } from '../../testHelpers';
+
+// Test data
+const TEST_PRESCRIPTIONS = [
+   {
+      id: 1,
+      name: 'Amoxicillin',
+      dosage: '500mg',
+      frequency: '3x daily',
+      prescribedBy: 'Dr. Smith',
+      active: true,
+   },
+   {
+      id: 2,
+      name: 'Ibuprofen',
+      dosage: '200mg',
+      frequency: 'As needed',
+      prescribedBy: 'Dr. Jones',
+      active: false,
+   }
+];
 
 // Mock dependencies
 jest.mock('../../components/common/Card', () => ({ children, className }) => <div className={`mock-card ${className}`}>{children}</div>);
@@ -8,6 +29,9 @@ jest.mock('../../components/common/Button', () => ({ children, onClick, classNam
    <button onClick={onClick} className={className}>
       {children}
    </button>
+));
+jest.mock('../../components/common/IconButton', () => ({ label, onClick }) => (
+   <button onClick={onClick}>{label}</button>
 ));
 jest.mock('../../components/common/Badge', () => ({ children }) => <span>{children}</span>);
 jest.mock('../../components/common/Modal', () => ({ children, isOpen, title }) => (
@@ -25,6 +49,16 @@ jest.mock('../../components/common/Input', () => ({ value, onChange, placeholder
       placeholder={placeholder}
    />
 ));
+jest.mock('../../services/api', () => ({
+   default: {
+      doctors: { getPatientsByDoctor: jest.fn().mockRejectedValue(new Error('not yet available')) },
+      prescriptions: {
+         getAll: jest.fn().mockResolvedValue(TEST_PRESCRIPTIONS),
+         create: jest.fn(),
+         update: jest.fn()
+      },
+   }
+}));
 jest.mock('lucide-react', () => ({
    Plus: () => <span>PlusIcon</span>,
    Search: () => <span>SearchIcon</span>,
@@ -34,35 +68,23 @@ jest.mock('lucide-react', () => ({
 
 // Mock data
 jest.mock('../../mocks/records', () => ({
-   mockPrescriptions: [
-      {
-         id: 1,
-         name: 'Amoxicillin',
-         dosage: '500mg',
-         frequency: '3x daily',
-         prescribedBy: 'Dr. Smith',
-         active: true,
-      },
-      {
-         id: 2,
-         name: 'Ibuprofen',
-         dosage: '200mg',
-         frequency: 'As needed',
-         prescribedBy: 'Dr. Jones',
-         active: false,
-      }
-   ],
+   mockPrescriptions: TEST_PRESCRIPTIONS,
 }));
 
 describe('Prescriptions Page', () => {
-   test('renders prescriptions list', () => {
-      render(<Prescriptions />);
-      expect(screen.getByText('Amoxicillin')).toBeInTheDocument();
-      expect(screen.getByText('Ibuprofen')).toBeInTheDocument();
+   test('renders prescriptions list', async () => {
+      renderWithProviders(<Prescriptions />);
+      await waitFor(() => {
+         expect(screen.getByText('Amoxicillin')).toBeInTheDocument();
+         expect(screen.getByText('Ibuprofen')).toBeInTheDocument();
+      }, { timeout: 3000 });
    });
 
-   test('filters prescriptions by search', () => {
-      render(<Prescriptions />);
+   test('filters prescriptions by search', async () => {
+      renderWithProviders(<Prescriptions />);
+      await waitFor(() => {
+         expect(screen.getByText('Amoxicillin')).toBeInTheDocument();
+      }, { timeout: 3000 });
       const searchInput = screen.getByPlaceholderText('Search prescriptions...');
 
       fireEvent.change(searchInput, { target: { value: 'Amoxicillin' } });
@@ -72,7 +94,7 @@ describe('Prescriptions Page', () => {
    });
 
    test('opens new prescription modal', () => {
-      render(<Prescriptions />);
+      renderWithProviders(<Prescriptions />);
       const newButton = screen.getByText(/New Prescription/i);
 
       fireEvent.click(newButton);

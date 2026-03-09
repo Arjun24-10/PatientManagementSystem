@@ -23,11 +23,11 @@ jest.mock('lucide-react', () => ({
    FlaskConical: () => <span>FlaskIcon</span>,
 }));
 
-// Mock data
+// Mock data - with unique IDs to avoid duplicates
 jest.mock('../../mocks/records', () => ({
    mockLabs: [
-      { id: 1, name: 'Blood Test', status: 'Normal' },
-      { id: 2, name: 'X-Ray', status: 'Pending' },
+      { id: 3, name: 'CT Scan', orderedDate: '2023-11-19', date: '2023-11-20', expectedDate: '2023-11-21', status: 'Completed', file: 'ct_scan.pdf', type: 'Completed' },
+      { id: 4, name: 'Ultrasound', orderedDate: '2023-11-19', date: '2023-11-20', expectedDate: '2023-11-22', status: 'Pending', file: 'ultrasound.pdf', type: 'Pending' },
    ],
 }));
 
@@ -74,5 +74,6 @@ describe('LabResults Page', () => {
 
       expect(screen.queryByText('Blood Test')).not.toBeInTheDocument();
       expect(screen.getByText('X-Ray')).toBeInTheDocument();
+      expect(screen.getByText('Ultrasound')).toBeInTheDocument();
    });
 });

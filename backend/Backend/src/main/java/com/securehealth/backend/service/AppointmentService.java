@@ -147,6 +147,52 @@ public class AppointmentService {
     }
 
     @Transactional(readOnly = true)
+    public List<AppointmentDTO> getPendingAppointments() {
+        return appointmentRepository.findByStatus("PENDING_APPROVAL").stream().map(app -> {
+            AppointmentDTO dto = new AppointmentDTO();
+            dto.setAppointmentId(app.getAppointmentId());
+            dto.setDoctorId(app.getDoctor().getUserId());
+            dto.setDoctorName(app.getDoctor().getEmail());
+            dto.setPatientName(app.getPatient().getFirstName() + " " + app.getPatient().getLastName());
+            dto.setAppointmentDate(app.getAppointmentDate());
+            dto.setStatus(app.getStatus());
+            dto.setReasonForVisit(app.getReasonForVisit());
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public Appointment completeAppointment(Long id, String doctorEmail) {
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("404: Appointment not found"));
+
+        // Verify it belongs to the doctor requesting it
+        if (!appointment.getDoctor().getEmail().equals(doctorEmail)) {
+             throw new RuntimeException("403: You can only complete your own appointments.");
+        }
+
+        appointment.setStatus("COMPLETED");
+        return appointmentRepository.save(appointment);
+    }
+
+    @Transactional
+    public Appointment updateAppointment(Long id, AppointmentDTO request, String doctorEmail) {
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("404: Appointment not found"));
+
+        // Verify it belongs to the doctor requesting it
+        if (!appointment.getDoctor().getEmail().equals(doctorEmail)) {
+             throw new RuntimeException("403: You can only update your own appointments.");
+        }
+        
+        if (request.getAppointmentDate() != null) {
+            appointment.setAppointmentDate(request.getAppointmentDate());
+        }
+        
+        return appointmentRepository.save(appointment);
+    }
+
+    @Transactional(readOnly = true)
     public List<AppointmentDTO> getAppointmentsByPatient(Long patientId) {
         return appointmentRepository.findByPatient_ProfileId(patientId).stream().map(app -> {
             AppointmentDTO dto = new AppointmentDTO();
@@ -180,57 +226,5 @@ public class AppointmentService {
             dto.setReasonForVisit(app.getReasonForVisit());
             return dto;
         }).collect(Collectors.toList());
-    }
-
-    @Transactional
-    public AppointmentDTO completeAppointment(Long appointmentId, String doctorEmail) {
-        // 1. Find the appointment
-        Appointment app = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new RuntimeException("Appointment not found"));
-
-        // 2. Security Check: Does this doctor own this appointment?
-        if (!app.getDoctor().getEmail().equals(doctorEmail)) {
-            throw new RuntimeException("Forbidden: You can only complete your own appointments.");
-        }
-
-        // 3. Update status
-        app.setStatus("COMPLETED");
-        appointmentRepository.save(app);
-
-        // 4. Return the safe DTO
-        AppointmentDTO dto = new AppointmentDTO();
-        dto.setAppointmentId(app.getAppointmentId());
-        dto.setStatus(app.getStatus());
-        return dto;
-    }
-
-    @Transactional
-    public AppointmentDTO updateAppointment(Long appointmentId, AppointmentDTO request, String doctorEmail) {
-        // 1. Find the appointment
-        Appointment app = appointmentRepository.findById(appointmentId)
-                .orElseThrow(() -> new RuntimeException("Appointment not found"));
-
-        // 2. Security Check
-        if (!app.getDoctor().getEmail().equals(doctorEmail)) {
-            throw new RuntimeException("Forbidden: You can only modify your own appointments.");
-        }
-
-        // 3. Apply the updates (only if the frontend actually sent them)
-        if (request.getReasonForVisit() != null) {
-            app.setReasonForVisit(request.getReasonForVisit());
-        }
-        if (request.getAppointmentDate() != null) {
-            app.setAppointmentDate(request.getAppointmentDate());
-        }
-
-        // 4. Save and return DTO
-        appointmentRepository.save(app);
-
-        AppointmentDTO dto = new AppointmentDTO();
-        dto.setAppointmentId(app.getAppointmentId());
-        dto.setAppointmentDate(app.getAppointmentDate());
-        dto.setReasonForVisit(app.getReasonForVisit());
-        dto.setStatus(app.getStatus());
-        return dto;
     }
 }

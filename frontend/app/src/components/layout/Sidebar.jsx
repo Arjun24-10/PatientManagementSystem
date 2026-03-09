@@ -2,8 +2,8 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Home, Users, FileText, LogOut, Activity, Calendar, Shield,
-    Upload, LayoutDashboard, MessageSquare, Heart, Clock, X, Pill,
-    ChevronLeft, ChevronRight, Settings, CheckSquare
+    Upload, LayoutDashboard, Heart, Clock, X, Pill,
+    ChevronLeft, ChevronRight, CheckSquare
 } from 'lucide-react';
 
 const Sidebar = ({ role, userName, isOpen, setIsOpen, isCollapsed, toggleCollapse, onLogout }) => {

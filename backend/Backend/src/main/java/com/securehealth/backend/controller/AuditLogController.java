@@ -32,4 +32,5 @@ public class AuditLogController {
     public ResponseEntity<List<AuditLog>> getUserLogs(@PathVariable String email) {
         return ResponseEntity.ok(auditLogRepository.findByEmailOrderByTimestampDesc(email));
     }
+
 }
