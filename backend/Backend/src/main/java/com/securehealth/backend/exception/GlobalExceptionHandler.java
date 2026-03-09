@@ -4,6 +4,8 @@ import com.securehealth.backend.dto.ErrorResponse;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.security.SignatureException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -22,6 +24,9 @@ import java.util.stream.Collectors;
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger logger =
+            LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     // --- Validation Errors (e.g., @Valid on DTOs) ---
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -115,5 +120,27 @@ public class GlobalExceptionHandler {
                 "Internal Server Error",
                 "An unexpected error occurred. Please try again later.");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
+
+        logger.error("Runtime exception occurred", ex);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("error", ex.getMessage());
+
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        if (ex.getMessage() != null) {
+            if (ex.getMessage().contains("404")) {
+                status = HttpStatus.NOT_FOUND;
+            } else if (ex.getMessage().contains("400")) {
+                status = HttpStatus.BAD_REQUEST;
+            } else if (ex.getMessage().contains("403")) {
+                status = HttpStatus.FORBIDDEN;
+            } else if (ex.getMessage().contains("401")) {
+                status = HttpStatus.UNAUTHORIZED;
+            }
+        }
+
+        return new ResponseEntity<>(response, status);
     }
 }

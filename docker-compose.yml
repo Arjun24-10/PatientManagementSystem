@@ -8,6 +8,7 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
+      TZ : Asia/Kolkata
     ports:
       - "5432:5432"
     volumes:
@@ -49,12 +50,15 @@ services:
       - .env
     environment:
       # Connect to Postgres container
+      JAVA_TOOL_OPTIONS: "-Dtomcat.util.http.parser.HttpParser.requestTargetAllow=_"
       SPRING_DATASOURCE_URL: jdbc:postgresql://secure_health_db:5432/${DB_NAME}?stringtype=unspecified
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       # Connect to Redis container
       SPRING_DATA_REDIS_HOST: redis_cache
       SPRING_DATA_REDIS_PORT: 6379
+      TZ : Asia/Kolkata
+
 
       # For sending otp on mail
       MAIL_HOST: ${MAIL_HOST}
@@ -66,7 +70,33 @@ services:
       - postgres_db
       - redis_cache
     networks:
+      health_net: # ← change from "- health_net" to this
+        aliases:
+          - secure-health-api
+
+  prometheus:
+    image: prom/prometheus
+    container_name: secure_health_prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
       - health_net
+    depends_on:
+      - backend_api
+
+  grafana:
+    image: grafana/grafana
+    container_name: secure_health_grafana
+    restart: always
+    ports:
+      - "3001:3000"
+    networks:
+      - health_net
+    depends_on:
+      - prometheus
 
 networks:
   health_net:
@@ -76,3 +106,4 @@ volumes:
   postgres_data:
   postgres_data_clean:
   redis_data:
+

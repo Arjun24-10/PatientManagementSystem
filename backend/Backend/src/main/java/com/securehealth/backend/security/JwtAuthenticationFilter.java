@@ -33,11 +33,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
+        // ✅ 1. SKIP JWT for Prometheus / Actuator
+        String path = request.getServletPath();
+        if (path.startsWith("/actuator")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         final String authorizationHeader = request.getHeader("Authorization");
 
         String email = null;
         String jwt = null;
-        
+
         System.out.println("DEBUG JWT: Request to " + request.getRequestURI());
 
         // 0. Bypass filter for CORS preflight (OPTIONS) requests
@@ -46,13 +53,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        // 1. Check for "Bearer " token
+        // 1. Check for Bearer token
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);
 
             if (tokenBlacklistService.isBlacklisted(jwt)) {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token has been revoked");
-                return; // Stop processing
+                return;
             }
 
             try {
@@ -69,25 +76,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (tokenBlacklistService.isSessionIdle(email)) {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Session expired due to inactivity");
-                return; // Stop processing
+                return;
             }
 
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(email);
-            
-            System.out.println("DEBUG JWT: UserDetails loaded for " + userDetails.getUsername() + ", validating token...");
+
+            System.out.println("DEBUG JWT: UserDetails loaded for " + userDetails.getUsername());
 
             if (jwtUtil.validateToken(jwt, userDetails)) {
-                System.out.println("DEBUG JWT: Token IS VALID! Setting security context.");
 
                 tokenBlacklistService.updateLastActive(email);
-                
-                // Create the Authentication Object
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                
+
+                UsernamePasswordAuthenticationToken authToken =
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails, null, userDetails.getAuthorities());
+
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                
-                // CRITICAL: This logs the user in for this request
+
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
