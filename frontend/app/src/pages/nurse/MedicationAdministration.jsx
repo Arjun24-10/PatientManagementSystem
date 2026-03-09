@@ -56,34 +56,64 @@ const MedicationAdministration = () => {
         setIsConfirmModalOpen(true);
     };
 
+    const retryLoadMedications = async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
+            const data = await api.prescriptions.getByPatient(id);
+            if (data && Array.isArray(data)) {
+                setMedications(data.map(p => ({
+                    id: p.id,
+                    name: p.medicationName,
+                    dosage: p.dosage,
+                    route: p.route || 'Oral',
+                    scheduledTime: p.frequency || 'PRN',
+                    status: p.status === 'Completed' ? 'administered' : 'due',
+                    administeredTime: p.administeredTime || null
+                })));
+            } else {
+                setMedications([]);
+            }
+        } catch (err) {
+            console.error("Failed to load medications:", err);
+            setMedications([]);
+            setError("Could not load real medication data from backend.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const confirmAdministration = async () => {
         if (!selectedMed) return;
 
         try {
+            setIsLoading(true);
             const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
-            // Fix Required: Call recordMedicationAdministration API
-            await api.nurse.recordMedicationAdministration({
-                patientId: id,
+            // Record medication administration to backend
+            const response = await api.nurse.recordMedicationAdministration({
+                patientId: Number(id),
                 medicationId: selectedMed.id,
                 medicationName: selectedMed.name,
                 dosage: selectedMed.dosage,
                 route: selectedMed.route,
-                administeredTime: new Date().toISOString()
-            }).catch(err => {
-                // Ignore API failure for this fake endpoint since backend may not have it fully implemented
-                console.warn("API Call Failed: recordMedicationAdministration ->", err);
+                administeredAt: new Date().toISOString()
             });
 
-            setMedications(prev => prev.map(m =>
-                m.id === selectedMed.id
-                    ? { ...m, status: 'administered', administeredTime: timestamp }
-                    : m
-            ));
+            // Only update UI if backend call succeeds
+            if (response) {
+                setMedications(prev => prev.map(m =>
+                    m.id === selectedMed.id
+                        ? { ...m, status: 'administered', administeredTime: timestamp }
+                        : m
+                ));
+                // Show success message
+                console.log("Medication administration recorded successfully");
+            }
 
         } catch (err) {
-            console.error("Failed to record medication administration", err);
-            alert("Warning: Could not save medication administration to server.");
+            console.error("Failed to record medication administration:", err);
+            setError(`Failed to save medication administration: ${err.message}`);
         } finally {
             setIsLoading(false);
             setIsConfirmModalOpen(false);
@@ -122,6 +152,13 @@ const MedicationAdministration = () => {
                 <p className="text-gray-500">Verify 5 Rights: Patient, Drug, Dose, Route, Time</p>
             </div>
 
+            {error && (
+                <div className="bg-red-50 dark:bg-red-900/10 p-4 rounded-md border border-red-100 dark:border-red-900/20 flex gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+                    <div className="text-sm text-red-800 dark:text-red-200">{error}</div>
+                </div>
+            )}
+
             <div className="space-y-4">
                 {isLoading ? (
                     <div className="p-4 text-center text-gray-500">Loading medications...</div>
@@ -148,8 +185,13 @@ const MedicationAdministration = () => {
                         </div>
                     </Card>
                 ))) : (
-                    <div className="p-4 text-center text-gray-500">
-                        {error ? error : "No active medications found for this patient."}
+                    <div className="p-6 text-center text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
+                        <p className="mb-4">{error ? error : "No active medications found for this patient."}</p>
+                        {error && (
+                            <Button variant="outline" size="sm" onClick={retryLoadMedications}>
+                                Retry Loading
+                            </Button>
+                        )}
                     </div>
                 )}
             </div>

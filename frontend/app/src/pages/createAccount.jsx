@@ -198,7 +198,7 @@ export default function CreateAccount() {
                       >
                         <option value="DOCTOR">Doctor</option>
                         <option value="NURSE">Nurse</option>
-                        <option value="LAB_TECH">Lab Technician</option>
+                        <option value="LAB_TECHNICIAN">Lab Technician</option>
                         <option value="ADMIN">Administrator</option>
                       </select>
                     </div>

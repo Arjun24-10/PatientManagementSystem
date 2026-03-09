@@ -2,10 +2,14 @@ package com.securehealth.backend.controller;
 
 import com.securehealth.backend.dto.PatientDTO;
 import com.securehealth.backend.service.PatientService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,8 +35,12 @@ public class PatientController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PatientDTO>> getAllPatients(Authentication auth) {
-        return ResponseEntity.ok(patientService.getAllPatients(getCurrentRole(auth)));
+    public ResponseEntity<Page<PatientDTO>> getAllPatients(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Authentication auth) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(patientService.getAllPatients(getCurrentRole(auth), pageable));
     }
 
     @GetMapping("/me")
@@ -46,12 +54,12 @@ public class PatientController {
     }
 
     @PostMapping
-    public ResponseEntity<PatientDTO> createPatient(@RequestBody PatientDTO patientDTO, Authentication auth) {
+    public ResponseEntity<PatientDTO> createPatient(@Valid @RequestBody PatientDTO patientDTO, Authentication auth) {
         return ResponseEntity.ok(patientService.createPatientProfile(patientDTO, getCurrentEmail(auth)));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PatientDTO> updatePatient(@PathVariable Long id, @RequestBody PatientDTO patientDTO, Authentication auth) {
+    public ResponseEntity<PatientDTO> updatePatient(@PathVariable Long id, @Valid @RequestBody PatientDTO patientDTO, Authentication auth) {
         return ResponseEntity.ok(patientService.updatePatientProfile(id, patientDTO, getCurrentEmail(auth), getCurrentRole(auth)));
     }
 

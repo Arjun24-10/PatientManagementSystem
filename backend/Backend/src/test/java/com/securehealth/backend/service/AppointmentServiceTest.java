@@ -2,6 +2,7 @@ package com.securehealth.backend.service;
 
 import com.securehealth.backend.dto.AppointmentRequest;
 import com.securehealth.backend.model.Appointment;
+import com.securehealth.backend.model.AppointmentStatus;
 import com.securehealth.backend.model.Login;
 import com.securehealth.backend.model.PatientProfile;
 import com.securehealth.backend.repository.AppointmentRepository;
@@ -58,7 +59,7 @@ public class AppointmentServiceTest {
 
         pendingAppointment = new Appointment();
         pendingAppointment.setAppointmentId(10L);
-        pendingAppointment.setStatus("PENDING_APPROVAL");
+        pendingAppointment.setStatus(AppointmentStatus.PENDING_APPROVAL);
     }
 
     @Test
@@ -79,7 +80,7 @@ public class AppointmentServiceTest {
 
         Appointment result = appointmentService.createAppointment(request, "patient@mail.com");
 
-        assertEquals("PENDING_APPROVAL", result.getStatus());
+        assertEquals(AppointmentStatus.PENDING_APPROVAL, result.getStatus());
         verify(appointmentRepository).save(any(Appointment.class));
     }
 
@@ -110,12 +111,12 @@ public class AppointmentServiceTest {
 
         Appointment approved = appointmentService.approveAppointment(10L);
 
-        assertEquals("SCHEDULED", approved.getStatus());
+        assertEquals(AppointmentStatus.SCHEDULED, approved.getStatus());
     }
 
     @Test
     void approveAppointment_ThrowsErrorIfNotPending() {
-        pendingAppointment.setStatus("SCHEDULED"); // Already scheduled
+        pendingAppointment.setStatus(AppointmentStatus.SCHEDULED); // Already scheduled
         when(appointmentRepository.findById(anyLong())).thenReturn(Optional.of(pendingAppointment));
 
         RuntimeException exception = assertThrows(RuntimeException.class, 

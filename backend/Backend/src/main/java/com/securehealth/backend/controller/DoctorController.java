@@ -49,6 +49,11 @@ public class DoctorController {
         return ResponseEntity.ok(doctorService.getDoctorsBySpecialty(specialty));
     }
 
+    @GetMapping("/department/{department}")
+    public ResponseEntity<List<DoctorDTO>> getDoctorsByDepartment(@PathVariable String department) {
+        return ResponseEntity.ok(doctorService.getDoctorsByDepartment(department));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<DoctorDTO> updateDoctorProfile(
             @PathVariable Long id, 

@@ -64,4 +64,30 @@ public class LabTestService {
             return dto;
         }).collect(Collectors.toList());
     }
+
+    @Transactional(readOnly = true)
+    public List<LabTestDTO> getPendingLabTests() {
+        return labTestRepository.findByStatusOrderByOrderedAtAsc("PENDING").stream().map(lt -> {
+            LabTestDTO dto = new LabTestDTO();
+            dto.setTestId(lt.getTestId());
+            dto.setOrderedByName(lt.getOrderedBy() != null ? lt.getOrderedBy().getEmail() : "Unknown Staff");
+            dto.setTestName(lt.getTestName());
+            dto.setTestCategory(lt.getTestCategory());
+            dto.setResultValue(lt.getResultValue());
+            dto.setUnit(lt.getUnit());
+            dto.setReferenceRange(lt.getReferenceRange());
+            dto.setRemarks(lt.getRemarks());
+            dto.setStatus(lt.getStatus());
+            dto.setOrderedAt(lt.getOrderedAt());
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void deleteLabTest(Long id) {
+        if (!labTestRepository.existsById(id)) {
+            throw new RuntimeException("404: Lab test not found");
+        }
+        labTestRepository.deleteById(id);
+    }
 }

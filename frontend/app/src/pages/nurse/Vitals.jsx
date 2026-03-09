@@ -20,7 +20,6 @@ import {
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import api from '../../services/api';
-import VitalsSectionHeader from './components/VitalsSectionHeader';
 import VitalsAlertBanner from './components/VitalsAlertBanner';
 import VitalsEntryForm from './components/VitalsEntryForm';
 import VitalsOverviewCard from './components/VitalsOverviewCard';
@@ -211,6 +210,7 @@ const NurseVitals = () => {
    const [overview, setOverview] = useState({
       assignedPatients: [],
       vitalsStatus: 'done',
+      nurse: { name: 'Nurse Profile', unit: 'ICU' },
       stats: {
          assignedPatients: 0,
          pendingVitals: 0,
@@ -228,6 +228,7 @@ const NurseVitals = () => {
    const [sortBy, setSortBy] = useState('room');
    const [temperatureUnit, setTemperatureUnit] = useState('F');
    const [temperatureRoute, setTemperatureRoute] = useState('oral');
+   const [selectedPatientId, setSelectedPatientId] = useState(null);
    const [vitalsForm, setVitalsForm] = useState(() => ({
       systolic: '',
       diastolic: '',
@@ -502,7 +503,6 @@ const NurseVitals = () => {
       info: 'bg-brand-medium text-white',
    };
 
-   const vitalsPatient = vitalsData?.patient;
    const lastVitalsTimestamp = vitalsData?.current?.timestamp ? formatTimestamp(vitalsData.current.timestamp) : 'Not recorded';
    const alertToneClasses = getStatusClasses(alertSeverity);
    const selectedPainFace = painFaces.find((face) => face.values.includes(Number(vitalsForm.painLevel))) || painFaces[0];
@@ -555,61 +555,79 @@ const NurseVitals = () => {
             : 'normal';
 
       try {
-         const patientId = vitalsPatient?.id || overview.assignedPatients?.[0]?.id;
+         // Get patient ID - either from selected patient or first assigned patient
+         const patientId = selectedPatientId || overview.assignedPatients?.[0]?.id;
          
-         await api.nurse.recordVitals({
-            patientId: patientId,
+         if (!patientId) {
+            triggerToast('error', 'Please select a patient before saving vital signs.');
+            return;
+         }
+
+         // Prepare vital signs data according to backend VitalSignRequest DTO
+         const vitalSignsPayload = {
+            patientId: Number(patientId),
             bloodPressure: `${Number(vitalsForm.systolic)}/${Number(vitalsForm.diastolic)}`,
             heartRate: Number(vitalsForm.heartRate),
             temperature: Number(tempF.toFixed(1)),
             respiratoryRate: Number(vitalsForm.respiratoryRate),
-            oxygenSaturation: parseInt(vitalsForm.oxygenSaturation),
-            painLevel: Number(vitalsForm.painLevel)
-         });
+            oxygenSaturation: Number(vitalsForm.oxygenSaturation)
+         };
 
+         // Call backend API to save vital signs
+         const response = await api.nurse.recordVitals(vitalSignsPayload);
+         
+         if (!response) {
+            throw new Error('No response from server');
+         }
+
+         // Add entry to local history for UI update
          const newHistoryEntry = {
             timestamp,
             bp: `${Number(vitalsForm.systolic)}/${Number(vitalsForm.diastolic)}`,
             hr: Number(vitalsForm.heartRate),
             temp: Number(tempF.toFixed(1)),
             rr: Number(vitalsForm.respiratoryRate),
-            spo2: parseInt(vitalsForm.oxygenSaturation),
+            spo2: Number(vitalsForm.oxygenSaturation),
             pain: Number(vitalsForm.painLevel),
             status: overallStatus,
-            recordedBy: overview.nurse.name,
+            recordedBy: overview.nurse?.name || 'Nurse',
             route: temperatureRoute,
             notes: vitalsNotes,
          };
 
+         // Update local state with new vitals entry
          setOverview((prev) => {
             const updatedHistory = [newHistoryEntry, ...(prev.vitals?.history || [])];
             return {
                ...prev,
                vitals: {
                   ...prev.vitals,
+                  patient: { id: patientId, name: 'Selected Patient' },
                   current: {
                      bp: { systolic: Number(vitalsForm.systolic), diastolic: Number(vitalsForm.diastolic) },
                      heartRate: Number(vitalsForm.heartRate),
                      temperature: { value: Number(vitalsForm.temperature), unit: temperatureUnit, route: temperatureRoute },
                      respiratoryRate: Number(vitalsForm.respiratoryRate),
-                     oxygenSaturation: parseInt(vitalsForm.oxygenSaturation),
+                     oxygenSaturation: Number(vitalsForm.oxygenSaturation),
                      painLevel: Number(vitalsForm.painLevel),
                      timestamp,
-                     recordedBy: prev.nurse.name,
+                     recordedBy: prev.nurse?.name || 'Nurse',
                   },
                   history: updatedHistory,
                },
             };
          });
 
+         // Reset form and show success message
          setAlertAcknowledged(false);
          setAlertNotified(notifyPhysician);
          setVitalsNotes('');
          setFormError('');
-         triggerToast('success', notifyPhysician ? 'Vitals saved and physician notified.' : 'Vitals saved successfully.');
+         setSelectedPatientId(null);
+         triggerToast('success', notifyPhysician ? 'Vitals saved and physician notified.' : 'Vitals saved successfully to backend.');
       } catch (err) {
-         console.error('Failed to save vitals', err);
-         triggerToast('error', 'Failed to save vital signs: ' + err.message);
+         console.error('Failed to save vitals:', err);
+         triggerToast('error', `Failed to save vital signs: ${err.message}`);
       }
    };
 
@@ -851,11 +869,15 @@ const NurseVitals = () => {
 
          {/* Patient Vitals Section */}
          <section aria-labelledby="patient-vitals" className="space-y-3">
-            <VitalsSectionHeader
-               patient={vitalsPatient}
-               onExportPdf={() => triggerToast('info', 'Export to PDF coming soon. (mock)')}
-               onPrint={() => triggerToast('info', 'Print dialog opened (mock).')}
-            />
+            <div className="flex items-center gap-2 mb-3">
+               <Activity className="w-5 h-5 text-brand-medium" aria-hidden="true" />
+               <h2 id="patient-vitals" className="text-sm font-bold text-gray-900 dark:text-slate-100">Patient Vitals</h2>
+               {selectedPatientId && (
+                  <span className="ml-auto text-xs bg-brand-light text-brand-deep px-3 py-1 rounded-full font-semibold">
+                     {overview.assignedPatients.find(p => p.id === selectedPatientId)?.name || `Patient #${selectedPatientId}`}
+                  </span>
+               )}
+            </div>
 
             <VitalsAlertBanner
                severity={alertSeverity}
@@ -912,6 +934,8 @@ const NurseVitals = () => {
                   acuityStyles={acuityStyles}
                   vitalsStatusMap={vitalsStatusMap}
                   medicationStatusMap={medicationStatusMap}
+                  selectedPatientId={selectedPatientId}
+                  onSelectPatient={setSelectedPatientId}
                />
             </div>
 

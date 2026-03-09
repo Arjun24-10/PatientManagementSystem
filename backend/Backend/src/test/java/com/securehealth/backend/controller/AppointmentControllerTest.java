@@ -1,10 +1,12 @@
 package com.securehealth.backend.controller;
 
+import com.securehealth.backend.model.AppointmentStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.util.List;
 import com.securehealth.backend.model.Appointment;
 import com.securehealth.backend.repository.AppointmentRepository;
+import com.securehealth.backend.repository.AuditLogRepository;
 import com.securehealth.backend.security.PatientAccessValidator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +73,11 @@ public class AppointmentControllerTest {
     @MockBean
     private com.securehealth.backend.service.TokenBlacklistService tokenBlacklistService;
 
+    // FIX: AuditLogRepository must be mocked so the RequestLoggingFilter
+    // (which Spring wires even in WebMvcTest) can be satisfied during context load.
+    @MockBean
+    private AuditLogRepository auditLogRepository;
+
     @Test
     @WithMockUser(username = "patient@mail.com", authorities = {"PATIENT"})
     void getAppointmentsByPatient_ReturnsList() throws Exception {
@@ -79,7 +86,7 @@ public class AppointmentControllerTest {
         mockDto.setAppointmentId(10L);
         mockDto.setDoctorName("dr.house@mail.com");
         mockDto.setPatientName("John Doe");
-        mockDto.setStatus("SCHEDULED");
+        mockDto.setStatus(AppointmentStatus.SCHEDULED);
         mockDto.setReasonForVisit("Routine Checkup");
 
         when(appointmentService.getAppointmentsByPatient(1L))
@@ -94,13 +101,13 @@ public class AppointmentControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].appointmentId").value(10))           // Matches the DTO
                 .andExpect(jsonPath("$[0].doctorName").value("dr.house@mail.com")) // Matches the DTO
-                .andExpect(jsonPath("$[0].status").value("SCHEDULED"));        // Matches the DTO
+                .andExpect(jsonPath("$[0].status").value(AppointmentStatus.SCHEDULED.toString()));        // Matches the DTO
     }
     @Test
     void approveAppointment_AsAdmin_Returns200() throws Exception {
         // Arrange
         Appointment approved = new Appointment();
-        approved.setStatus("SCHEDULED");
+        approved.setStatus(AppointmentStatus.SCHEDULED);
         when(appointmentService.approveAppointment(10L)).thenReturn(approved);
 
         // Manually create the Authentication object
@@ -112,7 +119,7 @@ public class AppointmentControllerTest {
                 .principal(auth) // <-- THIS INJECTS THE AUTHENTICATION
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("SCHEDULED"));
+                .andExpect(jsonPath("$.status").value(AppointmentStatus.SCHEDULED.toString()));
     }
 
     @Test
@@ -132,7 +139,7 @@ public class AppointmentControllerTest {
     @Test
     void rejectAppointment_AsAdmin_Returns200() throws Exception {
         Appointment rejected = new Appointment();
-        rejected.setStatus("REJECTED");
+        rejected.setStatus(AppointmentStatus.REJECTED);
         when(appointmentService.rejectAppointment(eq(10L), any())).thenReturn(rejected);
 
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
@@ -143,6 +150,6 @@ public class AppointmentControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("Not in network"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("REJECTED"));
+                .andExpect(jsonPath("$.status").value(AppointmentStatus.REJECTED.toString()));
     }
 }

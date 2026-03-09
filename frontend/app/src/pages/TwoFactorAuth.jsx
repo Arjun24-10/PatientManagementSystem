@@ -162,7 +162,7 @@ export default function TwoFactorAuth() {
             'DOCTOR': 'doctor',
             'NURSE': 'nurse',
             'ADMIN': 'admin',
-            'LAB_TECH': 'lab'
+            'LAB_TECHNICIAN': 'lab'
           };
           navigate(`/dashboard/${roleMap[role] || 'patient'}`);
         }, 1500);

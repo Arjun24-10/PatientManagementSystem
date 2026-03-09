@@ -57,7 +57,7 @@ public class AppointmentService {
 
         // Extract just the times of the booked appointments
         List<LocalTime> bookedTimes = bookedAppointments.stream()
-                .filter(apt -> !apt.getStatus().equals("CANCELLED")) // Ignore cancelled ones
+                .filter(apt -> apt.getStatus() != com.securehealth.backend.model.AppointmentStatus.CANCELLED) // Ignore cancelled ones
                 .map(apt -> apt.getAppointmentDate().toLocalTime())
                 .toList();
 
@@ -93,7 +93,7 @@ public class AppointmentService {
         boolean isSlotTaken = appointmentRepository.existsByDoctor_UserIdAndAppointmentDateAndStatusNotIn(
                 doctor.getUserId(),
                 request.getAppointmentDate(),
-                List.of("CANCELLED", "REJECTED"));
+                List.of(com.securehealth.backend.model.AppointmentStatus.CANCELLED, com.securehealth.backend.model.AppointmentStatus.REJECTED));
 
         if (isSlotTaken) {
             throw new RuntimeException("409 Conflict: This time slot is currently unavailable or pending review.");
@@ -106,7 +106,7 @@ public class AppointmentService {
         appointment.setReasonForVisit(request.getReasonForVisit());
 
         // UPDATE: Set to PENDING instead of SCHEDULED
-        appointment.setStatus("PENDING_APPROVAL");
+        appointment.setStatus(com.securehealth.backend.model.AppointmentStatus.PENDING_APPROVAL);
 
         return appointmentRepository.save(appointment);
     }
@@ -119,11 +119,11 @@ public class AppointmentService {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("404: Appointment not found"));
 
-        if (!appointment.getStatus().equals("PENDING_APPROVAL")) {
+        if (appointment.getStatus() != com.securehealth.backend.model.AppointmentStatus.PENDING_APPROVAL) {
             throw new RuntimeException("400: Only pending appointments can be approved.");
         }
 
-        appointment.setStatus("SCHEDULED");
+        appointment.setStatus(com.securehealth.backend.model.AppointmentStatus.SCHEDULED);
         return appointmentRepository.save(appointment);
     }
 
@@ -135,11 +135,11 @@ public class AppointmentService {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("404: Appointment not found"));
 
-        if (!appointment.getStatus().equals("PENDING_APPROVAL")) {
+        if (appointment.getStatus() != com.securehealth.backend.model.AppointmentStatus.PENDING_APPROVAL) {
             throw new RuntimeException("400: Only pending appointments can be rejected.");
         }
 
-        appointment.setStatus("REJECTED");
+        appointment.setStatus(com.securehealth.backend.model.AppointmentStatus.REJECTED);
         // Optional: If you added a 'adminNotes' column, you could save the reason here
         // appointment.setDoctorNotes("Rejected by Admin: " + rejectionReason);
 
@@ -148,7 +148,7 @@ public class AppointmentService {
 
     @Transactional(readOnly = true)
     public List<AppointmentDTO> getPendingAppointments() {
-        return appointmentRepository.findByStatus("PENDING_APPROVAL").stream().map(app -> {
+        return appointmentRepository.findByStatus(com.securehealth.backend.model.AppointmentStatus.PENDING_APPROVAL).stream().map(app -> {
             AppointmentDTO dto = new AppointmentDTO();
             dto.setAppointmentId(app.getAppointmentId());
             dto.setDoctorId(app.getDoctor().getUserId());
@@ -171,7 +171,7 @@ public class AppointmentService {
              throw new RuntimeException("403: You can only complete your own appointments.");
         }
 
-        appointment.setStatus("COMPLETED");
+        appointment.setStatus(com.securehealth.backend.model.AppointmentStatus.COMPLETED);
         return appointmentRepository.save(appointment);
     }
 
@@ -191,6 +191,30 @@ public class AppointmentService {
         
         return appointmentRepository.save(appointment);
     }
+
+    @Transactional
+    public Appointment cancelAppointment(Long id, String requesterEmail, String role) {
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("404: Appointment not found"));
+
+        if (!role.equals("ADMIN") && 
+            !appointment.getDoctor().getEmail().equals(requesterEmail) && 
+            !appointment.getPatient().getUser().getEmail().equals(requesterEmail)) {
+             throw new RuntimeException("403: You can only cancel your own appointments.");
+        }
+
+        appointment.setStatus(com.securehealth.backend.model.AppointmentStatus.CANCELLED);
+        return appointmentRepository.save(appointment);
+    }
+
+    @Transactional
+    public void deleteAppointment(Long id) {
+        if (!appointmentRepository.existsById(id)) {
+            throw new RuntimeException("404: Appointment not found");
+        }
+        appointmentRepository.deleteById(id);
+    }
+
 
     @Transactional(readOnly = true)
     public List<AppointmentDTO> getAppointmentsByPatient(Long patientId) {

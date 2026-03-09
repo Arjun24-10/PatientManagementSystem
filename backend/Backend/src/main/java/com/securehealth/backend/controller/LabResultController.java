@@ -7,8 +7,9 @@ import com.securehealth.backend.security.PatientAccessValidator;
 import com.securehealth.backend.service.LabTestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,21 +28,40 @@ public class LabResultController {
         return ResponseEntity.ok(labTestService.getLabTestsByPatient(patientId));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getById(@PathVariable Long id, Authentication auth) {
+        return labTestRepository.findById(id)
+                .map(test -> ResponseEntity.ok((Object) test))
+                .orElse(ResponseEntity.status(404).body("Lab result not found with id: " + id));
+    }
+
     
 
     @PostMapping
-    public ResponseEntity<?> createLabTest(@RequestBody com.securehealth.backend.dto.LabTestRequest request, Authentication auth) {
-        // Allow DOCTOR or ADMIN to add lab results
-        String role = auth.getAuthorities().stream().findFirst().map(GrantedAuthority::getAuthority).orElse("");
-        if (!role.equals("DOCTOR") && !role.equals("ADMIN") && !role.equals("LAB_TECHNICIAN")) {
-            return ResponseEntity.status(403).body("Forbidden: Insufficient privileges to add lab results.");
-        }
-
+    @PreAuthorize("hasAnyAuthority('DOCTOR', 'ADMIN', 'LAB_TECHNICIAN')")
+    public ResponseEntity<?> createLabTest(@Valid @RequestBody com.securehealth.backend.dto.LabTestRequest request, Authentication auth) {
         try {
             LabTest newLabTest = labTestService.createLabTest(request, auth.getName());
             return ResponseEntity.ok(newLabTest);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/pending")
+    @PreAuthorize("hasAnyAuthority('LAB_TECHNICIAN', 'ADMIN', 'DOCTOR')")
+    public ResponseEntity<List<LabTestDTO>> getPendingLabTests() {
+        return ResponseEntity.ok(labTestService.getPendingLabTests());
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<?> deleteLabTest(@PathVariable Long id) {
+        try {
+            labTestService.deleteLabTest(id);
+            return ResponseEntity.ok("Lab result deleted successfully.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
         }
     }
 }

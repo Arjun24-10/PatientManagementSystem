@@ -40,4 +40,41 @@ public class VitalSignService {
 
         return vitalSignRepository.save(vitalSign);
     }
+
+    @Transactional(readOnly = true)
+    public java.util.List<com.securehealth.backend.dto.VitalSignDTO> getVitalSignsByPatient(Long patientId) {
+        return vitalSignRepository.findByPatient_ProfileIdOrderByRecordedAtDesc(patientId)
+                .stream().map(this::mapToDTO).collect(java.util.stream.Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public com.securehealth.backend.dto.VitalSignDTO getLatestVitalSignByPatient(Long patientId) {
+        return vitalSignRepository.findFirstByPatient_ProfileIdOrderByRecordedAtDesc(patientId)
+                .map(this::mapToDTO)
+                .orElseThrow(() -> new RuntimeException("404: No vital signs found for patient"));
+    }
+
+    @Transactional
+    public void deleteVitalSign(Long id) {
+        if (!vitalSignRepository.existsById(id)) {
+            throw new RuntimeException("404: Vital sign not found");
+        }
+        vitalSignRepository.deleteById(id);
+    }
+
+    private com.securehealth.backend.dto.VitalSignDTO mapToDTO(VitalSign v) {
+        com.securehealth.backend.dto.VitalSignDTO dto = new com.securehealth.backend.dto.VitalSignDTO();
+        dto.setVitalSignId(v.getVitalSignId());
+        dto.setPatientProfileId(v.getPatient().getProfileId());
+        dto.setNurseEmail(v.getNurse().getEmail());
+        dto.setBloodPressure(v.getBloodPressure());
+        dto.setHeartRate(v.getHeartRate());
+        dto.setTemperature(v.getTemperature());
+        dto.setRespiratoryRate(v.getRespiratoryRate());
+        dto.setOxygenSaturation(v.getOxygenSaturation());
+        dto.setWeight(v.getWeight());
+        dto.setHeight(v.getHeight());
+        dto.setRecordedAt(v.getRecordedAt());
+        return dto;
+    }
 }
