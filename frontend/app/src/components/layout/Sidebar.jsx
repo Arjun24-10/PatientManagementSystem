@@ -5,7 +5,6 @@ import {
     Upload, LayoutDashboard, Clock, X, Pill,
     ChevronLeft, ChevronRight, CheckSquare
 } from 'lucide-react';
-import CalyxLogo from '../CalyxLogo';
 
 const Sidebar = ({ role, userName, isOpen, setIsOpen, isCollapsed, toggleCollapse, onLogout }) => {
     const navigate = useNavigate();
@@ -92,8 +91,18 @@ const Sidebar = ({ role, userName, isOpen, setIsOpen, isCollapsed, toggleCollaps
                 <div className="flex flex-col h-full">
                     {/* Header */}
                     <div className={`flex items-center h-16 px-4 border-b border-gray-100 dark:border-slate-700 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
-                        <div className="flex items-center gap-2 overflow-hidden">
-                            <CalyxLogo size="medium" showText={!isCollapsed} />
+                        <div className="flex items-center gap-3 overflow-hidden">
+                            <div className="flex-shrink-0 h-10 w-10">
+                                <img src="/calyx-logo.png" alt="CALYX" className="h-full w-full object-contain" />
+                            </div>
+                            {!isCollapsed && (
+                                <div className="flex flex-col min-w-0">
+                                    <h1 className="text-sm font-bold text-blue-600 dark:text-blue-400 tracking-tight whitespace-nowrap">
+                                        CALYX
+                                    </h1>
+                                    <p className="text-xs text-gray-600 dark:text-slate-400 whitespace-nowrap">Healthcare</p>
+                                </div>
+                            )}
                         </div>
 
 

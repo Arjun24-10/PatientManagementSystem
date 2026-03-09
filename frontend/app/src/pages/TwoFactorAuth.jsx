@@ -7,7 +7,6 @@ import {
 } from 'lucide-react';
 import { verifyOtp, resendOtp } from '../services/supabaseAuth';
 import { RESEND_COOLDOWN_SECONDS, MAX_VERIFICATION_ATTEMPTS } from '../mocks/auth';
-import CalyxLogo from '../components/CalyxLogo';
 
 export default function TwoFactorAuth() {
   const navigate = useNavigate();
@@ -286,13 +285,18 @@ export default function TwoFactorAuth() {
 
           {/* Main Card */}
           <div className="glass-card dark:bg-slate-800/80 dark:border-slate-700/50 p-6 rounded-2xl animate-fade-in">
-            {/* Logo */}
-            <div className="flex justify-center mb-4">
-              <CalyxLogo size="medium" showText={true} />
-            </div>
-
             {/* Header */}
-            <div className="text-center mb-4">
+            <div className="text-center mb-6">
+              {/* CALYX Logo */}
+              <div className="flex justify-center mb-4">
+                <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg border border-blue-200/50 dark:border-blue-800/30">
+                  <img src="/calyx-logo.png" alt="CALYX" className="h-8 w-8 object-contain" />
+                  <div>
+                    <p className="text-xs font-bold text-blue-600 dark:text-blue-400">CALYX</p>
+                  </div>
+                </div>
+              </div>
+
               <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl mb-3">
                 <Shield className="h-6 w-6 text-white" />
               </div>
