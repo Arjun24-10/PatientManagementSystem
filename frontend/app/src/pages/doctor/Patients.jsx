@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import Card from '../../components/common/Card';
@@ -6,33 +6,43 @@ import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
 import PatientSearch from './components/PatientSearch';
 import api from '../../services/api';
-import { mockPatients } from '../../mocks/patients';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Patients = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [searchTerm, setSearchTerm] = useState('');
-    const [patients, setPatients] = useState(mockPatients);
+    const [patients, setPatients] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     // Fetch Patients
-    React.useEffect(() => {
+    useEffect(() => {
         const fetchPatients = async () => {
+            const doctorId = user?.userId;
+            if (!doctorId) return;
+
+            setIsLoading(true);
+            setError(null);
             try {
-                const data = await api.patients.getAll();
-                if (Array.isArray(data)) {
-                    setPatients(data);
-                }
-            } catch (error) {
-                console.warn('Failed to fetch patients, using mock data', error);
+                const data = await api.doctors.getPatients(doctorId);
+                setPatients(data || []);
+            } catch (err) {
+                console.error('Failed to fetch patients:', err);
+                setError('Failed to load patients. Please refresh the page.');
+            } finally {
+                setIsLoading(false);
             }
         };
         fetchPatients();
-    }, []);
+    }, [user?.userId]);
 
     // Basic filtering
-    const filteredPatients = patients.filter(p =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.id.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredPatients = patients.filter(p => {
+        const name = `${p.firstName || ''} ${p.lastName || ''}`.toLowerCase();
+        const id = (p.id || '').toString().toLowerCase();
+        return name.includes(searchTerm.toLowerCase()) || id.includes(searchTerm.toLowerCase());
+    });
 
     return (
         <div className="space-y-3">
@@ -41,12 +51,23 @@ const Patients = () => {
                 <Button>+ Add Patient</Button>
             </div>
 
+            {error && (
+                <Card className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                    <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+                </Card>
+            )}
+
             <PatientSearch
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
                 onSearch={() => { }}
             />
 
+            {isLoading ? (
+                <Card className="p-6 text-center">
+                    <p className="text-gray-500 dark:text-slate-400">Loading patients...</p>
+                </Card>
+            ) : (
             <Card className="overflow-hidden dark:bg-slate-800">
                 <div className="px-4 py-2 border-b dark:border-slate-700 flex justify-between items-center bg-gray-50 dark:bg-slate-700/50">
                     <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100">Patient Directory</h3>
@@ -75,7 +96,7 @@ const Patients = () => {
                                                     {patient.avatar}
                                                 </div>
                                                 <div className="ml-2">
-                                                    <div className="text-xs font-medium text-gray-900 dark:text-slate-100">{patient.name}</div>
+                                                    <div className="text-xs font-medium text-gray-900 dark:text-slate-100">{patient.firstName} {patient.lastName}</div>
                                                     <div className="text-xs text-gray-500 dark:text-slate-400">ID: {patient.id}</div>
                                                     <div className="text-xs text-gray-400 dark:text-slate-500">{patient.age} yrs, {patient.gender}</div>
                                                 </div>
@@ -115,6 +136,7 @@ const Patients = () => {
                     </div>
                 )}
             </Card>
+            )}
         </div>
     );
 };

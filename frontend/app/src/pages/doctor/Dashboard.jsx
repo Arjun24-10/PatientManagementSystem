@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, FileText, ArrowRight, Activity, Bell, Search } from 'lucide-react';
 
@@ -8,57 +8,64 @@ import Badge from '../../components/common/Badge';
 
 import AppointmentList from '../../components/AppointmentList';
 import MiniCalendar from '../../components/MiniCalendar';
-import { mockPatients } from '../../mocks/patients';
-import { mockAppointments } from '../../mocks/appointments';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { getFullName } from '../../utils/formatters';
 
 
 const DoctorDashboard = () => {
    const { user } = useAuth();
    const navigate = useNavigate();
    const [searchTerm, setSearchTerm] = useState('');
+   const [isLoading, setIsLoading] = useState(false);
+   const [error, setError] = useState(null);
 
-   const doctorName = user?.fullName || user?.full_name || 'Doctor';
+   const doctorName = getFullName(user) || 'Doctor';
 
    // State for data
-   const [patients, setPatients] = useState(mockPatients);
-   const [appointments, setAppointments] = useState(mockAppointments);
+   const [patients, setPatients] = useState([]);
+   const [appointments, setAppointments] = useState([]);
 
    // Fetch data from API
-   React.useEffect(() => {
+   useEffect(() => {
       const fetchData = async () => {
-         try {
-            // Attempt to fetch patients
-            const patientsData = await api.patients.getAll();
-            if (Array.isArray(patientsData)) {
-               setPatients(patientsData);
-            }
-         } catch (error) {
-            console.log('Using mock patient data (API backend not reachable)');
-         }
+         const doctorId = user?.userId;
+         if (!doctorId) return;
 
+         setIsLoading(true);
+         setError(null);
          try {
-            // Attempt to fetch appointments
-            const appointmentsData = await api.appointments.getAll();
-            if (Array.isArray(appointmentsData)) {
-               setAppointments(appointmentsData);
-            }
-         } catch (error) {
-            console.log('Using mock appointment data (API backend not reachable)');
+            // Fetch doctor's patients and appointments in parallel
+            const [patientsData, appointmentsData] = await Promise.all([
+               api.doctors.getPatients(doctorId),
+               api.appointments.getByDoctor(doctorId)
+            ]);
+            
+            setPatients(patientsData || []);
+            setAppointments(appointmentsData || []);
+         } catch (err) {
+            console.error('Failed to fetch dashboard data:', err);
+            setError('Failed to load dashboard data. Please refresh the page.');
+         } finally {
+            setIsLoading(false);
          }
       };
 
       fetchData();
-   }, []);
+   }, [user?.userId]);
 
    // Filter patients based on search
-   const filteredPatients = patients.filter(p =>
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.id.toLowerCase().includes(searchTerm.toLowerCase())
-   );
+   const filteredPatients = patients.filter(p => {
+      const name = `${p.firstName || ''} ${p.lastName || ''}`.toLowerCase();
+      const id = (p.id || '').toString().toLowerCase();
+      return name.includes(searchTerm.toLowerCase()) || id.includes(searchTerm.toLowerCase());
+   });
 
-   const todaysAppointments = appointments.filter(a => a.date === '2023-12-15');
+   // Get today's appointments
+   const today = new Date().toISOString().split('T')[0];
+   const todaysAppointments = appointments.filter(a => 
+      a.startTime && a.startTime.split('T')[0] === today
+   ).length;
 
    return (
       <div className="space-y-4">
@@ -73,6 +80,18 @@ const DoctorDashboard = () => {
             </div>
          </div>
 
+         {error && (
+            <Card className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+               <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+            </Card>
+         )}
+
+         {isLoading ? (
+            <Card className="p-6 text-center">
+               <p className="text-gray-500 dark:text-slate-400">Loading dashboard...</p>
+            </Card>
+         ) : (
+            <>
          {/* Metrics */}
          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             <Card className="p-3 border border-gray-100 dark:border-slate-700 shadow-soft hover:shadow-lg transition-shadow duration-300 flex items-center justify-between group dark:bg-slate-800">
@@ -87,7 +106,7 @@ const DoctorDashboard = () => {
             <Card className="p-3 border border-gray-100 dark:border-slate-700 shadow-soft hover:shadow-lg transition-shadow duration-300 flex items-center justify-between group dark:bg-slate-800">
                <div>
                   <h3 className="text-gray-500 dark:text-slate-400 text-xs font-medium">Appointments</h3>
-                  <p className="text-xl font-bold text-gray-800 dark:text-slate-100 mt-1 group-hover:text-brand-medium transition-colors">{todaysAppointments.length}</p>
+                  <p className="text-xl font-bold text-gray-800 dark:text-slate-100 mt-1 group-hover:text-brand-medium transition-colors">{todaysAppointments}</p>
                </div>
                <div className="w-8 h-8 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center text-green-600 group-hover:scale-110 transition-transform">
                   <FileText className="w-4 h-4" />
@@ -244,6 +263,8 @@ const DoctorDashboard = () => {
                </div>
             </div>
          </div>
+            </>
+         )}
       </div >
    );
 };

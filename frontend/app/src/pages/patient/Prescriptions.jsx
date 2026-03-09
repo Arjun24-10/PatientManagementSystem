@@ -1,21 +1,56 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Pill, RefreshCw, Clock, CheckCircle } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
-import { mockPrescriptions } from '../../mocks/records';
+import api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const PatientPrescriptions = () => {
-   const activeRx = mockPrescriptions.filter(p => p.active);
-   const historyRx = mockPrescriptions.filter(p => !p.active);
+   const { user } = useAuth();
+   const patientId = user?.userId;
+   const [prescriptions, setPrescriptions] = useState([]);
+   const [isLoading, setIsLoading] = useState(false);
+   const [error, setError] = useState(null);
+
+   useEffect(() => {
+      const fetchPrescriptions = async () => {
+         if (!patientId) return;
+         setIsLoading(true);
+         setError(null);
+         try {
+            const data = await api.prescriptions.getByPatient(patientId);
+            setPrescriptions(data || []);
+         } catch (err) {
+            console.error('Failed to fetch prescriptions:', err);
+            setError('Failed to load prescriptions. Please refresh the page.');
+         } finally {
+            setIsLoading(false);
+         }
+      };
+      fetchPrescriptions();
+   }, [patientId]);
 
    const handleRefill = (medName) => {
       alert(`Refill request sent for ${medName}. Your pharmacy will be notified.`);
    };
 
+   const activeRx = prescriptions.filter(p => p.active || p.status === 'ACTIVE');
+   const historyRx = prescriptions.filter(p => !p.active && p.status !== 'ACTIVE');
+
+   if (isLoading) {
+      return <div className="p-6 text-center text-gray-500 dark:text-slate-400">Loading prescriptions...</div>;
+   }
+
    return (
       <div className="space-y-4">
          <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">My Medications</h2>
+
+         {error && (
+            <Card className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+               <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+            </Card>
+         )}
 
          {/* Active Medications */}
          <div className="space-y-2">
@@ -32,7 +67,7 @@ const PatientPrescriptions = () => {
                      </div>
 
                      <div>
-                        <h4 className="text-sm font-bold text-gray-800 dark:text-slate-100">{rx.name}</h4>
+                        <h4 className="text-sm font-bold text-gray-800 dark:text-slate-100">{rx.medicationName}</h4>
                         <p className="text-green-600 dark:text-green-400 font-medium text-xs">{rx.dosage}</p>
                      </div>
 
@@ -48,7 +83,7 @@ const PatientPrescriptions = () => {
                      </div>
 
                      <div className="pt-1">
-                        <Button className="w-full justify-center text-xs py-1.5" onClick={() => handleRefill(rx.name)}>
+                        <Button className="w-full justify-center text-xs py-1.5" onClick={() => handleRefill(rx.medicationName)}>
                            <RefreshCw className="w-3.5 h-3.5 mr-1" /> Request Refill
                         </Button>
                      </div>
@@ -69,8 +104,8 @@ const PatientPrescriptions = () => {
                {historyRx.map((rx, idx) => (
                   <div key={rx.id} className={`p-2.5 flex justify-between items-center ${idx !== historyRx.length - 1 ? 'border-b border-gray-100 dark:border-slate-700' : ''}`}>
                      <div>
-                        <h4 className="font-bold text-gray-700 dark:text-slate-200 text-sm">{rx.name}</h4>
-                        <p className="text-xs text-gray-500 dark:text-slate-400">{rx.dosage} • {rx.date}</p>
+                        <h4 className="font-bold text-gray-700 dark:text-slate-200 text-sm">{rx.medicationName}</h4>
+                        <p className="text-xs text-gray-500 dark:text-slate-400">{rx.dosage}</p>
                      </div>
                      <Badge type="gray">Discontinued</Badge>
                   </div>

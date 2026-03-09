@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
    Calendar, Clock, MapPin, Plus, AlertCircle, User, Building2, Check, ChevronRight, ChevronLeft, Bell, List, LayoutGrid,
    RefreshCw,
@@ -9,15 +9,32 @@ import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
 import Alert from '../../components/common/Alert';
 import Input from '../../components/common/Input';
-import { mockAppointments } from '../../mocks/appointments';
-import { mockDepartments, mockDoctors, mockTimeSlots, appointmentTypes, cancellationReasons } from '../../mocks/doctors';
+import api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 import { format, addDays, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, parseISO, differenceInDays, differenceInHours, differenceInMinutes } from 'date-fns';
 
 const PatientAppointments = () => {
-   const patientId = 'P001';
-   const [appointments, setAppointments] = useState(
-      mockAppointments.filter(a => a.patientId === patientId)
-   );
+   const { user } = useAuth();
+   const patientId = user?.userId;
+
+   // Mock data fallback constants
+   const mockDepartments = [
+      { id: 1, name: '🏥 General', icon: '🏥' },
+      { id: 2, name: '❤️ Cardiology', icon: '❤️' },
+      { id: 3, name: '🧠 Neurology', icon: '🧠' },
+      { id: 4, name: '🦴 Orthopedics', icon: '🦴' }
+   ];
+
+   const mockTimeSlots = {
+      morning: ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30'],
+      afternoon: ['14:00', '14:30', '15:00', '15:30', '16:00', '16:30'],
+      evening: ['17:00', '17:30', '18:00', '18:30']
+   };
+
+   const [appointments, setAppointments] = useState([]);
+   const [doctors, setDoctors] = useState([]);
+   const [isLoading, setIsLoading] = useState(false);
+   const [error, setError] = useState(null);
    const [activeTab, setActiveTab] = useState('upcoming');
    const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
 
@@ -25,14 +42,12 @@ const PatientAppointments = () => {
    const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
    const [requestStep, setRequestStep] = useState(1);
    const [requestForm, setRequestForm] = useState({
-      department: '',
-      doctor: '',
-      date: '',
-      time: '',
-      type: '',
+      doctorId: '',
+      startTime: '',
       reason: '',
       specialRequirements: '',
    });
+   const [calendarAddedEvents, setCalendarAddedEvents] = useState([]);
 
    // Cancel Appointment Modal State
    const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
@@ -46,23 +61,44 @@ const PatientAppointments = () => {
    // Reschedule Modal State
    const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
    const [appointmentToReschedule, setAppointmentToReschedule] = useState(null);
-   const [rescheduleData, setRescheduleData] = useState({ date: '', time: '' });
-
-   // Calendar Added Events State
-   const [calendarAddedEvents, setCalendarAddedEvents] = useState([]);
+   const [rescheduleData, setRescheduleData] = useState({ startTime: '' });
 
    // Calendar State
    const [currentMonth, setCurrentMonth] = useState(new Date());
+
+   // Load appointments and doctors on mount
+   const loadData = useCallback(async () => {
+      if (!patientId) return;
+      setIsLoading(true);
+      setError(null);
+      try {
+         const [appointmentsData, doctorsData] = await Promise.all([
+            api.appointments.getByPatient(patientId),
+            api.doctors.getAll()
+         ]);
+         setAppointments(appointmentsData);
+         setDoctors(doctorsData);
+      } catch (err) {
+         console.error('Failed to load appointments:', err);
+         setError('Failed to load appointments. Please refresh the page.');
+      } finally {
+         setIsLoading(false);
+      }
+   }, [patientId]);
+
+   useEffect(() => {
+      loadData();
+   }, [loadData]);
 
    // Filter appointments by tab
    const filteredAppointments = useMemo(() => {
       return appointments.filter(a => {
          if (activeTab === 'upcoming') {
-            return !['Completed', 'Cancelled'].includes(a.status);
+            return !['COMPLETED', 'CANCELLED'].includes((a.status || 'PENDING').toUpperCase());
          } else if (activeTab === 'past') {
-            return a.status === 'Completed';
+            return a.status === 'COMPLETED';
          } else if (activeTab === 'cancelled') {
-            return a.status === 'Cancelled';
+            return a.status === 'CANCELLED';
          }
          return true;
       });
@@ -71,23 +107,15 @@ const PatientAppointments = () => {
    // Get next 3 upcoming appointments for reminder sidebar
    const upcomingReminders = useMemo(() => {
       return appointments
-         .filter(a => !['Completed', 'Cancelled'].includes(a.status))
-         .sort((a, b) => new Date(a.date + ' ' + a.time) - new Date(b.date + ' ' + b.time))
+         .filter(a => !['COMPLETED', 'CANCELLED'].includes((a.status || '').toUpperCase()))
+         .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
          .slice(0, 3);
    }, [appointments]);
 
-   // Get doctors filtered by selected department
+   // Get doctors filtered by selected specialty
    const filteredDoctors = useMemo(() => {
-      if (!requestForm.department) return [];
-      return mockDoctors.filter(d => d.department === requestForm.department);
-   }, [requestForm.department]);
-
-   // Get available time slots for selected date
-   const availableTimeSlots = useMemo(() => {
-      if (!requestForm.date) return [];
-      // In a real app, this would check doctor's availability
-      return [...mockTimeSlots.morning, ...mockTimeSlots.afternoon, ...mockTimeSlots.evening];
-   }, [requestForm.date]);
+      return doctors;
+   }, [doctors]);
 
    // Calendar days for current month
    const calendarDays = useMemo(() => {
@@ -98,12 +126,12 @@ const PatientAppointments = () => {
 
    // Get appointments for a specific date
    const getAppointmentsForDate = (date) => {
-      return appointments.filter(a => isSameDay(parseISO(a.date), date));
+      return appointments.filter(a => isSameDay(parseISO(a.startTime?.split('T')[0]), date));
    };
 
    // Calculate countdown for appointment
    const getCountdown = (appointment) => {
-      const appointmentDate = new Date(appointment.date + ' ' + appointment.time);
+      const appointmentDate = new Date(appointment.startTime);
       const now = new Date();
       const days = differenceInDays(appointmentDate, now);
       const hours = differenceInHours(appointmentDate, now) % 24;
@@ -114,67 +142,93 @@ const PatientAppointments = () => {
       return `${minutes}m`;
    };
 
+   // Available time slots
+   const availableTimeSlots = [
+      '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+      '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'
+   ];
+
+   // Appointment types
+   const appointmentTypes = ['Consultation', 'Follow-up', 'Check-up', 'Emergency'];
+
+   // Cancellation reasons
+   const cancellationReasons = [
+      'Scheduling conflict',
+      'Emergency',
+      'Other reasons',
+      'Doctor unavailable',
+      'Patient unavailable'
+   ];
+
    // Handle request appointment submission
-   const handleRequestSubmit = (e) => {
+   const handleRequestSubmit = async (e) => {
       e.preventDefault();
-      if (requestStep < 3) {
+      if (requestStep < 2) {
          setRequestStep(requestStep + 1);
       } else {
-         // Submit the request
-         const selectedDoctor = mockDoctors.find(d => d.id === requestForm.doctor);
-         const newAppointment = {
-            id: `A${appointments.length + 1}`.padStart(4, '0'),
-            patientId,
-            patientName: 'Emily Blunt',
-            doctorName: selectedDoctor?.name || 'TBD',
-            doctorId: requestForm.doctor,
-            department: mockDepartments.find(d => d.id === requestForm.department)?.name,
-            date: requestForm.date,
-            time: requestForm.time,
-            duration: 30,
-            type: requestForm.type,
-            status: 'Pending',
-            room: 'TBD',
-            location: 'TBD',
-            reason: requestForm.reason,
-            cancellationReason: null,
-         };
+         try {
+            setIsLoading(true);
+            setError(null);
 
-         setAppointments([...appointments, newAppointment]);
-         setIsRequestModalOpen(false);
-         setRequestStep(1);
-         setRequestForm({
-            department: '',
-            doctor: '',
-            date: '',
-            time: '',
-            type: '',
-            reason: '',
-            specialRequirements: '',
-         });
-         alert('✅ Appointment request submitted! We will confirm shortly.');
+            const payload = {
+               patientId: parseInt(patientId),
+               doctorId: parseInt(requestForm.doctorId),
+               startTime: requestForm.startTime, // Should be ISO format like "2024-01-15T10:00:00"
+               reason: requestForm.reason,
+               notes: requestForm.specialRequirements || ''
+            };
+
+            const newAppointment = await api.appointments.create(payload);
+            setAppointments([newAppointment, ...appointments]);
+            setIsRequestModalOpen(false);
+            setRequestStep(1);
+            setRequestForm({
+               doctorId: '',
+               startTime: '',
+               reason: '',
+               specialRequirements: '',
+            });
+            alert('✅ Appointment request submitted! We will confirm shortly.');
+         } catch (err) {
+            console.error('Failed to create appointment:', err);
+            setError(err.message || 'Failed to create appointment. Please try again.');
+         } finally {
+            setIsLoading(false);
+         }
       }
    };
 
    // Handle cancel appointment
-   const handleCancelAppointment = () => {
+   const handleCancelAppointment = async () => {
       if (!cancellationReason) {
-         alert('Please select a cancellation reason');
+         setError('Please select a cancellation reason');
          return;
       }
 
-      setAppointments(
-         appointments.map(a =>
-            a.id === appointmentToCancel.id
-               ? { ...a, status: 'Cancelled', cancellationReason }
-               : a
-         )
-      );
+      try {
+         setIsLoading(true);
+         setError(null);
 
-      setIsCancelModalOpen(false);
-      setAppointmentToCancel(null);
-      setCancellationReason('');
-      alert('📧 Appointment cancelled. Confirmation email sent.');
+         await api.appointments.cancel(appointmentToCancel.id, { reason: cancellationReason });
+         
+         setAppointments(
+            appointments.map(a =>
+               a.id === appointmentToCancel.id
+                  ? { ...a, status: 'CANCELLED', cancellationReason }
+                  : a
+            )
+         );
+
+         setIsCancelModalOpen(false);
+         setAppointmentToCancel(null);
+         setCancellationReason('');
+         alert('📧 Appointment cancelled. Confirmation email sent.');
+      } catch (err) {
+         console.error('Failed to cancel appointment:', err);
+         setError(err.message || 'Failed to cancel appointment. Please try again.');
+      } finally {
+         setIsLoading(false);
+      }
    };
 
    // Open cancel modal
@@ -192,23 +246,38 @@ const PatientAppointments = () => {
    // Open reschedule modal
    const openRescheduleModal = (appointment) => {
       setAppointmentToReschedule(appointment);
-      setRescheduleData({ date: appointment.date, time: appointment.time });
+      setRescheduleData({ startTime: appointment.startTime });
       setIsRescheduleModalOpen(true);
    };
 
    // Handle reschedule submit
-   const handleRescheduleSubmit = (e) => {
+   const handleRescheduleSubmit = async (e) => {
       e.preventDefault();
-      setAppointments(
-         appointments.map(a =>
-            a.id === appointmentToReschedule.id
-               ? { ...a, date: rescheduleData.date, time: rescheduleData.time, status: 'Pending' }
-               : a
-         )
-      );
-      setIsRescheduleModalOpen(false);
-      setAppointmentToReschedule(null);
-      alert('🔄 Reschedule request submitted successfully!');
+      try {
+         setIsLoading(true);
+         setError(null);
+
+         await api.appointments.update(appointmentToReschedule.id, {
+            startTime: rescheduleData.startTime,
+            status: 'PENDING'
+         });
+
+         setAppointments(
+            appointments.map(a =>
+               a.id === appointmentToReschedule.id
+                  ? { ...a, startTime: rescheduleData.startTime, status: 'PENDING' }
+                  : a
+            )
+         );
+         setIsRescheduleModalOpen(false);
+         setAppointmentToReschedule(null);
+         alert('🔄 Reschedule request submitted successfully!');
+      } catch (err) {
+         console.error('Failed to reschedule appointment:', err);
+         setError(err.message || 'Failed to reschedule appointment. Please try again.');
+      } finally {
+         setIsLoading(false);
+      }
    };
 
    // Handle toggle add to calendar
@@ -362,6 +431,18 @@ const PatientAppointments = () => {
 
    return (
       <div className="space-y-4">
+         {error && (
+            <Card className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+               <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+            </Card>
+         )}
+
+         {isLoading && (
+            <Card className="p-6 text-center">
+               <p className="text-gray-500 dark:text-slate-400">Loading appointments...</p>
+            </Card>
+         )}
+
          {/* Header - Compact */}
          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
             <div>

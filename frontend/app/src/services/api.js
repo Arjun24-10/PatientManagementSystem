@@ -35,6 +35,13 @@ const apiCall = async (endpoint, options = {}) => {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
 
       if (!response.ok) {
+         // Handle 401 Unauthorized - token may be expired
+         if (response.status === 401) {
+            console.warn('Session expired. Redirecting to login...');
+            localStorage.removeItem('secure_health_user');
+            window.location.href = '/login';
+         }
+
          const error = await response.json().catch(() => ({ message: 'Request failed' }));
          throw new Error(error.message || `HTTP error! status: ${response.status}`);
       }
@@ -182,9 +189,10 @@ export const appointmentAPI = {
    },
 
    // Cancel appointment
-   cancel: async (id) => {
-      return apiCall(`/appointments/${id}/cancel`, {
+   cancel: async (id, data = {}) => {
+      return apiCall(`/appointments/${id}`, {
          method: 'PUT',
+         body: JSON.stringify({ status: 'CANCELLED', ...data }),
       });
    },
 
@@ -347,6 +355,13 @@ export const doctorAPI = {
    // Get doctor by specialty
    getBySpecialty: async (specialty) => {
       return apiCall(`/doctors/specialty/${specialty}`, {
+         method: 'GET',
+      });
+   },
+
+   // Get patients for a doctor
+   getPatients: async (doctorId) => {
+      return apiCall(`/doctors/${doctorId}/patients`, {
          method: 'GET',
       });
    },

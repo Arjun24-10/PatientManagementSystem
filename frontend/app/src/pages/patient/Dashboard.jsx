@@ -1,83 +1,70 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Activity, Calendar, Pill, AlertCircle, Clock, Stethoscope, AlertTriangle, RefreshCw, CalendarClock, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
-import { mockAppointments } from '../../mocks/appointments';
-import { mockPrescriptions, mockLabs, mockDiagnoses } from '../../mocks/records';
-import { getPatientById } from '../../mocks/patients'; import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
+import { getFullName } from '../../utils/formatters';
+
 const PatientDashboard = () => {
    const { user } = useAuth();
    const navigate = useNavigate();
-   const [patientId, setPatientId] = useState(null);
+   const patientId = user?.userId;
 
-   // State with Mock Fallbacks
+   // State with NO Mock Fallbacks
    const [patient, setPatient] = useState(null);
    const [appointments, setAppointments] = useState([]);
    const [prescriptions, setPrescriptions] = useState([]);
    const [labs, setLabs] = useState([]);
    const [diagnoses, setDiagnoses] = useState([]);
+   const [isLoading, setIsLoading] = useState(false);
+   const [error, setError] = useState(null);
 
-   // Fetch Patient Profile First
-   React.useEffect(() => {
-      const fetchProfile = async () => {
-         try {
-            const pData = await api.patients.getMe();
-            if (pData && pData.id) {
-               setPatient(pData);
-               setPatientId(pData.id);
-            }
-         } catch (e) {
-            console.log('Failed to fetch real profile, using mock data');
-            const fallbackId = user?.id || 'P001';
-            setPatient(getPatientById(fallbackId));
-            setPatientId(fallbackId);
-         }
-      };
-      fetchProfile();
-   }, [user]);
-
-   // Fetch API Data once we have patientId
-   React.useEffect(() => {
-      if (!patientId) return;
-
+   // Fetch Patient Profile and related data
+   useEffect(() => {
       const fetchData = async () => {
-         try {
-            const aData = await api.appointments.getByPatient(patientId);
-            if (Array.isArray(aData)) setAppointments(aData);
-         } catch (e) { console.log('Using mock appointment data'); setAppointments(mockAppointments); }
+         if (!patientId) return;
 
+         setIsLoading(true);
+         setError(null);
          try {
-            const rData = await api.prescriptions.getByPatient(patientId);
-            if (Array.isArray(rData)) setPrescriptions(rData);
-         } catch (e) { console.log('Using mock prescription data'); setPrescriptions(mockPrescriptions); }
+            const [pData, aData, rData, lData, mData] = await Promise.all([
+               api.patients.getMe(),
+               api.appointments.getByPatient(patientId),
+               api.prescriptions.getByPatient(patientId),
+               api.labResults.getByPatient(patientId),
+               api.medicalRecords.getByPatient(patientId)
+            ]);
 
-         try {
-            const lData = await api.labResults.getByPatient(patientId);
-            if (Array.isArray(lData)) setLabs(lData);
-         } catch (e) { console.log('Using mock lab data'); setLabs(mockLabs); }
-
-         try {
-            const mData = await api.medicalRecords.getByPatient(patientId);
-            if (Array.isArray(mData)) setDiagnoses(mData);
-         } catch (e) { console.log('Using mock diagnoses data'); setDiagnoses(mockDiagnoses); }
+            setPatient(pData);
+            setAppointments(aData || []);
+            setPrescriptions(rData || []);
+            setLabs(lData || []);
+            setDiagnoses(mData || []);
+         } catch (err) {
+            console.error('Failed to fetch patient dashboard data:', err);
+            setError('Failed to load dashboard. Please refresh the page.');
+         } finally {
+            setIsLoading(false);
+         }
       };
 
       fetchData();
    }, [patientId]);
 
-   if (!patient) return <div className="p-8 text-center text-gray-500 dark:text-slate-400">Loading patient data...</div>;
+
+   if (isLoading) return <div className="p-8 text-center text-gray-500 dark:text-slate-400">Loading dashboard...</div>;
 
    // --- Data Preparation ---
    const upcomingAppointments = appointments
-      .filter(a => a.patientId === patientId && a.status !== 'Completed' && a.status !== 'Cancelled')
-      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .filter(a => !['COMPLETED', 'CANCELLED'].includes((a.status || '').toUpperCase()))
+      .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
       .slice(0, 3);
 
-   const pendingLabs = labs.filter(l => l.status === 'Pending' || l.type === 'Pending');
-   const activeMedications = prescriptions.filter(p => p.active);
+   const pendingLabs = labs.filter(l => l.status === 'PENDING' || l.status === 'Pending');
+   const activeMedications = prescriptions.filter(p => p.active || p.status === 'ACTIVE');
    const recentDiagnoses = diagnoses.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
 
 
@@ -88,7 +75,7 @@ const PatientDashboard = () => {
          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
             <div>
                <h2 className="text-lg font-semibold text-gray-800 dark:text-slate-100">Patient Dashboard</h2>
-               <p className="text-sm text-gray-500 dark:text-slate-400">Welcome back, {user?.fullName || user?.full_name || patient.name}</p>
+               <p className="text-sm text-gray-500 dark:text-slate-400">Welcome back, {getFullName(patient) || getFullName(user)}</p>
             </div>
             <div className="flex gap-2">
                <Button variant="outline" size="sm" onClick={() => navigate('/dashboard/patient/appointments')}>
@@ -99,6 +86,12 @@ const PatientDashboard = () => {
                </Button>
             </div>
          </div>
+
+         {error && (
+            <Card className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+               <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+            </Card>
+         )}
 
          {/* Pending Labs Alert - High Visibility */}
          {pendingLabs.length > 0 && (

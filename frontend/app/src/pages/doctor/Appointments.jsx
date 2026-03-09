@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon, Clock, User, AlertCircle, LayoutGrid, List, Columns } from 'lucide-react';
 import AppointmentCalendar from '../../components/AppointmentCalendar';
 import SchedulerView from '../../components/SchedulerView';
@@ -8,13 +8,16 @@ import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
 import api from '../../services/api';
-import { mockAppointments } from '../../mocks/appointments';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Appointments = () => {
+    const { user } = useAuth();
     const [activeTab, setActiveTab] = useState('upcoming');
     const [viewMode, setViewMode] = useState('calendar'); // 'list', 'calendar' (month), 'day' (scheduler)
-    const [appointments, setAppointments] = useState(mockAppointments);
+    const [appointments, setAppointments] = useState([]);
     const [selectedDate, setSelectedDate] = useState(new Date()); // Shared date state
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     // Side Panel State
     const [selectedAppointment, setSelectedAppointment] = useState(null);
@@ -25,23 +28,30 @@ const Appointments = () => {
     const [apptToCancel, setApptToCancel] = useState(null);
 
     // Fetch Appointments
-    React.useEffect(() => {
+    useEffect(() => {
         const fetchAppointments = async () => {
+            const doctorId = user?.userId;
+            if (!doctorId) return;
+
+            setIsLoading(true);
+            setError(null);
             try {
-                const data = await api.appointments.getAll();
-                if (Array.isArray(data)) {
-                    setAppointments(data);
-                }
-            } catch (error) {
-                console.warn('Failed to fetch appointments, using mock data', error);
+                const data = await api.appointments.getByDoctor(doctorId);
+                setAppointments(data || []);
+            } catch (err) {
+                console.error('Failed to fetch appointments:', err);
+                setError('Failed to load appointments. Please refresh the page.');
+            } finally {
+                setIsLoading(false);
             }
         };
         fetchAppointments();
-    }, []);
+    }, [user?.userId]);
 
     const filteredAppointments = appointments.filter(appt => {
-        if (activeTab === 'upcoming') return appt.status !== 'Cancelled' && appt.status !== 'Completed';
-        if (activeTab === 'history') return appt.status === 'Completed' || appt.status === 'Cancelled';
+        const status = (appt.status || 'PENDING').toUpperCase();
+        if (activeTab === 'upcoming') return !['CANCELLED', 'COMPLETED'].includes(status);
+        if (activeTab === 'history') return ['COMPLETED', 'CANCELLED'].includes(status);
         return true;
     });
 
@@ -84,6 +94,18 @@ const Appointments = () => {
 
     return (
         <div className="space-y-3 relative">
+            {error && (
+                <Card className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                    <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+                </Card>
+            )}
+            
+            {isLoading && (
+                <Card className="p-6 text-center">
+                    <p className="text-gray-500 dark:text-slate-400">Loading appointments...</p>
+                </Card>
+            )}
+            
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
                 <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">Appointments</h2>
                 <div className="flex items-center space-x-3">
