@@ -8,18 +8,24 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const PatientPrescriptions = () => {
    const { user } = useAuth();
-   const patientId = user?.userId;
    const [prescriptions, setPrescriptions] = useState([]);
    const [isLoading, setIsLoading] = useState(false);
    const [error, setError] = useState(null);
 
    useEffect(() => {
       const fetchPrescriptions = async () => {
-         if (!patientId) return;
+         if (!user?.userId) return;
          setIsLoading(true);
          setError(null);
          try {
-            const data = await api.prescriptions.getByPatient(patientId);
+            // Get patient profile first to obtain the correct profile ID
+            const patientProfile = await api.patients.getMe();
+            const profileId = patientProfile?.id;
+            if (!profileId) {
+               throw new Error('Patient profile not found');
+            }
+            
+            const data = await api.prescriptions.getByPatient(profileId);
             setPrescriptions(data || []);
          } catch (err) {
             console.error('Failed to fetch prescriptions:', err);
@@ -29,7 +35,7 @@ const PatientPrescriptions = () => {
          }
       };
       fetchPrescriptions();
-   }, [patientId]);
+   }, [user?.userId]);
 
    const handleRefill = (medName) => {
       alert(`Refill request sent for ${medName}. Your pharmacy will be notified.`);
@@ -61,7 +67,7 @@ const PatientPrescriptions = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                {activeRx.map(rx => (
-                  <Card key={rx.id} className="p-3 border-l-4 border-green-500 space-y-2 hover:shadow-md transition relative overflow-hidden">
+                  <Card key={rx.prescriptionId} className="p-3 border-l-4 border-green-500 space-y-2 hover:shadow-md transition relative overflow-hidden">
                      <div className="absolute top-0 right-0 p-2 opacity-5 pointer-events-none">
                         <Pill size={80} />
                      </div>
@@ -102,7 +108,7 @@ const PatientPrescriptions = () => {
 
             <div className="bg-white dark:bg-slate-800 rounded border border-gray-200 dark:border-slate-700 overflow-hidden">
                {historyRx.map((rx, idx) => (
-                  <div key={rx.id} className={`p-2.5 flex justify-between items-center ${idx !== historyRx.length - 1 ? 'border-b border-gray-100 dark:border-slate-700' : ''}`}>
+                  <div key={rx.prescriptionId} className={`p-2.5 flex justify-between items-center ${idx !== historyRx.length - 1 ? 'border-b border-gray-100 dark:border-slate-700' : ''}`}>
                      <div>
                         <h4 className="font-bold text-gray-700 dark:text-slate-200 text-sm">{rx.medicationName}</h4>
                         <p className="text-xs text-gray-500 dark:text-slate-400">{rx.dosage}</p>

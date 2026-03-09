@@ -15,14 +15,28 @@ import { format, addDays, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay
 
 const PatientAppointments = () => {
    const { user } = useAuth();
-   const patientId = user?.userId;
+
+   const normalizeAppointment = (appt) => {
+      const appointmentDate = appt.appointmentDate || appt.startTime || appt.date;
+      const statusRaw = (appt.status || '').toString().toUpperCase();
+      return {
+         ...appt,
+         id: appt.appointmentId ?? appt.id,
+         appointmentId: appt.appointmentId ?? appt.id,
+         startTime: appointmentDate,
+         date: appointmentDate,
+         time: appointmentDate ? format(new Date(appointmentDate), 'HH:mm') : '',
+         type: appt.reasonForVisit || appt.type || 'Consultation',
+         statusRaw,
+      };
+   };
 
    // Mock data fallback constants
    const mockDepartments = [
-      { id: 1, name: '🏥 General', icon: '🏥' },
-      { id: 2, name: '❤️ Cardiology', icon: '❤️' },
-      { id: 3, name: '🧠 Neurology', icon: '🧠' },
-      { id: 4, name: '🦴 Orthopedics', icon: '🦴' }
+      { id: 1, name: 'General', icon: 'G' },
+      { id: 2, name: 'Cardiology', icon: 'C' },
+      { id: 3, name: 'Neurology', icon: 'N' },
+      { id: 4, name: 'Orthopedics', icon: 'O' }
    ];
 
    const mockTimeSlots = {
@@ -43,7 +57,12 @@ const PatientAppointments = () => {
    const [requestStep, setRequestStep] = useState(1);
    const [requestForm, setRequestForm] = useState({
       doctorId: '',
+      doctor: '',
+      department: '',
       startTime: '',
+      date: '',
+      time: '',
+      type: '',
       reason: '',
       specialRequirements: '',
    });
@@ -61,30 +80,38 @@ const PatientAppointments = () => {
    // Reschedule Modal State
    const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
    const [appointmentToReschedule, setAppointmentToReschedule] = useState(null);
-   const [rescheduleData, setRescheduleData] = useState({ startTime: '' });
+   const [rescheduleData, setRescheduleData] = useState({ date: '', time: '', startTime: '' });
 
    // Calendar State
    const [currentMonth, setCurrentMonth] = useState(new Date());
 
    // Load appointments and doctors on mount
    const loadData = useCallback(async () => {
-      if (!patientId) return;
+      if (!user?.userId) return;
       setIsLoading(true);
       setError(null);
       try {
+         const patientData = await api.patients.getMe();
+         const profileId = patientData?.id;
+         if (!profileId) {
+            throw new Error('Patient profile not found');
+         }
          const [appointmentsData, doctorsData] = await Promise.all([
-            api.appointments.getByPatient(patientId),
+            api.appointments.getByPatient(profileId),
             api.doctors.getAll()
          ]);
-         setAppointments(appointmentsData);
+         setAppointments((appointmentsData || []).map(normalizeAppointment));
          setDoctors(doctorsData);
+         
+         // Debug: Log doctors to check department data
+         console.log('Loaded doctors:', doctorsData);
       } catch (err) {
          console.error('Failed to load appointments:', err);
          setError('Failed to load appointments. Please refresh the page.');
       } finally {
          setIsLoading(false);
       }
-   }, [patientId]);
+   }, [user?.userId]);
 
    useEffect(() => {
       loadData();
@@ -94,11 +121,11 @@ const PatientAppointments = () => {
    const filteredAppointments = useMemo(() => {
       return appointments.filter(a => {
          if (activeTab === 'upcoming') {
-            return !['COMPLETED', 'CANCELLED'].includes((a.status || 'PENDING').toUpperCase());
+            return !['COMPLETED', 'CANCELLED'].includes(a.statusRaw || 'PENDING_APPROVAL');
          } else if (activeTab === 'past') {
-            return a.status === 'COMPLETED';
+            return a.statusRaw === 'COMPLETED';
          } else if (activeTab === 'cancelled') {
-            return a.status === 'CANCELLED';
+            return a.statusRaw === 'CANCELLED';
          }
          return true;
       });
@@ -107,15 +134,42 @@ const PatientAppointments = () => {
    // Get next 3 upcoming appointments for reminder sidebar
    const upcomingReminders = useMemo(() => {
       return appointments
-         .filter(a => !['COMPLETED', 'CANCELLED'].includes((a.status || '').toUpperCase()))
+         .filter(a => !['COMPLETED', 'CANCELLED'].includes(a.statusRaw || ''))
          .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
          .slice(0, 3);
    }, [appointments]);
 
-   // Get doctors filtered by selected specialty
+   // Get doctors filtered by selected department
    const filteredDoctors = useMemo(() => {
-      return doctors;
-   }, [doctors]);
+      if (!requestForm.department || !doctors.length) {
+         return doctors;
+      }
+      
+      // Find the selected department name
+      const selectedDept = mockDepartments.find(dept => dept.id == requestForm.department);
+      if (!selectedDept) return doctors;
+      
+      // Get department name for filtering
+      const deptName = selectedDept.name.trim();
+      
+      // Filter doctors based on department match
+      const filtered = doctors.filter(doctor => {
+         const doctorDept = doctor.department || doctor.specialty || '';
+         const doctorSpecialty = doctor.specialty || '';
+         
+         // Match department names (case insensitive)
+         if (deptName.toLowerCase() === 'general') {
+            return doctorDept.toLowerCase().includes('general') || 
+                   doctorDept.toLowerCase().includes('internal') ||
+                   doctorSpecialty.toLowerCase().includes('general');
+         }
+         
+         return doctorDept.toLowerCase().includes(deptName.toLowerCase()) ||
+                doctorSpecialty.toLowerCase().includes(deptName.toLowerCase());
+      });
+      
+      return filtered;
+   }, [doctors, requestForm.department]);
 
    // Calendar days for current month
    const calendarDays = useMemo(() => {
@@ -170,25 +224,40 @@ const PatientAppointments = () => {
             setIsLoading(true);
             setError(null);
 
+            // Validate required fields
+            if (!requestForm.doctor && !requestForm.doctorId) {
+               throw new Error('Please select a doctor');
+            }
+            if (!requestForm.date) {
+               throw new Error('Please select a date');
+            }
+            if (!requestForm.time) {
+               throw new Error('Please select a time');
+            }
+
+            const dateTimeString = `${requestForm.date}T${requestForm.time}:00`;
             const payload = {
-               patientId: parseInt(patientId),
-               doctorId: parseInt(requestForm.doctorId),
-               startTime: requestForm.startTime, // Should be ISO format like "2024-01-15T10:00:00"
-               reason: requestForm.reason,
-               notes: requestForm.specialRequirements || ''
+               doctorId: parseInt(requestForm.doctor || requestForm.doctorId),
+               appointmentDate: dateTimeString,
+               reasonForVisit: requestForm.reason || requestForm.specialRequirements || 'Consultation'
             };
 
             const newAppointment = await api.appointments.create(payload);
-            setAppointments([newAppointment, ...appointments]);
+            setAppointments([normalizeAppointment(newAppointment), ...appointments]);
             setIsRequestModalOpen(false);
             setRequestStep(1);
             setRequestForm({
                doctorId: '',
+               doctor: '',
+               department: '',
                startTime: '',
+               date: '',
+               time: '',
+               type: '',
                reason: '',
                specialRequirements: '',
             });
-            alert('✅ Appointment request submitted! We will confirm shortly.');
+            alert('Appointment request submitted! We will confirm shortly.');
          } catch (err) {
             console.error('Failed to create appointment:', err);
             setError(err.message || 'Failed to create appointment. Please try again.');
@@ -214,7 +283,7 @@ const PatientAppointments = () => {
          setAppointments(
             appointments.map(a =>
                a.id === appointmentToCancel.id
-                  ? { ...a, status: 'CANCELLED', cancellationReason }
+                  ? { ...a, status: 'CANCELLED', statusRaw: 'CANCELLED', cancellationReason }
                   : a
             )
          );
@@ -258,14 +327,13 @@ const PatientAppointments = () => {
          setError(null);
 
          await api.appointments.update(appointmentToReschedule.id, {
-            startTime: rescheduleData.startTime,
-            status: 'PENDING'
+            appointmentDate: rescheduleData.startTime
          });
 
          setAppointments(
             appointments.map(a =>
                a.id === appointmentToReschedule.id
-                  ? { ...a, startTime: rescheduleData.startTime, status: 'PENDING' }
+                  ? { ...a, startTime: rescheduleData.startTime, date: rescheduleData.startTime, status: 'PENDING_APPROVAL', statusRaw: 'PENDING_APPROVAL' }
                   : a
             )
          );
@@ -314,16 +382,16 @@ const PatientAppointments = () => {
                      <Badge
                         size="sm"
                         type={
-                           appt.status === 'Confirmed'
+                           appt.statusRaw === 'SCHEDULED'
                               ? 'green'
-                              : appt.status === 'Pending'
+                              : appt.statusRaw === 'PENDING_APPROVAL'
                                  ? 'yellow'
-                                 : appt.status === 'Completed'
+                                 : appt.statusRaw === 'COMPLETED'
                                     ? 'blue'
                                     : 'red'
                         }
                      >
-                        {appt.status}
+                        {(appt.statusRaw || '').replaceAll('_', ' ')}
                      </Badge>
                   </div>
 
@@ -357,7 +425,7 @@ const PatientAppointments = () => {
 
             {/* Action Buttons - Compact */}
             <div className="mt-2 md:mt-0 flex gap-2">
-               {activeTab === 'upcoming' && appt.status !== 'Cancelled' && (
+               {activeTab === 'upcoming' && appt.statusRaw !== 'CANCELLED' && (
                   <>
                      <Button
                         variant="outline"
@@ -505,9 +573,9 @@ const PatientAppointments = () => {
                                  <span className="ml-1.5 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 py-0.5 px-1.5 rounded text-xs">
                                     {
                                        appointments.filter(a => {
-                                          if (tab.key === 'upcoming') return !['Completed', 'Cancelled'].includes(a.status);
-                                          if (tab.key === 'past') return a.status === 'Completed';
-                                          if (tab.key === 'cancelled') return a.status === 'Cancelled';
+                                          if (tab.key === 'upcoming') return !['COMPLETED', 'CANCELLED'].includes(a.statusRaw);
+                                          if (tab.key === 'past') return a.statusRaw === 'COMPLETED';
+                                          if (tab.key === 'cancelled') return a.statusRaw === 'CANCELLED';
                                           return false;
                                        }).length
                                     }
@@ -738,7 +806,7 @@ const PatientAppointments = () => {
                            <option value="">Choose a department</option>
                            {mockDepartments.map(dept => (
                               <option key={dept.id} value={dept.id}>
-                                 {dept.icon} {dept.name}
+                                 {dept.name}
                               </option>
                            ))}
                         </select>
@@ -748,10 +816,10 @@ const PatientAppointments = () => {
                         <div>
                            <label className="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Doctor *</label>
                            <div className="space-y-2 max-h-48 overflow-y-auto">
-                              {filteredDoctors.map(doctor => (
+                              {filteredDoctors.length > 0 ? filteredDoctors.map(doctor => (
                                  <div
                                     key={doctor.id}
-                                    onClick={() => setRequestForm({ ...requestForm, doctor: doctor.id })}
+                                    onClick={() => setRequestForm({ ...requestForm, doctor: doctor.id, doctorId: doctor.id })}
                                     className={`p-2 border rounded cursor-pointer transition-colors ${requestForm.doctor === doctor.id
                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                                        : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600'
@@ -760,17 +828,24 @@ const PatientAppointments = () => {
                                     <div className="flex items-center justify-between">
                                        <div className="flex items-center gap-2">
                                           <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-medium">
-                                             {doctor.avatar}
+                                             {doctor.firstName ? doctor.firstName.charAt(0) : 'D'}
                                           </div>
                                           <div>
-                                             <p className="text-sm font-medium text-gray-800 dark:text-slate-100">{doctor.name}</p>
-                                             <p className="text-xs text-gray-500 dark:text-slate-400">{doctor.specialization}</p>
+                                             <p className="text-sm font-medium text-gray-800 dark:text-slate-100">
+                                                Dr. {doctor.firstName} {doctor.lastName}
+                                             </p>
+                                             <p className="text-xs text-gray-500 dark:text-slate-400">{doctor.specialty}</p>
+                                             <p className="text-xs text-gray-400 dark:text-slate-500">{doctor.department}</p>
                                           </div>
                                        </div>
-                                       <span className="text-xs text-yellow-600">{doctor.rating}⭐</span>
+                                       <span className="text-xs text-green-600">Available</span>
                                     </div>
                                  </div>
-                              ))}
+                              )) : (
+                                 <div className="p-3 text-center text-gray-500 dark:text-slate-400 text-sm">
+                                    No doctors available for this department
+                                 </div>
+                              )}
                            </div>
                         </div>
                      )}

@@ -190,7 +190,7 @@ export const appointmentAPI = {
 
    // Cancel appointment
    cancel: async (id, data = {}) => {
-      return apiCall(`/appointments/${id}`, {
+      return apiCall(`/appointments/${id}/cancel`, {
          method: 'PUT',
          body: JSON.stringify({ status: 'CANCELLED', ...data }),
       });

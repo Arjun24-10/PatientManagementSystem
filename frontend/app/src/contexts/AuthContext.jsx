@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }) => {
       if (result.success) {
         setUser(result.user);
         setSession(result.session);
-        return { success: true, status: result.status };
+        return { success: true, status: result.status, user: result.user };
       } else {
         setError(result.error);
         return { success: false, error: result.error };
