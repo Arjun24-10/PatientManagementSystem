@@ -8,7 +8,6 @@ import Badge from '../../components/common/Badge';
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '../../components/common/Table';
 import Input from '../../components/common/Input';
 import Select from '../../components/common/Select';
-import { mockNursePatients } from '../../mocks/nursePatients';
 import api from '../../services/api';
 
 const Patients = () => {

@@ -19,7 +19,6 @@ import {
 
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import { mockNurseOverview } from '../../mocks/nurseOverview';
 import api from '../../services/api';
 import VitalsSectionHeader from './components/VitalsSectionHeader';
 import VitalsAlertBanner from './components/VitalsAlertBanner';
@@ -209,23 +208,34 @@ const sortOptions = [
 ];
 
 const NurseVitals = () => {
-   const [overview, setOverview] = useState(mockNurseOverview);
-   const [isLoading, setIsLoading] = useState(false);
-   const [error, setError] = useState(null);
+   const [overview, setOverview] = useState({
+      assignedPatients: [],
+      vitalsStatus: 'done',
+      stats: {
+         assignedPatients: 0,
+         pendingVitals: 0,
+         overdueVitals: 0,
+         medicationsDue: 0,
+         overdueMedications: 0,
+         nextMedicationIn: 0,
+         pendingTasks: 0,
+         highPriorityTasks: 0,
+      }
+   });
    const [currentTime, setCurrentTime] = useState(new Date());
    const [viewMode, setViewMode] = useState('grid');
    const [activeFilter, setActiveFilter] = useState('all');
    const [sortBy, setSortBy] = useState('room');
-   const [temperatureUnit, setTemperatureUnit] = useState(mockNurseOverview.vitals?.current?.temperature?.unit || 'F');
-   const [temperatureRoute, setTemperatureRoute] = useState(mockNurseOverview.vitals?.current?.temperature?.route || 'oral');
+   const [temperatureUnit, setTemperatureUnit] = useState('F');
+   const [temperatureRoute, setTemperatureRoute] = useState('oral');
    const [vitalsForm, setVitalsForm] = useState(() => ({
-      systolic: mockNurseOverview.vitals?.current?.bp?.systolic ?? '',
-      diastolic: mockNurseOverview.vitals?.current?.bp?.diastolic ?? '',
-      heartRate: mockNurseOverview.vitals?.current?.heartRate ?? '',
-      temperature: mockNurseOverview.vitals?.current?.temperature?.value ?? '',
-      respiratoryRate: mockNurseOverview.vitals?.current?.respiratoryRate ?? '',
-      oxygenSaturation: mockNurseOverview.vitals?.current?.oxygenSaturation ?? '',
-      painLevel: mockNurseOverview.vitals?.current?.painLevel ?? 0,
+      systolic: '',
+      diastolic: '',
+      heartRate: '',
+      temperature: '',
+      respiratoryRate: '',
+      oxygenSaturation: '',
+      painLevel: 0,
    }));
    const [vitalsNotes, setVitalsNotes] = useState('');
    const [showCriticalModal, setShowCriticalModal] = useState(false);
@@ -250,7 +260,6 @@ const NurseVitals = () => {
    useEffect(() => {
       const fetchPatients = async () => {
          try {
-            setIsLoading(true);
             const data = await api.nurse.getAssignedPatients();
             if (data && Array.isArray(data)) {
                setOverview(prev => ({
@@ -269,9 +278,6 @@ const NurseVitals = () => {
             }
          } catch (err) {
             console.error('Failed to load patients', err);
-            setError('Failed to load patients');
-         } finally {
-            setIsLoading(false);
          }
       };
       fetchPatients();

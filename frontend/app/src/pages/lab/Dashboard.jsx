@@ -4,18 +4,39 @@ import { Activity, Clock, FileText, CheckCircle, Upload } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import { useAuth } from '../../contexts/AuthContext';
-import { mockLabOrders, mockLabActivity } from '../../mocks/labOrders';
+import api from '../../services/api';
 
 const LabDashboard = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
 
     const techName = user?.fullName || user?.full_name || 'Tech';
+    const [dashboard, setDashboard] = React.useState({
+        pending: 0,
+        collected: 0,
+        resultsPending: 0,
+        completed: 0,
+        recentActivity: []
+    });
 
-    const pendingCount = mockLabOrders.filter(o => o.status === 'Pending').length;
-    const collectedCount = mockLabOrders.filter(o => o.status === 'Collected').length;
-    const resultsPendingCount = mockLabOrders.filter(o => o.status === 'Results Pending').length;
-    const completedCount = mockLabOrders.filter(o => o.status === 'Completed').length;
+    React.useEffect(() => {
+        const fetchDashboard = async () => {
+            try {
+                const data = await api.labTechnician.getDashboard();
+                if (data) {
+                    setDashboard(data);
+                }
+            } catch (err) {
+                console.error('Failed to load dashboard', err);
+            }
+        };
+        fetchDashboard();
+    }, []);
+
+    const pendingCount = dashboard.pending || 0;
+    const collectedCount = dashboard.collected || 0;
+    const resultsPendingCount = dashboard.resultsPending || 0;
+    const completedCount = dashboard.completed || 0;
 
     return (
         <div className="space-y-3">
@@ -79,9 +100,9 @@ const LabDashboard = () => {
                     <Card className="p-3 dark:bg-slate-800">
                         <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100 mb-3">Recent Lab Activity</h3>
                         <div className="space-y-3">
-                            {mockLabActivity.map((activity, index) => (
-                                <div key={activity.id} className="flex relative">
-                                    {index !== mockLabActivity.length - 1 && (
+                            {dashboard.recentActivity && dashboard.recentActivity.length > 0 ? dashboard.recentActivity.map((activity, index) => (
+                                <div key={activity.id || index} className="flex relative">
+                                    {index !== dashboard.recentActivity.length - 1 && (
                                         <div className="absolute left-4 top-8 bottom-0 w-0.5 bg-gray-100 dark:bg-slate-700"></div>
                                     )}
                                     <div className="w-8 h-8 rounded-full bg-gray-50 dark:bg-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400 z-10 border-2 border-white dark:border-slate-800 shadow-sm">
@@ -99,7 +120,11 @@ const LabDashboard = () => {
                                         <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">by {activity.user}</p>
                                     </div>
                                 </div>
-                            ))}
+                            ))
+                            : (
+                                <p className="text-xs text-gray-500">No recent activity</p>
+                            )
+                            }
                         </div>
                     </Card>
                 </div>

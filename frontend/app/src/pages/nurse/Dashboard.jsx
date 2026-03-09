@@ -22,7 +22,7 @@ import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import { useAuth } from '../../contexts/AuthContext';
-import { mockNurseOverview } from '../../mocks/nurseOverview';
+import api from '../../services/api';
 
 
 const shiftTypeStyles = {
@@ -116,11 +116,46 @@ const toastColors = {
 
 const NurseDashboard = () => {
    const { user } = useAuth();
-   const [overview, setOverview] = useState(mockNurseOverview);
+   const [overview, setOverview] = useState({
+      scientist: {
+         date: new Date().toISOString().split('T')[0]
+      },
+      stats: {
+         assignedPatients: 0,
+         pendingVitals: 0,
+         overdueVitals: 0,
+         medicationsDue: 0,
+         overdueMedications: 0,
+         nextMedicationIn: 0,
+         pendingTasks: 0,
+         highPriorityTasks: 0,
+      },
+      nurse: {
+         unit: 'ICU'
+      },
+      shift: {
+         date: new Date().toISOString().split('T')[0],
+         startTime: '07:00',
+         endTime: '19:00'
+      },
+      handover: {
+         from: '',
+         to: ''
+      },
+      handoverNotes: {
+         fromPreviousShift: [],
+         forNextShift: {
+            generalNotes: '',
+            patientNotes: [],
+            lastSaved: null
+         }
+      },
+      tasks: []
+   });
    const [currentTime, setCurrentTime] = useState(new Date());
 
    const nurseName = user?.fullName || user?.full_name || 'Nurse';
-   const nurseUnit = user?.department || overview.nurse.unit;
+   const nurseUnit = user?.department || overview.nurse?.unit || 'ICU';
 
    const [handoverTab, setHandoverTab] = useState('from');
    const [expandedCompleted, setExpandedCompleted] = useState(false);
@@ -133,9 +168,25 @@ const NurseDashboard = () => {
    }, []);
 
    useEffect(() => {
+      const fetchDashboard = async () => {
+         try {
+            const data = await api.nurse.getDashboardOverview();
+            if (data) {
+               setOverview(prev => ({
+                  ...prev,
+                  stats: data.stats || prev.stats,
+                  tasks: data.tasks || prev.tasks
+               }));
+            }
+         } catch (err) {
+            console.error('Failed to load dashboard overview', err);
+         }
+      };
+      
+      fetchDashboard();
+      
       const refreshInterval = setInterval(() => {
-         // TODO integrate with fetchNurseOverview API
-         setOverview((prev) => ({ ...prev }));
+         fetchDashboard();
       }, 120_000);
 
       return () => clearInterval(refreshInterval);

@@ -1,22 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
-import { mockLabOrders } from '../../mocks/labOrders';
+import api from '../../services/api';
 
 const LabOrders = () => {
     const navigate = useNavigate();
+    const [orders, setOrders] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
 
-    const filteredOrders = mockLabOrders.filter(order => {
-        const matchesSearch = order.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            order.id.toLowerCase().includes(searchTerm.toLowerCase());
+    useEffect(() => {
+        const fetchOrders = async () => {
+            try {
+                const status = statusFilter === 'All' ? null : statusFilter;
+                const data = await api.labTechnician.getOrders(status);
+                if (data && Array.isArray(data)) {
+                    setOrders(data);
+                } else {
+                    setOrders([]);
+                }
+            } catch (err) {
+                console.error('Failed to fetch orders:', err);
+                setOrders([]);
+            }
+        };
+        fetchOrders();
+    }, [statusFilter]);
+
+    const filteredOrders = orders.filter((order) => {
+        const patientName = order.patientName || (order.patient ? `${order.patient.firstName} ${order.patient.lastName}` : 'Unknown');
+        const orderId = order.testId || order.id;
+        const matchesSearch = patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            orderId.toString().toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilter === 'All' || order.status === statusFilter;
 
         let matchesDate = true;

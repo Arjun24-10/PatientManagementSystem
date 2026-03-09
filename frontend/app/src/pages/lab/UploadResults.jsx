@@ -1,14 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Upload, CheckCircle } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import { mockLabOrders } from '../../mocks/labOrders';
+import api from '../../services/api';
 
 const UploadResults = () => {
+    const [orders, setOrders] = useState([]);
     const [selectedOrder, setSelectedOrder] = useState('');
     const [file, setFile] = useState(null);
     const [testValues, setTestValues] = useState('');
+    const [remarks, setRemarks] = useState('');
     const [status, setStatus] = useState('idle'); // idle, uploading, success, error
+
+    useEffect(() => {
+        const fetchOrders = async () => {
+            try {
+                const data = await api.labTechnician.getOrders('Pending');
+                if (data && Array.isArray(data)) {
+                    setOrders(data);
+                } else {
+                    setOrders([]);
+                }
+            } catch (err) {
+                console.error('Failed to fetch pending orders:', err);
+                setOrders([]);
+            }
+        };
+        fetchOrders();
+    }, []);
 
     const handleFileChange = (e) => {
         if (e.target.files && e.target.files[0]) {
@@ -16,15 +35,41 @@ const UploadResults = () => {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        setStatus('uploading');
-        // Mock upload delay
-        setTimeout(() => {
+        
+        if (!selectedOrder || (!testValues && !file)) {
+            setStatus('error');
+            return;
+        }
+
+        try {
+            setStatus('uploading');
+            
+            // Send result to backend
+            // Note: Backend expects JSON format, not FormData
+            // If file upload is needed in future, implement separate file upload endpoint first
+            await api.labTechnician.uploadResults(
+                selectedOrder,
+                testValues || null,
+                remarks || null,
+                null  // fileUrl not supported yet without backend file upload endpoint
+            );
+            
             setStatus('success');
-            // Reset after 3 seconds
-            setTimeout(() => setStatus('idle'), 3000);
-        }, 1500);
+            
+            // Reset form after success
+            setTimeout(() => {
+                setSelectedOrder('');
+                setTestValues('');
+                setRemarks('');
+                setFile(null);
+                setStatus('idle');
+            }, 2000);
+        } catch (err) {
+            console.error('Upload failed:', err);
+            setStatus('error');
+        }
     };
 
     return (
@@ -45,11 +90,16 @@ const UploadResults = () => {
                             required
                         >
                             <option value="">-- Select Order --</option>
-                            {mockLabOrders.filter(o => o.status !== 'Completed').map(order => (
-                                <option key={order.id} value={order.id}>
-                                    {order.id} - {order.patientName} ({order.testType})
-                                </option>
-                            ))}
+                            {orders.filter(o => o.status !== 'Completed').map(order => {
+                                const patientName = order.patientName || (order.patient ? `${order.patient.firstName} ${order.patient.lastName}` : 'Unknown');
+                                const orderId = order.testId || order.id;
+                                const testType = order.testName || order.testType || 'Test';
+                                return (
+                                    <option key={orderId} value={orderId}>
+                                        {orderId} - {patientName} ({testType})
+                                    </option>
+                                );
+                            })}
                         </select>
                     </div>
 
@@ -96,6 +146,17 @@ const UploadResults = () => {
                             placeholder="Enter test values, reference ranges, and observations..."
                             value={testValues}
                             onChange={(e) => setTestValues(e.target.value)}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Additional Notes</label>
+                        <textarea
+                            rows="2"
+                            className="w-full p-2 text-sm border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-brand-medium focus:outline-none bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 dark:placeholder-slate-500"
+                            placeholder="Add any clinical notes or remarks..."
+                            value={remarks}
+                            onChange={(e) => setRemarks(e.target.value)}
                         />
                     </div>
 
