@@ -266,7 +266,7 @@ const NurseVitals = () => {
                setOverview(prev => ({
                   ...prev,
                   assignedPatients: data.map(p => ({
-                     id: p.id,
+                     id: p.profileId,
                      name: `${p.firstName} ${p.lastName}`,
                      room: p.room || "101",
                      bed: p.bed || "A",

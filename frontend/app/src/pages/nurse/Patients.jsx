@@ -21,6 +21,16 @@ const Patients = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const calculateAge = (dateOfBirth) => {
+        if (!dateOfBirth) return 'N/A';
+        const today = new Date();
+        const birth = new Date(dateOfBirth);
+        let age = today.getFullYear() - birth.getFullYear();
+        const monthDiff = today.getMonth() - birth.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) age--;
+        return age;
+    };
+
     React.useEffect(() => {
         const fetchPatients = async () => {
             try {
@@ -28,16 +38,16 @@ const Patients = () => {
                 const data = await api.nurse.getAssignedPatients();
                 if (data && Array.isArray(data)) {
                     setPatients(data.map(p => ({
-                        id: p.id.toString(),
+                        id: p.profileId ? p.profileId.toString() : '',
                         name: `${p.firstName} ${p.lastName}`,
-                        age: p.age || 'N/A',
+                        age: calculateAge(p.dateOfBirth),
                         gender: p.gender || 'N/A',
-                        room: p.room || 'N/A',
-                        bed: p.bed || 'A',
+                        room: 'N/A',
+                        bed: 'N/A',
                         diagnosis: p.medicalHistory || 'Observation',
-                        vitalsStatus: p.vitalsStatus || 'unknown',
-                        lastVitals: p.lastVitals || 'Not recent',
-                        status: p.acuityLevel || 'stable',
+                        vitalsStatus: 'unknown',
+                        lastVitals: 'Not recorded',
+                        status: 'stable',
                     })));
                 } else {
                     setPatients([]);

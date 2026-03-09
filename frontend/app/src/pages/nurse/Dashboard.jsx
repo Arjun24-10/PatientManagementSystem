@@ -172,10 +172,10 @@ const NurseDashboard = () => {
          try {
             const data = await api.nurse.getDashboardOverview();
             if (data) {
+               // Backend returns flat stats map: {assignedPatients, pendingVitals, overdueVitals, ...}
                setOverview(prev => ({
                   ...prev,
-                  stats: data.stats || prev.stats,
-                  tasks: data.tasks || prev.tasks
+                  stats: data || prev.stats,
                }));
             }
          } catch (err) {

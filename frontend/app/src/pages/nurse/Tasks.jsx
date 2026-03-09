@@ -59,6 +59,7 @@ const Tasks = () => {
 
     const getPriorityBadge = (priority) => {
         switch (priority) {
+            case 'critical': return <Badge type="red">Critical</Badge>;
             case 'high': return <Badge type="red">High</Badge>;
             case 'medium': return <Badge type="yellow">Medium</Badge>;
             case 'low': return <Badge type="green">Low</Badge>;
@@ -67,7 +68,7 @@ const Tasks = () => {
     };
 
     const filteredTasks = tasks.filter(task => {
-        const matchesSearch = task.text.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch = (task.title || '').toLowerCase().includes(searchTerm.toLowerCase());
         const matchesPriority = filterPriority === 'all' || task.priority === filterPriority;
         return matchesSearch && matchesPriority;
     });
@@ -91,13 +92,16 @@ const Tasks = () => {
                     <Select
                         value={filterPriority}
                         onChange={(e) => setFilterPriority(e.target.value)}
-                        className="w-32"
-                    >
-                        <option value="all">Priority</option>
-                        <option value="high">High</option>
-                        <option value="medium">Medium</option>
-                        <option value="low">Low</option>
-                    </Select>
+                        className="w-36"
+                        placeholder="All Priorities"
+                        options={[
+                            { value: 'all',      label: 'All Priorities' },
+                            { value: 'critical', label: 'Critical' },
+                            { value: 'high',     label: 'High' },
+                            { value: 'medium',   label: 'Medium' },
+                            { value: 'low',      label: 'Low' },
+                        ]}
+                    />
                 </div>
             </div>
 
@@ -128,7 +132,7 @@ const Tasks = () => {
                                     </TableCell>
                                     <TableCell>
                                         <div className={`font-medium ${task.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-900 dark:text-white'}`}>
-                                            {task.text}
+                                            {task.title}
                                         </div>
                                     </TableCell>
                                     <TableCell>{getPatientName(task)}</TableCell>
@@ -136,7 +140,7 @@ const Tasks = () => {
                                     <TableCell>
                                         <div className="flex items-center text-gray-500">
                                             <Clock className="w-3 h-3 mr-1" />
-                                            {task.dueTime}
+                                            {task.dueTime ? new Date(task.dueTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
                                         </div>
                                     </TableCell>
                                     <TableCell align="right">

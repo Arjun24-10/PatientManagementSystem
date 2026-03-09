@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     Activity,
@@ -15,37 +15,80 @@ import {
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
-import { mockNursePatients } from '../../mocks/nursePatients';
+import api from '../../services/api';
+
+const calculateAge = (dateOfBirth) => {
+    if (!dateOfBirth) return 'N/A';
+    const today = new Date();
+    const birth = new Date(dateOfBirth);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) age--;
+    return age;
+};
 
 const PatientDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const patient = mockNursePatients.find(p => p.id === id) || mockNursePatients[0];
+    const [isLoading, setIsLoading] = useState(true);
+    const [patientDetails, setPatientDetails] = useState(null);
 
-    // Mock additional details
-    const patientDetails = {
-        ...patient,
-        bloodGroup: 'O+',
-        allergies: ['Penicillin', 'Peanuts'],
-        careInstructions: [
-            'Monitor blood pressure every 4 hours.',
-            'Ensure patient stays hydrated.',
-            'Assist with walking twice a day.',
-            'Check surgical site for signs of infection.'
-        ],
-        medications: [
-            { id: 1, name: 'Amoxicillin', dosage: '500mg', frequency: 'Every 8 hours', nextDue: '14:00', status: 'due' },
-            { id: 2, name: 'Paracetamol', dosage: '1000mg', frequency: 'PRN for pain', nextDue: 'PRN', status: 'as-needed' },
-            { id: 3, name: 'Lisinopril', dosage: '10mg', frequency: 'Daily', nextDue: '09:00 (Tomorrow)', status: 'done' }
-        ],
-        latestVitals: {
-            bp: '120/80',
-            hr: 72,
-            temp: 98.6,
-            spo2: 98,
-            rr: 16
-        }
-    };
+    useEffect(() => {
+        const fetchPatient = async () => {
+            try {
+                setIsLoading(true);
+                const [patients, vitals] = await Promise.allSettled([
+                    api.nurse.getAssignedPatients(),
+                    api.vitalSigns.getLatest(id),
+                ]);
+
+                const patientList = patients.status === 'fulfilled' && Array.isArray(patients.value)
+                    ? patients.value
+                    : [];
+                const found = patientList.find(p => String(p.profileId) === id);
+
+                const latestVitals = vitals.status === 'fulfilled' && vitals.value
+                    ? vitals.value
+                    : null;
+
+                if (found) {
+                    setPatientDetails({
+                        id: String(found.profileId),
+                        name: `${found.firstName} ${found.lastName}`,
+                        age: calculateAge(found.dateOfBirth),
+                        gender: found.gender || 'N/A',
+                        bloodGroup: 'N/A',
+                        room: 'N/A',
+                        bed: 'N/A',
+                        status: 'stable',
+                        allergies: [],
+                        medicalHistory: found.medicalHistory || '',
+                        careInstructions: found.medicalHistory ? [found.medicalHistory] : ['No care instructions on file.'],
+                        admissionDate: found.createdAt || new Date().toISOString(),
+                        doctor: found.assignedDoctor ? (found.assignedDoctor.email || 'N/A') : 'N/A',
+                        lastVitals: latestVitals
+                            ? new Date(latestVitals.recordedAt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                            : 'Not recorded',
+                        latestVitals: latestVitals
+                            ? {
+                                bp: latestVitals.bloodPressure || 'N/A',
+                                hr: latestVitals.heartRate ?? 'N/A',
+                                temp: latestVitals.temperature ?? 'N/A',
+                                spo2: latestVitals.oxygenSaturation ?? 'N/A',
+                                rr: latestVitals.respiratoryRate ?? 'N/A',
+                            }
+                            : { bp: 'N/A', hr: 'N/A', temp: 'N/A', spo2: 'N/A', rr: 'N/A' },
+                        medications: [],
+                    });
+                }
+            } catch (err) {
+                console.error('Failed to fetch patient details:', err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchPatient();
+    }, [id]);
 
     const getMedicationStatusBadge = (status) => {
         switch (status) {
@@ -55,6 +98,21 @@ const PatientDetail = () => {
             default: return <Badge type="gray">PRN</Badge>;
         }
     };
+
+    if (isLoading) {
+        return (
+            <div className="p-8 text-center text-gray-500">Loading patient details...</div>
+        );
+    }
+
+    if (!patientDetails) {
+        return (
+            <div className="p-8 text-center">
+                <p className="text-gray-500">Patient not found or not assigned to you.</p>
+                <Button onClick={() => navigate('/dashboard/nurse/patients')} className="mt-4">Back to Patients</Button>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6 max-w-7xl mx-auto">
