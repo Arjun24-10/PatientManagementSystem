@@ -31,6 +31,12 @@ public class PatientProfile {
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Login assignedDoctor;
 
+    // Many-to-1: Many patients can be assigned to one Nurse
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_nurse_id", referencedColumnName = "userId")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private Login assignedNurse;
+
     @Column(nullable = false)
     private String firstName;
 

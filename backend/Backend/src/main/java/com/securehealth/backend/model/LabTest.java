@@ -23,6 +23,7 @@ public class LabTest {
     private PatientProfile patient;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ordered_by_id", nullable = false)
     private Login orderedBy;
 
     private String testName;
@@ -32,6 +33,8 @@ public class LabTest {
     private String referenceRange;
     private String remarks;
     private String status;
+
+    private String fileUrl;
 
     @Column(updatable = false)
     private LocalDateTime orderedAt = LocalDateTime.now();

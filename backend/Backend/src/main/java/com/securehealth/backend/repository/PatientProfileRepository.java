@@ -17,6 +17,9 @@ public interface PatientProfileRepository extends JpaRepository<PatientProfile, 
     // For a DOCTOR logging in: "Get a list of all patients assigned to me"
     List<PatientProfile> findByAssignedDoctor(Login doctor);
     
+    // For a NURSE logging in: "Get a list of all patients assigned to me"
+    List<PatientProfile> findByAssignedNurse(Login nurse);
+    
     // For verifying before an update: "Does this patient belong to this doctor?"
     Optional<PatientProfile> findByProfileIdAndAssignedDoctor(Long profileId, Login doctor);
 }
