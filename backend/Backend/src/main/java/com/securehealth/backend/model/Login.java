@@ -101,7 +101,8 @@ public class Login {
     private LocalDateTime lastLoginAt;
 
     // Whether the user has been archived due to inactivity
-    private boolean archived = false;
+    @Column(columnDefinition = "boolean default false")
+    private Boolean archived = false;
 
     // Compatibility methods for tests expecting snake_case naming
     public Long getUser_id() {

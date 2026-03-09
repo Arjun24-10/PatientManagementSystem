@@ -53,7 +53,7 @@ public class ArchivalService {
         int archivedCount = 0;
         for (Login user : allUsers) {
             // Skip already archived users
-            if (user.isArchived()) continue;
+            if (Boolean.TRUE.equals(user.getArchived())) continue;
 
             boolean isInactive = false;
 
