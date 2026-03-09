@@ -5,6 +5,7 @@ import {
   Shield, KeyRound, Check
 } from 'lucide-react';
 import { validateResetToken, resetPassword } from '../services/supabaseAuth';
+import CalyxLogo from '../components/CalyxLogo';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -208,6 +209,11 @@ export default function ResetPassword() {
             {/* Right Panel - Form */}
             <div className="glass-card dark:bg-slate-800/80 dark:border-slate-700/50 p-6 md:p-8 rounded-2xl animate-fade-in-delay-1 relative z-20">
               <div className="space-y-4 relative z-20">
+                {/* Logo */}
+                <div className="flex justify-center mb-4">
+                  <CalyxLogo size="medium" showText={true} />
+                </div>
+
                 {/* Back Link */}
                 <button
                   onClick={() => navigate('/login')}

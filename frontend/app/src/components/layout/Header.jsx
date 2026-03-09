@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Menu, Search, Bell, Sun, Moon, ChevronDown, Users, Shield, LogOut } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
+import CalyxLogo from '../CalyxLogo';
 
 const Header = ({
     role,
@@ -26,6 +27,11 @@ const Header = ({
                     >
                         <Menu size={20} />
                     </button>
+
+                    {/* Logo - Visible on mobile/small screens when sidebar is collapsed */}
+                    <div className="lg:hidden">
+                        <CalyxLogo size="small" showText={false} />
+                    </div>
 
                     {/* Search Bar - Hidden on small mobile */}
                     <div className="hidden md:flex items-center w-full max-w-md ml-2">

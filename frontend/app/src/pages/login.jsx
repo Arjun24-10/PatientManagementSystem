@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Heart, Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle, X } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle, X } from 'lucide-react';
+import CalyxLogo from '../components/CalyxLogo';
 
 
 export default function Login() {
@@ -142,27 +143,33 @@ export default function Login() {
 
             {/* Left Panel - Branding */}
             <div className="hidden lg:block space-y-4 animate-fade-in">
-              <div className="space-y-2">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm rounded-full border border-white/20 dark:border-slate-700/50">
-                  <Heart className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  <span className="text-xs font-semibold text-gray-700 dark:text-slate-200">Premium Healthcare Platform</span>
+              <div className="space-y-6">
+                {/* CALYX Logo */}
+                <div className="flex items-center gap-3">
+                  <CalyxLogo size="large" showText={true} />
                 </div>
 
-                <h1 className="text-3xl font-bold leading-tight">
-                  <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                    Expert Care,
-                  </span>
-                  <br />
-                  <span className="text-gray-800 dark:text-slate-100">Always Available</span>
-                </h1>
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm rounded-full border border-white/20 dark:border-slate-700/50">
+                    <span className="text-xs font-semibold text-gray-700 dark:text-slate-200">Premium Healthcare Platform</span>
+                  </div>
 
-                <div className="mt-2 space-y-1">
-                  <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">Your Health, Your Data, Your Control.</p>
-                  <p className="text-sm text-gray-600 dark:text-slate-400">Secure Access to Personalized Care.</p>
+                  <h1 className="text-3xl font-bold leading-tight">
+                    <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                      Expert Care,
+                    </span>
+                    <br />
+                    <span className="text-gray-800 dark:text-slate-100">Always Available</span>
+                  </h1>
+
+                  <div className="mt-2 space-y-1">
+                    <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">Your Health, Your Data, Your Control.</p>
+                    <p className="text-sm text-gray-600 dark:text-slate-400">Secure Access to Personalized Care.</p>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-slate-400 max-w-md">
+                    {/* Removed marketing text for minimal UI */}
+                  </p>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-slate-400 max-w-md">
-                  {/* Removed marketing text for minimal UI */}
-                </p>
               </div>
 
               {/* Stats Cards */}
@@ -172,6 +179,11 @@ export default function Login() {
             {/* Right Panel - Login Form */}
             <div className="glass-card dark:bg-slate-800/80 dark:border-slate-700/50 p-6 md:p-8 rounded-2xl animate-fade-in-delay-1 relative z-20">
               <div className="space-y-4 relative z-20">
+                {/* Mobile Logo - Display on smaller screens */}
+                <div className="lg:hidden flex justify-center mb-4">
+                  <CalyxLogo size="large" showText={true} />
+                </div>
+
                 <div className="space-y-1">
                   <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">Welcome Back</h2>
                   <p className="text-xs text-gray-600 dark:text-slate-400">Sign in to access your healthcare dashboard</p>

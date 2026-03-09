@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { verifyOtp, resendOtp } from '../services/supabaseAuth';
 import { RESEND_COOLDOWN_SECONDS, MAX_VERIFICATION_ATTEMPTS } from '../mocks/auth';
+import CalyxLogo from '../components/CalyxLogo';
 
 export default function TwoFactorAuth() {
   const navigate = useNavigate();
@@ -285,6 +286,11 @@ export default function TwoFactorAuth() {
 
           {/* Main Card */}
           <div className="glass-card dark:bg-slate-800/80 dark:border-slate-700/50 p-6 rounded-2xl animate-fade-in">
+            {/* Logo */}
+            <div className="flex justify-center mb-4">
+              <CalyxLogo size="medium" showText={true} />
+            </div>
+
             {/* Header */}
             <div className="text-center mb-4">
               <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl mb-3">
