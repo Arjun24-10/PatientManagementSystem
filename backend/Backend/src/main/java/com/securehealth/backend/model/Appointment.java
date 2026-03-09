@@ -28,9 +28,10 @@ public class Appointment {
     @Column(nullable = false)
     private LocalDateTime appointmentDate;
 
-    // Status: SCHEDULED, COMPLETED, CANCELLED, NO_SHOW
+    // Status: PENDING_APPROVAL, SCHEDULED, COMPLETED, CANCELLED, NO_SHOW, REJECTED
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status = "SCHEDULED";
+    private AppointmentStatus status = AppointmentStatus.PENDING_APPROVAL;
 
     @Column(columnDefinition = "TEXT")
     private String reasonForVisit;

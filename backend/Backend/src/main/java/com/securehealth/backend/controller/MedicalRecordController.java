@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,12 +37,23 @@ public class MedicalRecordController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('DOCTOR')")
-    public ResponseEntity<?> createMedicalRecord(@RequestBody com.securehealth.backend.dto.MedicalRecordRequest request, Authentication auth) {
+    public ResponseEntity<?> createMedicalRecord(@Valid @RequestBody com.securehealth.backend.dto.MedicalRecordRequest request, Authentication auth) {
         try {
             MedicalRecord newRecord = medicalRecordService.createMedicalRecord(request, auth.getName());
             return ResponseEntity.ok(newRecord);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<?> deleteMedicalRecord(@PathVariable Long id, Authentication auth) {
+        try {
+            medicalRecordService.deleteMedicalRecord(id, auth.getName());
+            return ResponseEntity.ok("Medical record deleted successfully.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
         }
     }
 }

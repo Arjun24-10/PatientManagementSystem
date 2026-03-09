@@ -13,4 +13,7 @@ public class PrescriptionDTO {
     private String specialInstructions;
     private String status;
     private LocalDateTime issuedAt;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
+    private Integer refillsRemaining;
 }

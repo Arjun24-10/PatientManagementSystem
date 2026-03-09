@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import com.securehealth.backend.model.PatientProfile;
+import com.securehealth.backend.model.AppointmentStatus;
 
 import java.util.List;
 import java.time.LocalDateTime;
@@ -29,7 +30,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     boolean existsByDoctor_UserIdAndAppointmentDateAndStatusNotIn(
             Long doctorId,
             java.time.LocalDateTime appointmentDate,
-            java.util.List<String> statuses);
+            java.util.List<AppointmentStatus> statuses);
 
     List<Appointment> findByDoctor_UserIdOrderByAppointmentDateAsc(Long doctorId);
 
@@ -39,11 +40,13 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<PatientProfile> findDistinctPatientsByDoctorId(@Param("doctorId") Long doctorId);
 
     List<Appointment> findByPatient_ProfileId(Long patientId);
-
+    List<Appointment> findByDoctor_UserId(Long doctorId);
+    
     // Counts appointments by their exact status
-    long countByStatus(String status);
+    long countByStatus(AppointmentStatus status);
 
-    List<Appointment> findByStatus(String status);
+    // Admin needs to see all pending approvals
+    List<Appointment> findByStatus(AppointmentStatus status);
 
     // Counts scheduled appointments for a specific time range (today)
     @Query("SELECT COUNT(a) FROM Appointment a WHERE a.appointmentDate >= :startOfDay " +

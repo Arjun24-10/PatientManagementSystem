@@ -3,6 +3,7 @@ package com.securehealth.backend.controller;
 import com.securehealth.backend.dto.AppointmentDTO;
 import com.securehealth.backend.dto.AppointmentRequest;
 import com.securehealth.backend.model.Appointment;
+import com.securehealth.backend.model.AppointmentStatus;
 import com.securehealth.backend.repository.AppointmentRepository;
 import com.securehealth.backend.security.PatientAccessValidator;
 import com.securehealth.backend.service.AppointmentService;
@@ -12,6 +13,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -48,7 +50,8 @@ public class AppointmentController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createAppointment(@RequestBody AppointmentRequest request, Authentication auth) {
+    @PreAuthorize("hasAuthority('PATIENT')")
+    public ResponseEntity<?> createAppointment(@Valid @RequestBody AppointmentRequest request, Authentication auth) {
         try {
             // Extract the email from the JWT token
             String email = auth.getName();
@@ -68,7 +71,14 @@ public class AppointmentController {
 
     @PutMapping("/{id}/approve")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<?> approveAppointment(@PathVariable Long id) {
+    public ResponseEntity<?> approveAppointment(@PathVariable Long id, Authentication auth) {
+        // Mock-safe security check for unit tests
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ADMIN"));
+        if (!isAdmin) {
+            return ResponseEntity.status(403).body("Forbidden: Only administrative staff can approve appointments.");
+        }
+
         try {
             Appointment approved = appointmentService.approveAppointment(id);
             return ResponseEntity.ok(approved);
@@ -79,7 +89,14 @@ public class AppointmentController {
 
     @PutMapping("/{id}/reject")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<?> rejectAppointment(@PathVariable Long id, @RequestBody(required = false) String reason) {
+    public ResponseEntity<?> rejectAppointment(@PathVariable Long id, @RequestBody(required = false) String reason, Authentication auth) {
+        // Mock-safe security check for unit tests
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ADMIN"));
+        if (!isAdmin) {
+            return ResponseEntity.status(403).body("Forbidden: Only administrative staff can approve appointments.");
+        }
+
         try {
             Appointment rejected = appointmentService.rejectAppointment(id, reason);
             return ResponseEntity.ok(rejected);
@@ -103,17 +120,17 @@ public class AppointmentController {
 
     @GetMapping("/status/{status}")
     public ResponseEntity<List<Appointment>> getByStatus(@PathVariable String status) {
-        return ResponseEntity.ok(appointmentRepository.findByStatus(status));
+        return ResponseEntity.ok(appointmentRepository.findByStatus(AppointmentStatus.valueOf(status.toUpperCase())));
     }
 
     @GetMapping("/stats")
     public ResponseEntity<?> getStats() {
         java.util.Map<String, Object> stats = new java.util.HashMap<>();
         stats.put("total", appointmentRepository.count());
-        stats.put("pending", appointmentRepository.countByStatus("PENDING"));
-        stats.put("scheduled", appointmentRepository.countByStatus("SCHEDULED"));
-        stats.put("completed", appointmentRepository.countByStatus("COMPLETED"));
-        stats.put("cancelled", appointmentRepository.countByStatus("CANCELLED"));
+        stats.put("pending", appointmentRepository.countByStatus(AppointmentStatus.PENDING_APPROVAL));
+        stats.put("scheduled", appointmentRepository.countByStatus(AppointmentStatus.SCHEDULED));
+        stats.put("completed", appointmentRepository.countByStatus(AppointmentStatus.COMPLETED));
+        stats.put("cancelled", appointmentRepository.countByStatus(AppointmentStatus.CANCELLED));
         return ResponseEntity.ok(stats);
     }
 
@@ -135,6 +152,28 @@ public class AppointmentController {
             Authentication auth) {
         try {
             return ResponseEntity.ok(appointmentService.updateAppointment(id, request, auth.getName()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}/cancel")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'DOCTOR', 'PATIENT')")
+    public ResponseEntity<?> cancelAppointment(@PathVariable Long id, Authentication auth) {
+        try {
+            String role = auth.getAuthorities().stream().findFirst().get().getAuthority();
+            return ResponseEntity.ok(appointmentService.cancelAppointment(id, auth.getName(), role));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<?> deleteAppointment(@PathVariable Long id) {
+        try {
+            appointmentService.deleteAppointment(id);
+            return ResponseEntity.ok("Appointment deleted successfully.");
         } catch (RuntimeException e) {
             return ResponseEntity.status(400).body(e.getMessage());
         }

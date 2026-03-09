@@ -1,6 +1,7 @@
 package com.securehealth.backend.service;
 
 import com.securehealth.backend.dto.AdminMetricsDTO;
+import com.securehealth.backend.model.AppointmentStatus;
 import com.securehealth.backend.repository.AppointmentRepository;
 import com.securehealth.backend.repository.LoginRepository;
 import com.securehealth.backend.repository.PatientProfileRepository;
@@ -32,10 +33,10 @@ public class AdminService {
         metrics.setTotalPatients(patientProfileRepository.count());
 
         // 2. Total Doctors
-        metrics.setTotalDoctors(loginRepository.countByRole("DOCTOR"));
+        metrics.setTotalDoctors(loginRepository.countByRole(Role.DOCTOR.name()));
 
         // 3. Pending Approvals
-        metrics.setPendingApprovals(appointmentRepository.countByStatus("PENDING_APPROVAL"));
+        metrics.setPendingApprovals(appointmentRepository.countByStatus(AppointmentStatus.PENDING_APPROVAL));
 
         // 4. Today's Appointments
         LocalDateTime startOfDay = LocalDate.now().atStartOfDay();

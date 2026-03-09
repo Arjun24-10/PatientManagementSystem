@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.access.prepost.PreAuthorize;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -22,19 +23,40 @@ public class VitalSignController {
     @Autowired private VitalSignService vitalSignService;
 
     @GetMapping("/patient/{patientId}")
-    public ResponseEntity<List<VitalSign>> getByPatient(@PathVariable Long patientId, Authentication auth) {
+    public ResponseEntity<?> getByPatient(@PathVariable Long patientId, Authentication auth) {
         accessValidator.validateAccess(patientId, auth);
-        return ResponseEntity.ok(vitalSignRepository.findByPatient_ProfileIdOrderByRecordedAtDesc(patientId));
+        return ResponseEntity.ok(vitalSignService.getVitalSignsByPatient(patientId));
+    }
+
+    @GetMapping("/patient/{patientId}/latest")
+    public ResponseEntity<?> getLatestByPatient(@PathVariable Long patientId, Authentication auth) {
+        accessValidator.validateAccess(patientId, auth);
+        try {
+            return ResponseEntity.ok(vitalSignService.getLatestVitalSignByPatient(patientId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        }
     }
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('DOCTOR', 'ADMIN', 'NURSE')")
-    public ResponseEntity<?> createVitalSign(@RequestBody com.securehealth.backend.dto.VitalSignRequest request, Authentication auth) {
+    public ResponseEntity<?> createVitalSign(@Valid @RequestBody com.securehealth.backend.dto.VitalSignRequest request, Authentication auth) {
         try {
             VitalSign newVital = vitalSignService.createVitalSign(request, auth.getName());
             return ResponseEntity.ok(newVital);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<?> deleteVitalSign(@PathVariable Long id) {
+        try {
+            vitalSignService.deleteVitalSign(id);
+            return ResponseEntity.ok("Vital sign deleted successfully.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
         }
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,12 +37,39 @@ public class PrescriptionController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('DOCTOR')")
-    public ResponseEntity<?> createPrescription(@RequestBody com.securehealth.backend.dto.PrescriptionRequest request, Authentication auth) {
+    public ResponseEntity<?> createPrescription(@Valid @RequestBody com.securehealth.backend.dto.PrescriptionRequest request, Authentication auth) {
         try {
             Prescription newPrescription = prescriptionService.createPrescription(request, auth.getName());
             return ResponseEntity.ok(newPrescription);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/patient/{patientId}/active")
+    public ResponseEntity<List<PrescriptionDTO>> getActiveByPatient(@PathVariable Long patientId, Authentication auth) {
+        accessValidator.validateAccess(patientId, auth);
+        return ResponseEntity.ok(prescriptionService.getActivePrescriptionsByPatient(patientId));
+    }
+
+    @PutMapping("/{id}/refill")
+    @PreAuthorize("hasAuthority('DOCTOR')")
+    public ResponseEntity<?> refillPrescription(@PathVariable Long id, Authentication auth) {
+        try {
+            return ResponseEntity.ok(prescriptionService.refillPrescription(id, auth.getName()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<?> deletePrescription(@PathVariable Long id, Authentication auth) {
+        try {
+            prescriptionService.deletePrescription(id, auth.getName());
+            return ResponseEntity.ok("Prescription deleted successfully.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(400).body(e.getMessage());
         }
     }
 }

@@ -37,6 +37,13 @@ public class DoctorService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<DoctorDTO> getDoctorsByDepartment(String department) {
+        return doctorProfileRepository.findByDepartmentIgnoreCase(department).stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public DoctorDTO updateDoctorProfile(Long id, DoctorDTO dto, String requesterEmail, String requesterRole) {
         DoctorProfile profile = doctorProfileRepository.findById(id)

@@ -8,6 +8,8 @@ import com.securehealth.backend.repository.LoginRepository;
 import com.securehealth.backend.repository.PatientProfileRepository;
 import com.securehealth.backend.repository.AppointmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,14 +33,13 @@ public class PatientService {
      * Only Doctors and Admins should be able to pull a full list of patients.
      */
     @Transactional(readOnly = true)
-    public List<PatientDTO> getAllPatients(String requesterRole) {
+    public Page<PatientDTO> getAllPatients(String requesterRole, Pageable pageable) {
         if (!requesterRole.equals("DOCTOR") && !requesterRole.equals("ADMIN")) {
             throw new RuntimeException("403 Forbidden: Insufficient privileges");
         }
         
-        return patientProfileRepository.findAll().stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+        return patientProfileRepository.findAll(pageable)
+                .map(this::mapToDTO);
     }
 
     /**

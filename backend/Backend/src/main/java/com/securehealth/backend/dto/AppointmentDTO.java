@@ -1,6 +1,7 @@
 package com.securehealth.backend.dto;
 import lombok.Data;
 import java.time.LocalDateTime;
+import com.securehealth.backend.model.AppointmentStatus;
 
 @Data
 public class AppointmentDTO {
@@ -9,6 +10,6 @@ public class AppointmentDTO {
     private String doctorName;
     private String patientName;
     private LocalDateTime appointmentDate;
-    private String status;
+    private AppointmentStatus status;
     private String reasonForVisit;
 }
