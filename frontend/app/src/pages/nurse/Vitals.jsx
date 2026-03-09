@@ -20,6 +20,7 @@ import {
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import { mockNurseOverview } from '../../mocks/nurseOverview';
+import api from '../../services/api';
 import VitalsSectionHeader from './components/VitalsSectionHeader';
 import VitalsAlertBanner from './components/VitalsAlertBanner';
 import VitalsEntryForm from './components/VitalsEntryForm';
@@ -209,6 +210,8 @@ const sortOptions = [
 
 const NurseVitals = () => {
    const [overview, setOverview] = useState(mockNurseOverview);
+   const [isLoading, setIsLoading] = useState(false);
+   const [error, setError] = useState(null);
    const [currentTime, setCurrentTime] = useState(new Date());
    const [viewMode, setViewMode] = useState('grid');
    const [activeFilter, setActiveFilter] = useState('all');
@@ -245,6 +248,34 @@ const NurseVitals = () => {
    const [formError, setFormError] = useState('');
 
    useEffect(() => {
+      const fetchPatients = async () => {
+         try {
+            setIsLoading(true);
+            const data = await api.nurse.getAssignedPatients();
+            if (data && Array.isArray(data)) {
+               setOverview(prev => ({
+                  ...prev,
+                  assignedPatients: data.map(p => ({
+                     id: p.id,
+                     name: `${p.firstName} ${p.lastName}`,
+                     room: p.room || "101",
+                     bed: p.bed || "A",
+                     acuityLevel: p.acuityLevel || "stable",
+                     vitalsStatus: p.vitalsStatus || "done",
+                     medicationStatus: p.medicationStatus || "all-given",
+                     codeStatus: p.codeStatus || "Full Code"
+                  }))
+               }));
+            }
+         } catch (err) {
+            console.error('Failed to load patients', err);
+            setError('Failed to load patients');
+         } finally {
+            setIsLoading(false);
+         }
+      };
+      fetchPatients();
+
       const interval = setInterval(() => setCurrentTime(new Date()), 60_000);
       return () => clearInterval(interval);
    }, []);
@@ -508,7 +539,7 @@ const NurseVitals = () => {
       setToast({ type, message, id: Date.now() });
    };
 
-   const persistVitals = (notifyPhysician = false) => {
+   const persistVitals = async (notifyPhysician = false) => {
       const timestamp = new Date().toISOString();
       const tempF = temperatureUnit === 'F' ? Number(vitalsForm.temperature) : Number(convertTemperature(vitalsForm.temperature, 'C', 'F').toFixed(1));
       const overallStatus = Object.values(formStatuses).includes('critical')
@@ -517,56 +548,73 @@ const NurseVitals = () => {
             ? 'abnormal'
             : 'normal';
 
-      const newHistoryEntry = {
-         timestamp,
-         bp: `${Number(vitalsForm.systolic)}/${Number(vitalsForm.diastolic)}`,
-         hr: Number(vitalsForm.heartRate),
-         temp: Number(tempF.toFixed(1)),
-         rr: Number(vitalsForm.respiratoryRate),
-         spo2: Number(vitalsForm.oxygenSaturation),
-         pain: Number(vitalsForm.painLevel),
-         status: overallStatus,
-         recordedBy: overview.nurse.name,
-         route: temperatureRoute,
-         notes: vitalsNotes,
-      };
+      try {
+         const patientId = vitalsPatient?.id || overview.assignedPatients?.[0]?.id;
+         
+         await api.nurse.recordVitals({
+            patientId: patientId,
+            bloodPressure: `${Number(vitalsForm.systolic)}/${Number(vitalsForm.diastolic)}`,
+            heartRate: Number(vitalsForm.heartRate),
+            temperature: Number(tempF.toFixed(1)),
+            respiratoryRate: Number(vitalsForm.respiratoryRate),
+            oxygenSaturation: parseInt(vitalsForm.oxygenSaturation),
+            painLevel: Number(vitalsForm.painLevel)
+         });
 
-      setOverview((prev) => {
-         const updatedHistory = [newHistoryEntry, ...(prev.vitals?.history || [])];
-         return {
-            ...prev,
-            vitals: {
-               ...prev.vitals,
-               current: {
-                  bp: { systolic: Number(vitalsForm.systolic), diastolic: Number(vitalsForm.diastolic) },
-                  heartRate: Number(vitalsForm.heartRate),
-                  temperature: { value: Number(vitalsForm.temperature), unit: temperatureUnit, route: temperatureRoute },
-                  respiratoryRate: Number(vitalsForm.respiratoryRate),
-                  oxygenSaturation: Number(vitalsForm.oxygenSaturation),
-                  painLevel: Number(vitalsForm.painLevel),
-                  timestamp,
-                  recordedBy: prev.nurse.name,
-               },
-               history: updatedHistory,
-            },
+         const newHistoryEntry = {
+            timestamp,
+            bp: `${Number(vitalsForm.systolic)}/${Number(vitalsForm.diastolic)}`,
+            hr: Number(vitalsForm.heartRate),
+            temp: Number(tempF.toFixed(1)),
+            rr: Number(vitalsForm.respiratoryRate),
+            spo2: parseInt(vitalsForm.oxygenSaturation),
+            pain: Number(vitalsForm.painLevel),
+            status: overallStatus,
+            recordedBy: overview.nurse.name,
+            route: temperatureRoute,
+            notes: vitalsNotes,
          };
-      });
 
-      setAlertAcknowledged(false);
-      setAlertNotified(notifyPhysician);
-      setVitalsNotes('');
-      setFormError('');
-      triggerToast('success', notifyPhysician ? 'Vitals saved and physician notified.' : 'Vitals saved successfully.');
+         setOverview((prev) => {
+            const updatedHistory = [newHistoryEntry, ...(prev.vitals?.history || [])];
+            return {
+               ...prev,
+               vitals: {
+                  ...prev.vitals,
+                  current: {
+                     bp: { systolic: Number(vitalsForm.systolic), diastolic: Number(vitalsForm.diastolic) },
+                     heartRate: Number(vitalsForm.heartRate),
+                     temperature: { value: Number(vitalsForm.temperature), unit: temperatureUnit, route: temperatureRoute },
+                     respiratoryRate: Number(vitalsForm.respiratoryRate),
+                     oxygenSaturation: parseInt(vitalsForm.oxygenSaturation),
+                     painLevel: Number(vitalsForm.painLevel),
+                     timestamp,
+                     recordedBy: prev.nurse.name,
+                  },
+                  history: updatedHistory,
+               },
+            };
+         });
+
+         setAlertAcknowledged(false);
+         setAlertNotified(notifyPhysician);
+         setVitalsNotes('');
+         setFormError('');
+         triggerToast('success', notifyPhysician ? 'Vitals saved and physician notified.' : 'Vitals saved successfully.');
+      } catch (err) {
+         console.error('Failed to save vitals', err);
+         triggerToast('error', 'Failed to save vital signs: ' + err.message);
+      }
    };
 
-   const executeVitalsSave = (action) => {
+   const executeVitalsSave = async (action) => {
       const notifyPhysician = action === 'notify';
-      persistVitals(notifyPhysician);
+      await persistVitals(notifyPhysician);
       setShowCriticalModal(false);
       setPendingAction(null);
    };
 
-   const handleVitalsSubmit = (action) => {
+   const handleVitalsSubmit = async (action) => {
       setFormError('');
       if (!validateVitalsForm()) {
          setFormError('Please complete all required fields with valid numeric values.');
@@ -580,7 +628,7 @@ const NurseVitals = () => {
          return;
       }
 
-      executeVitalsSave(action);
+      await executeVitalsSave(action);
    };
 
    const handleCriticalCancel = () => {
@@ -588,12 +636,12 @@ const NurseVitals = () => {
       setPendingAction(null);
    };
 
-   const handleCriticalProceed = () => {
-      executeVitalsSave(pendingAction || 'save');
+   const handleCriticalProceed = async () => {
+      await executeVitalsSave(pendingAction || 'save');
    };
 
-   const handleCriticalNotify = () => {
-      executeVitalsSave('notify');
+   const handleCriticalNotify = async () => {
+      await executeVitalsSave('notify');
    };
 
    const handleAcknowledgeAlert = () => {

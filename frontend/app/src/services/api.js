@@ -412,6 +412,63 @@ export const vitalSignsAPI = {
 };
 
 // ============================================
+// NURSE APIs
+// ============================================
+
+export const nurseAPI = {
+   getDashboardOverview: async () => {
+      return apiCall('/nurse/dashboard', { method: 'GET' });
+   },
+   getAssignedPatients: async () => {
+      return apiCall('/nurse/assigned-patients', { method: 'GET' });
+   },
+   getTasks: async () => {
+      return apiCall('/nurse/tasks', { method: 'GET' });
+   },
+   toggleTaskStatus: async (taskId) => {
+      return apiCall(`/nurse/tasks/${taskId}/toggle`, { method: 'PUT' });
+   },
+   getHandoverNotes: async () => {
+      return apiCall('/nurse/handover', { method: 'GET' });
+   },
+   saveHandoverNote: async (payload) => {
+      return apiCall('/nurse/handover', { method: 'POST', body: JSON.stringify(payload) });
+   },
+   recordVitals: async (vitalSignsData) => {
+      return apiCall('/vital-signs', { 
+         method: 'POST', 
+         body: JSON.stringify(vitalSignsData) 
+      });
+   }
+};
+
+// ============================================
+// LAB TECHNICIAN APIs
+// ============================================
+
+export const labTechnicianAPI = {
+   getDashboard: async () => {
+      return apiCall('/lab-technician/dashboard', { method: 'GET' });
+   },
+   getOrders: async (status) => {
+      const url = status ? `/lab-technician/orders?status=${status}` : '/lab-technician/orders';
+      return apiCall(url, { method: 'GET' });
+   },
+   updateOrderStatus: async (testId, status) => {
+      return apiCall(`/lab-technician/orders/${testId}/status`, {
+         method: 'PUT',
+         body: JSON.stringify({ status })
+      });
+   },
+   uploadResults: async (testId, resultValue, remarks, fileUrl) => {
+      return apiCall(`/lab-technician/orders/${testId}/upload`, {
+         method: 'PUT',
+         body: JSON.stringify({ resultValue, remarks, fileUrl })
+      });
+   }
+};
+
+// ============================================
 // ADMIN APIs
 // ============================================
 
@@ -461,6 +518,8 @@ const api = {
    labResults: labResultAPI,
    doctors: doctorAPI,
    vitalSigns: vitalSignsAPI,
+   nurse: nurseAPI,
+   labTechnician: labTechnicianAPI,
    admin: adminAPI,
 };
 

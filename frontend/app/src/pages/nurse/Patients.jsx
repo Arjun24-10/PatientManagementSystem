@@ -9,6 +9,7 @@ import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '.
 import Input from '../../components/common/Input';
 import Select from '../../components/common/Select';
 import { mockNursePatients } from '../../mocks/nursePatients';
+import api from '../../services/api';
 
 const Patients = () => {
     const navigate = useNavigate();
@@ -17,15 +18,50 @@ const Patients = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
+    const [patients, setPatients] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    React.useEffect(() => {
+        const fetchPatients = async () => {
+            try {
+                setIsLoading(true);
+                const data = await api.nurse.getAssignedPatients();
+                if (data && Array.isArray(data)) {
+                    setPatients(data.map(p => ({
+                        id: p.id.toString(),
+                        name: `${p.firstName} ${p.lastName}`,
+                        age: p.age || 'N/A',
+                        gender: p.gender || 'N/A',
+                        room: p.room || 'N/A',
+                        bed: p.bed || 'A',
+                        diagnosis: p.medicalHistory || 'Observation',
+                        vitalsStatus: p.vitalsStatus || 'unknown',
+                        lastVitals: p.lastVitals || 'Not recent',
+                        status: p.acuityLevel || 'stable',
+                    })));
+                } else {
+                    setPatients([]);
+                }
+            } catch (err) {
+                console.error("Failed to fetch assigned patients:", err);
+                setError("Failed to load your assigned patients.");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchPatients();
+    }, []);
+
     const filteredPatients = useMemo(() => {
-        return mockNursePatients.filter(patient => {
+        return patients.filter(patient => {
             const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 patient.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                patient.room.includes(searchTerm);
+                (patient.room && patient.room.includes(searchTerm));
             const matchesFilter = filterStatus === 'all' || patient.status === filterStatus;
             return matchesSearch && matchesFilter;
         });
-    }, [searchTerm, filterStatus]);
+    }, [searchTerm, filterStatus, patients]);
 
     const paginatedPatients = useMemo(() => {
         const startIndex = (currentPage - 1) * itemsPerPage;
@@ -94,14 +130,26 @@ const Patients = () => {
                         <TableHeader align="right">Actions</TableHeader>
                     </TableHead>
                     <TableBody>
-                        {paginatedPatients.length > 0 ? (
+                        {isLoading ? (
+                            <TableRow>
+                                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                                    Loading patients...
+                                </TableCell>
+                            </TableRow>
+                        ) : error ? (
+                            <TableRow>
+                                <TableCell colSpan={7} className="text-center py-8 text-red-500">
+                                    {error}
+                                </TableCell>
+                            </TableRow>
+                        ) : paginatedPatients.length > 0 ? (
                             paginatedPatients.map((patient) => (
                                 <TableRow key={patient.id} onClick={() => navigate(`/dashboard/nurse/patient/${patient.id}`)}>
                                     <TableCell className="font-medium text-gray-900 dark:text-white">#{patient.id}</TableCell>
                                     <TableCell>
                                         <div>
                                             <div className="font-medium text-gray-900 dark:text-white">{patient.name}</div>
-                                            <div className="text-xs text-gray-500">{patient.age} yrs, {patient.gender}</div>
+                                            <div className="text-xs text-gray-500">{patient.age} {patient.age !== 'N/A' && 'yrs,'} {patient.gender}</div>
                                         </div>
                                     </TableCell>
                                     <TableCell>{patient.room}-{patient.bed}</TableCell>
