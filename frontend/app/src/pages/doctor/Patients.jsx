@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
-import Button from '../../components/common/Button';
 import PatientSearch from './components/PatientSearch';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -48,7 +47,6 @@ const Patients = () => {
         <div className="space-y-3">
             <div className="flex justify-between items-center">
                 <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">My Patients</h2>
-                <Button>+ Add Patient</Button>
             </div>
 
             {error && (

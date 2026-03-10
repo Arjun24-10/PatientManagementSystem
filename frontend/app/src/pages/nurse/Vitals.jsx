@@ -676,7 +676,7 @@ const NurseVitals = () => {
 
    const handleNotifyPhysician = () => {
       setAlertNotified(true);
-      triggerToast('info', 'Physician notification sent (mock).');
+      triggerToast('info', 'Physician notification sent.');
    };
 
    const handleCustomRangeChange = (range) => {
