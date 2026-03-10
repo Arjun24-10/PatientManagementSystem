@@ -435,6 +435,9 @@ export const nurseAPI = {
    toggleTaskStatus: async (taskId) => {
       return apiCall(`/nurse/tasks/${taskId}/toggle`, { method: 'PUT' });
    },
+   createTask: async (taskData) => {
+      return apiCall('/nurse/tasks', { method: 'POST', body: JSON.stringify(taskData) });
+   },
    getHandoverNotes: async () => {
       return apiCall('/nurse/handover', { method: 'GET' });
    },

@@ -493,10 +493,6 @@ const NurseDashboard = () => {
                      <span className="flex items-center gap-0.5"><span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Medium</span>
                      <span className="flex items-center gap-0.5"><span className="w-1.5 h-1.5 rounded-full bg-gray-400" /> Low</span>
                   </div>
-                  <Button className="flex items-center gap-1.5 text-xs font-semibold" onClick={() => alert('Add task modal (placeholder)')}>
-                     <Plus className="w-3.5 h-3.5" />
-                     Add Task
-                  </Button>
                </div>
             </div>
 

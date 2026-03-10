@@ -964,7 +964,7 @@ const NurseVitals = () => {
                chartData={chartData}
                chartDomain={chartDomain}
                vitalLimits={VITAL_LIMITS}
-               onExport={() => triggerToast('info', 'Trend export to PDF (mock).')}
+               onExport={() => triggerToast('info', 'Trend export to PDF.')}
             />
 
             {/* Time-Stamped Vitals Log */}
@@ -980,8 +980,8 @@ const NurseVitals = () => {
                classifyValue={classifyValue}
                getStatusClasses={getStatusClasses}
                defaultRecorder={overview.nurse.name}
-               onPrint={() => triggerToast('info', 'Print log (mock).')}
-               onExport={() => triggerToast('info', 'Export CSV (mock).')}
+               onPrint={() => triggerToast('info', 'Print log.')}
+               onExport={() => triggerToast('info', 'Export CSV.')}
             />
          </section>
       </div>

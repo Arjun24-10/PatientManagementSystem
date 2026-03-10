@@ -17,19 +17,13 @@ const VITAL_LIMITS = {
     rr: [12, 20]
 };
 
-const mockVitalsHistory = [
-    { time: '08:00', systolic: 120, diastolic: 80, pulse: 72, temp: 98.6, spo2: 98, rr: 16 },
-    { time: '12:00', systolic: 124, diastolic: 82, pulse: 75, temp: 98.4, spo2: 97, rr: 18 },
-    { time: '16:00', systolic: 118, diastolic: 78, pulse: 70, temp: 98.7, spo2: 99, rr: 16 },
-    { time: '20:00', systolic: 122, diastolic: 84, pulse: 78, temp: 99.1, spo2: 96, rr: 20 },
-];
-
 const VitalsEntry = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [patient, setPatient] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [submitError, setSubmitError] = useState(null);
+    const [vitalsHistory, setVitalsHistory] = useState([]);
 
     useEffect(() => {
         const loadPatient = async () => {
@@ -46,6 +40,35 @@ const VitalsEntry = () => {
             }
         };
         loadPatient();
+    }, [id]);
+
+    useEffect(() => {
+        const loadHistory = async () => {
+            try {
+                const data = await api.vitalSigns.getByPatient(id);
+                if (Array.isArray(data)) {
+                    setVitalsHistory(data.map(record => {
+                        const [systolic, diastolic] = (record.bloodPressure || '').split('/').map(Number);
+                        return {
+                            time: record.recordedAt
+                                ? new Date(record.recordedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                : '',
+                            systolic: systolic || 0,
+                            diastolic: diastolic || 0,
+                            pulse: record.heartRate || 0,
+                            temp: record.temperature || 0,
+                            spo2: record.oxygenSaturation || 0,
+                            rr: record.respiratoryRate || 0,
+                            nurseName: record.nurse?.username || '',
+                            recordedAt: record.recordedAt,
+                        };
+                    }));
+                }
+            } catch (err) {
+                console.error('Failed to load vitals history:', err);
+            }
+        };
+        loadHistory();
     }, [id]);
 
     const [vitals, setVitals] = useState({
@@ -262,7 +285,7 @@ const VitalsEntry = () => {
                         <h3 className="font-semibold text-gray-700 dark:text-slate-200 mb-4">Vitals Trends (24h)</h3>
                         <div className="h-48 w-full">
                             <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={mockVitalsHistory}>
+                                <LineChart data={vitalsHistory}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                                     <XAxis dataKey="time" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
                                     <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} domain={['auto', 'auto']} />
@@ -282,11 +305,11 @@ const VitalsEntry = () => {
                     <Card className="p-4">
                         <h3 className="font-semibold text-gray-700 dark:text-slate-200 mb-4">Recent History</h3>
                         <div className="space-y-3">
-                            {mockVitalsHistory.slice().reverse().map((record, idx) => (
+                            {vitalsHistory.slice().reverse().map((record, idx) => (
                                 <div key={idx} className="text-sm border-b border-gray-100 dark:border-slate-700 pb-2 last:border-0 last:pb-0">
                                     <div className="flex justify-between mb-1">
                                         <span className="font-medium text-gray-900 dark:text-white">{record.time}</span>
-                                        <span className="text-gray-500">Nurse Joy</span>
+                                        <span className="text-gray-500">{record.nurseName}</span>
                                     </div>
                                     <div className="grid grid-cols-2 gap-x-2 text-xs text-gray-600 dark:text-slate-400">
                                         <span>BP: {record.systolic}/{record.diastolic}</span>
