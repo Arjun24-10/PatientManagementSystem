@@ -1,6 +1,6 @@
 // Authentication service for backend API
-const API_BASE_URL = 'http://localhost:8081/api';
-const AUTH_URL = `${API_BASE_URL}/auth`;
+const API_BASE_URL = process.env.REACT_APP_API_URL || '';
+const AUTH_URL = API_BASE_URL ? `${API_BASE_URL}/auth` : '/auth';
 const STORAGE_KEY = 'secure_health_user';
 const PROFILE_STORAGE_KEY = 'secure_health_profiles';
 
@@ -301,12 +301,12 @@ export const verifyOtp = async (email, otp) => {
          const resolvedEmail = email;
          const storedName = getProfileName(resolvedEmail);
          const fullName = data.full_name || data.fullName || storedName;
-         const user = { 
-            email: resolvedEmail, 
-            role: data.role || 'PATIENT', 
-            fullName, 
-            accessToken: data.accessToken, 
-            userId: data.userId 
+         const user = {
+            email: resolvedEmail,
+            role: data.role || 'PATIENT',
+            fullName,
+            accessToken: data.accessToken,
+            userId: data.userId
          };
          if (fullName) {
             saveProfileName(resolvedEmail, fullName);
