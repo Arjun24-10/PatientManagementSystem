@@ -295,6 +295,13 @@ export const prescriptionAPI = {
 // ============================================
 
 export const labResultAPI = {
+   // Get all lab results (doctor/admin)
+   getAll: async () => {
+      return apiCall('/lab-results', {
+         method: 'GET',
+      });
+   },
+
    // Get all lab results for a patient
    getByPatient: async (patientId) => {
       return apiCall(`/lab-results/patient/${patientId}`, {

@@ -16,7 +16,7 @@ import LabResultsList from '../../components/doctor/LabResultsList';
 
 import api from '../../services/api';
 import { getPatientById } from '../../mocks/patients';
-import { mockMedicalHistory, mockPrescriptions, mockTreatments, mockLabs } from '../../mocks/records';
+import { mockPrescriptions, mockTreatments } from '../../mocks/records';
 
 const PatientDetail = () => {
     const { id } = useParams();
@@ -29,10 +29,8 @@ const PatientDetail = () => {
     // Data States
     const [prescriptions, setPrescriptions] = useState(mockPrescriptions);
     const [treatments, setTreatments] = useState(mockTreatments);
-    // eslint-disable-next-line no-unused-vars
-    const [medicalHistory, setMedicalHistory] = useState(mockMedicalHistory);
-    // eslint-disable-next-line no-unused-vars
-    const [labs, setLabs] = useState(mockLabs);
+    const [medicalHistory, setMedicalHistory] = useState([]);
+    const [labs, setLabs] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isRxModalOpen, setIsRxModalOpen] = useState(false);
     const [isTreatmentModalOpen, setIsTreatmentModalOpen] = useState(false);
@@ -212,8 +210,8 @@ const PatientDetail = () => {
                                 Recent Activity
                             </h3>
                             <ul className="space-y-1.5">
-                                {mockMedicalHistory.slice(0, 3).map(item => (
-                                    <li key={item.id} className="text-xs">
+                                {medicalHistory.slice(0, 3).map((item, idx) => (
+                                    <li key={item.id ?? idx} className="text-xs">
                                         <span className="font-bold text-gray-700 dark:text-slate-300">{item.date}:</span> <span className="dark:text-slate-400">{item.type} - {item.note}</span>
                                     </li>
                                 ))}
@@ -324,7 +322,7 @@ const PatientDetail = () => {
                     </div>
                 )}
 
-                {activeTab === 'history' && <MedicalHistoryList history={mockMedicalHistory} />}
+                {activeTab === 'history' && <MedicalHistoryList history={medicalHistory} />}
                 {activeTab === 'labs' && (
                     <LabResultsList
                         labs={labs}
