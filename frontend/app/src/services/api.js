@@ -1,5 +1,5 @@
 // API Service - Centralized API calls for the Patient Management System
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8081/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || '';
 
 // Helper function for API calls
 const apiCall = async (endpoint, options = {}) => {
@@ -435,9 +435,9 @@ export const nurseAPI = {
       return apiCall('/nurse/handover', { method: 'POST', body: JSON.stringify(payload) });
    },
    recordVitals: async (vitalSignsData) => {
-      return apiCall('/vital-signs', { 
-         method: 'POST', 
-         body: JSON.stringify(vitalSignsData) 
+      return apiCall('/vital-signs', {
+         method: 'POST',
+         body: JSON.stringify(vitalSignsData)
       });
    },
    recordMedicationAdministration: async (medicationData) => {
