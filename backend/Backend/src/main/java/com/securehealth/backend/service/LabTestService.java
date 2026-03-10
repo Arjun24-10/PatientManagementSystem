@@ -33,13 +33,10 @@ public class LabTestService {
 
         LabTest labTest = new LabTest();
         labTest.setPatient(patient);
-        // labTest.setOrderedBy(staff); // Optional: if your entity tracks who ordered it
-        
+        labTest.setOrderedBy(staff);
+        labTest.setStatus("PENDING");
         labTest.setTestName(request.getTestName());
         labTest.setTestCategory(request.getTestCategory());
-        labTest.setResultValue(request.getResultValue());
-        labTest.setUnit(request.getUnit());
-        labTest.setReferenceRange(request.getReferenceRange());
         labTest.setRemarks(request.getRemarks());
 
         return labTestRepository.save(labTest);
@@ -91,3 +88,4 @@ public class LabTestService {
         labTestRepository.deleteById(id);
     }
 }
+

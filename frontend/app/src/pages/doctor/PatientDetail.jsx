@@ -325,7 +325,13 @@ const PatientDetail = () => {
                 )}
 
                 {activeTab === 'history' && <MedicalHistoryList history={mockMedicalHistory} />}
-                {activeTab === 'labs' && <LabResultsList labs={mockLabs} />}
+                {activeTab === 'labs' && (
+                    <LabResultsList
+                        labs={labs}
+                        patientId={Number(id)}
+                        onAdd={(newLab) => setLabs(prev => [...prev, { ...newLab, id: Date.now() }])}
+                    />
+                )}
             </div>
 
             {/* Add Prescription Modal */}
