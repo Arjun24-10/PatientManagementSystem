@@ -200,9 +200,9 @@ const handleSubmit = async (e) => {
 
 ## 🟠 MAJOR ISSUES - Frontend Fixes Needed
 
-### FIX #LF1: lab/Dashboard.jsx - Connect to Backend ❌
+### FIX #LF1: lab/Dashboard.jsx - Connect to Backend ✅ (RESOLVED)
 **Severity**: MAJOR  
-**Current**: Lines 8-17 use mockLabOrders/mockLabActivity hardcoded  
+**Current**: Resolved
 **Fix Needed**: Call `api.labTechnician.getDashboard()` on mount
 
 **Implementation**:
@@ -242,9 +242,9 @@ const completedCount = dashboard.completed;
 
 ---
 
-### FIX #LF2: lab/Orders.jsx - Connect to Backend ❌
+### FIX #LF2: lab/Orders.jsx - Connect to Backend ✅ (RESOLVED)
 **Severity**: MAJOR  
-**Current**: Lines 17-31 filter mockLabOrders  
+**Current**: Resolved
 **Fix Needed**: Call `api.labTechnician.getOrders(statusFilter)` and handle status updates
 
 **Implementation**:
@@ -286,9 +286,9 @@ const handleStatusUpdate = async (testId, newStatus) => {
 
 ---
 
-### FIX #LF3: lab/UploadResults.jsx - Fix Format & Connect to Backend ❌
+### FIX #LF3: lab/UploadResults.jsx - Fix Format & Connect to Backend ✅ (RESOLVED)
 **Severity**: CRITICAL  
-**Current**: Lines 16-25 send FormData (wrong format)  
+**Current**: Resolved 
 **Fix Needed**: Send JSON payload via api.labTechnician.uploadResults()
 
 **Implementation**:
@@ -364,10 +364,10 @@ const getStatusType = (status) => {
 
 ## 📋 Frontend Integration Checklist
 
-- [ ] **FIX #LF1** - lab/Dashboard.jsx calls api.labTechnician.getDashboard() (10 min)
-- [ ] **FIX #LF2** - lab/Orders.jsx calls api.labTechnician.getOrders() and updateOrderStatus() (15 min)
-- [ ] **FIX #LF3** - lab/UploadResults.jsx sends JSON not FormData (10 min)
-- [ ] **FIX #LF4** - Verify status value matching (5 min)
+- [x] **FIX #LF1** - lab/Dashboard.jsx calls api.labTechnician.getDashboard() (10 min)
+- [x] **FIX #LF2** - lab/Orders.jsx calls api.labTechnician.getOrders() and updateOrderStatus() (15 min)
+- [x] **FIX #LF3** - lab/UploadResults.jsx sends JSON not FormData (10 min)
+- [x] **FIX #LF4** - Verify status value matching (5 min)
 - [ ] **BLOCKED** - File download (needs backend endpoint)
 - [ ] **BLOCKED** - Lab order creation (needs backend endpoint)
 
