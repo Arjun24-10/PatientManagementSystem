@@ -538,6 +538,34 @@ export const adminAPI = {
    },
 };
 
+// ============================================
+// CONSENT APIs
+// ============================================
+
+export const consentAPI = {
+   // Get all consents for the logged-in patient
+   getMyConsents: async () => {
+      return apiCall('/consent', {
+         method: 'GET',
+      });
+   },
+
+   // Grant a new consent
+   grantConsent: async (payload) => {
+      return apiCall('/consent', {
+         method: 'POST',
+         body: JSON.stringify(payload),
+      });
+   },
+
+   // Revoke an existing consent by ID
+   revokeConsent: async (id) => {
+      return apiCall(`/consent/${id}/revoke`, {
+         method: 'PUT',
+      });
+   },
+};
+
 const api = {
    auth: authAPI,
    patients: patientAPI,
@@ -550,6 +578,7 @@ const api = {
    nurse: nurseAPI,
    labTechnician: labTechnicianAPI,
    admin: adminAPI,
+   consent: consentAPI,
 };
 
 export default api;
