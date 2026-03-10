@@ -35,8 +35,8 @@ public class AppointmentController {
     }
 
     @GetMapping("/doctor/{doctorId}")
-    public ResponseEntity<List<Appointment>> getByDoctor(@PathVariable Long doctorId, Authentication auth) {
-        return ResponseEntity.ok(appointmentRepository.findByDoctor_UserIdOrderByAppointmentDateAsc(doctorId));
+    public ResponseEntity<List<AppointmentDTO>> getByDoctor(@PathVariable Long doctorId, Authentication auth) {
+        return ResponseEntity.ok(appointmentService.getAppointmentsByDoctor(doctorId));
     }
 
     // GET /api/appointments/doctor/{doctorId}/available-slots?date=2026-03-01

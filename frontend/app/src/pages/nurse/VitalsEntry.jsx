@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Save, AlertTriangle, ArrowLeft } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -7,7 +7,7 @@ import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import IconButton from '../../components/common/IconButton';
 import Input from '../../components/common/Input';
-import { mockNursePatients } from '../../mocks/nursePatients';
+import api from '../../services/api';
 
 const VITAL_LIMITS = {
     bp: { systolic: [90, 140], diastolic: [60, 90] },
@@ -27,7 +27,26 @@ const mockVitalsHistory = [
 const VitalsEntry = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const patient = mockNursePatients.find(p => p.id === id) || mockNursePatients[0];
+    const [patient, setPatient] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [submitError, setSubmitError] = useState(null);
+
+    useEffect(() => {
+        const loadPatient = async () => {
+            try {
+                const patients = await api.nurse.getAssignedPatients();
+                const found = Array.isArray(patients)
+                    ? patients.find(p => String(p.profileId) === id)
+                    : null;
+                setPatient(found || null);
+            } catch (err) {
+                console.error('Failed to load patient:', err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        loadPatient();
+    }, [id]);
 
     const [vitals, setVitals] = useState({
         systolic: '',
@@ -64,12 +83,39 @@ const VitalsEntry = () => {
         setErrors(prev => ({ ...prev, [name]: error }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Mock submission
-        alert('Vitals recorded successfully!');
-        navigate(`/dashboard/nurse/patient/${id}`);
+        setSubmitError(null);
+        try {
+            await api.vitalSigns.create({
+                patientId: Number(id),
+                bloodPressure: `${vitals.systolic}/${vitals.diastolic}`,
+                heartRate: vitals.pulse ? Number(vitals.pulse) : undefined,
+                temperature: vitals.temp ? Number(vitals.temp) : undefined,
+                respiratoryRate: vitals.rr ? Number(vitals.rr) : undefined,
+                oxygenSaturation: vitals.spo2 ? Number(vitals.spo2) : undefined,
+            });
+            navigate(`/dashboard/nurse/patient/${id}`);
+        } catch (err) {
+            console.error('Failed to save vitals:', err);
+            setSubmitError('Failed to save vitals. Please try again.');
+        }
     };
+
+    if (isLoading) {
+        return <div className="p-8 text-center text-gray-500">Loading patient...</div>;
+    }
+
+    if (!patient) {
+        return (
+            <div className="p-8 text-center">
+                <p className="text-gray-500">Patient not found or not assigned to you.</p>
+                <Button onClick={() => navigate('/dashboard/nurse/patients')} className="mt-4">Back to Patients</Button>
+            </div>
+        );
+    }
+
+    const patientName = `${patient.firstName || ''} ${patient.lastName || ''}`.trim() || 'Unknown';
 
     return (
         <div className="space-y-6 max-w-4xl mx-auto">
@@ -84,7 +130,7 @@ const VitalsEntry = () => {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Record Vitals</h1>
-                    <p className="text-gray-500">Patient: {patient.name} (Room {patient.room})</p>
+                    <p className="text-gray-500">Patient: {patientName}</p>
                 </div>
                 <div className="text-sm text-gray-400">
                     {new Date().toLocaleString()}
@@ -191,6 +237,11 @@ const VitalsEntry = () => {
                                 ></textarea>
                             </div>
 
+                            {submitError && (
+                                <p className="text-sm text-red-600 flex items-center gap-1">
+                                    <AlertTriangle className="w-4 h-4" /> {submitError}
+                                </p>
+                            )}
                             <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-slate-700">
                                 <Button variant="ghost" onClick={() => navigate(-1)}>
                                     Cancel

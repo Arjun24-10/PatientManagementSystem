@@ -6,7 +6,6 @@ import {
 
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import IconButton from '../../components/common/IconButton';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
 import Input from '../../components/common/Input';
@@ -14,12 +13,10 @@ import Input from '../../components/common/Input';
 import TreatmentModal from '../../components/doctor/TreatmentModal';
 import MedicalHistoryList from '../../components/doctor/MedicalHistoryList';
 import LabResultsList from '../../components/doctor/LabResultsList';
-import VitalSignModal from '../../components/doctor/VitalSignModal';
-import LabTestModal from '../../components/doctor/LabTestModal';
-import MedicalRecordModal from '../../components/doctor/MedicalRecordModal';
-import PrescriptionModal from '../../components/doctor/PrescriptionModal';
 
 import api from '../../services/api';
+import { getPatientById } from '../../mocks/patients';
+import { mockMedicalHistory, mockPrescriptions, mockTreatments, mockLabs } from '../../mocks/records';
 
 const PatientDetail = () => {
     const { id } = useParams();
@@ -30,18 +27,15 @@ const PatientDetail = () => {
     const [activeTab, setActiveTab] = useState('overview');
 
     // Data States
-    const [prescriptions, setPrescriptions] = useState([]);
-    const [treatments, setTreatments] = useState([]);
-    const [vitals, setVitals] = useState([]);
-    const [medicalHistory, setMedicalHistory] = useState([]);
-    const [labs, setLabs] = useState([]);
+    const [prescriptions, setPrescriptions] = useState(mockPrescriptions);
+    const [treatments, setTreatments] = useState(mockTreatments);
+    // eslint-disable-next-line no-unused-vars
+    const [medicalHistory, setMedicalHistory] = useState(mockMedicalHistory);
+    // eslint-disable-next-line no-unused-vars
+    const [labs, setLabs] = useState(mockLabs);
     const [isLoading, setIsLoading] = useState(true);
     const [isRxModalOpen, setIsRxModalOpen] = useState(false);
     const [isTreatmentModalOpen, setIsTreatmentModalOpen] = useState(false);
-    const [isVitalsModalOpen, setIsVitalsModalOpen] = useState(false);
-    const [isLabTestModalOpen, setIsLabTestModalOpen] = useState(false);
-    const [isMedicalRecordModalOpen, setIsMedicalRecordModalOpen] = useState(false);
-    const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
     const [newRx, setNewRx] = useState({ name: '', dosage: '', frequency: '', duration: '', instructions: '' });
 
     // Fetch Data
@@ -54,82 +48,35 @@ const PatientDetail = () => {
                     const patientData = await api.patients.getById(id);
                     if (patientData && patientData.id) {
                         setPatient(patientData);
+                    } else {
+                        // Fallback to mock if API returns nothing or fails
+                        setPatient(getPatientById(id));
                     }
                 } catch (e) {
-                    console.error('Failed to fetch patient from API', e);
-                    // Handle both old and new error messages  
-                    if (e.message === 'DOCTOR_ENDPOINT_NOT_IMPLEMENTED' || 
-                        e.message.includes('not yet available for doctors')) {
-                        console.info('Using mock patient data for patient detail page');
-                        setPatient({
-                            id: id,
-                            name: 'John Doe',
-                            firstName: 'John',
-                            lastName: 'Doe',
-                            email: 'john.doe@email.com',
-                            phone: '(555) 123-4567',
-                            age: 45,
-                            gender: 'Male',
-                            condition: 'Hypertension',
-                            status: 'Stable',
-                            avatar: 'JD',
-                            address: '123 Main St, City, State 12345'
-                        });
-                    }
+                    console.warn('Failed to fetch patient from API, using mock', e);
+                    setPatient(getPatientById(id));
                 }
 
                 // 2. Prescriptions
                 try {
                     const rxData = await api.prescriptions.getByPatient(id);
                     if (Array.isArray(rxData)) setPrescriptions(rxData);
-                } catch (e) { 
-                    console.error('Failed to fetch prescriptions', e);
-                    if (e.message === 'DOCTOR_ENDPOINT_NOT_IMPLEMENTED' || 
-                        e.message.includes('not yet available for doctors')) {
-                        setPrescriptions([
-                            { id: 'RX001', name: 'Lisinopril', dosage: '10mg', frequency: 'Once daily', 
-                                instructions: 'Take with food', active: true },
-                            { id: 'RX002', name: 'Metformin', dosage: '500mg', frequency: 'Twice daily', 
-                                instructions: 'Take with meals', active: true }
-                        ]);
-                    }
-                }
+                } catch (e) { console.warn('Using mock prescriptions'); }
 
                 // 3. Medical History
                 try {
                     const historyData = await api.medicalRecords.getByPatient(id);
                     if (Array.isArray(historyData)) setMedicalHistory(historyData);
-                } catch (e) { 
-                    console.error('Failed to fetch history', e);
-                    if (e.message === 'DOCTOR_ENDPOINT_NOT_IMPLEMENTED' || 
-                        e.message.includes('not yet available for doctors')) {
-                        setMedicalHistory([
-                            { id: 'MR001', diagnosis: 'Hypertension', date: '2024-01-15', 
-                                doctor: 'Dr. Smith', notes: 'Blood pressure well controlled' },
-                            { id: 'MR002', diagnosis: 'Routine Check-up', date: '2024-02-28', 
-                                doctor: 'Dr. Smith', notes: 'Annual physical examination' }
-                        ]);
-                    }
-                }
+                } catch (e) { console.warn('Using mock history'); }
 
                 // 4. Lab Results
                 try {
                     const labData = await api.labResults.getByPatient(id);
                     if (Array.isArray(labData)) setLabs(labData);
-                } catch (e) { 
-                    console.error('Failed to fetch labs', e);
-                    if (e.message === 'DOCTOR_ENDPOINT_NOT_IMPLEMENTED' || 
-                        e.message.includes('not yet available for doctors')) {
-                        setLabs([
-                            { id: 'LAB001', name: 'Complete Blood Count', date: '2024-02-20', 
-                                status: 'Normal', result: 'All values within normal range' },
-                            { id: 'LAB002', name: 'Lipid Panel', date: '2024-02-20', 
-                                status: 'Abnormal', result: 'Elevated LDL cholesterol' }
-                        ]);
-                    }
-                }
+                } catch (e) { console.warn('Using mock labs'); }
+
             } catch (error) {
-                console.error('Error in fetch data:', error);
+                console.error('Error loading patient details:', error);
             } finally {
                 setIsLoading(false);
             }
@@ -140,6 +87,11 @@ const PatientDetail = () => {
 
     if (isLoading && !patient) return <div className="p-6 dark:text-slate-100">Loading patient details...</div>;
     if (!patient) return <div className="p-6 dark:text-slate-100">Patient not found</div>;
+
+    const patientFullName = `${patient.firstName || ''} ${patient.lastName || ''}`.trim() || patient.name || 'Unknown';
+    const patientAge = patient.dateOfBirth
+        ? Math.floor((Date.now() - new Date(patient.dateOfBirth)) / (365.25 * 24 * 60 * 60 * 1000))
+        : patient.age || 'N/A';
 
     const handleAddRx = (e) => {
         e.preventDefault();
@@ -164,7 +116,7 @@ const PatientDetail = () => {
             prescribedBy: 'Dr. Smith'
         };
         setPrescriptions([renewedRx, ...prescriptions]);
-        alert(`Prescription for ${rx.name} renewed successfully.`);
+        alert(`Prescription for ${rx.medicationName || rx.name} renewed successfully.`);
     };
 
     const handleDeleteRx = (rxId) => {
@@ -182,24 +134,8 @@ const PatientDetail = () => {
         setTreatments([newTreatment, ...treatments]);
     };
 
-    const handleAddVitals = (vital) => {
-        setVitals([vital, ...vitals]);
-    };
-
-    const handleAddLabTest = (test) => {
-        setLabs([test, ...labs]);
-    };
-
-    const handleAddMedicalRecord = (record) => {
-        setMedicalHistory([record, ...medicalHistory]);
-    };
-
-    const handleAddPrescription = (rx) => {
-        setPrescriptions([rx, ...prescriptions]);
-    };
-
-    const activePrescriptions = prescriptions.filter(rx => rx.active);
-    const historyPrescriptions = prescriptions.filter(rx => !rx.active);
+    const activePrescriptions = prescriptions.filter(rx => rx.active === true || rx.status === 'ACTIVE');
+    const historyPrescriptions = prescriptions.filter(rx => rx.active === false || (rx.status && rx.status !== 'ACTIVE'));
 
     return (
         <div className="space-y-3">
@@ -209,15 +145,15 @@ const PatientDetail = () => {
                     <ArrowLeft size={16} />
                 </Button>
                 <div>
-                    <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">{patient.name}</h2>
+                    <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">{patientFullName}</h2>
                     <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-slate-400">
                         <span>ID: {patient.id}</span>
                         <span>•</span>
-                        <span>{patient.age} yrs, {patient.gender}</span>
+                        <span>{patientAge} yrs, {patient.gender}</span>
                     </div>
                 </div>
                 <div className="ml-auto">
-                    <Badge type={patient.status === 'Needs Review' ? 'red' : 'green'}>{patient.status}</Badge>
+                    <Badge type="green">Active</Badge>
                 </div>
             </div>
 
@@ -253,7 +189,7 @@ const PatientDetail = () => {
                             <div className="space-y-2">
                                 <div className="flex justify-between border-b dark:border-slate-700 pb-1 text-sm">
                                     <span className="text-gray-600 dark:text-slate-400">Condition</span>
-                                    <span className="font-medium dark:text-slate-100">{patient.condition}</span>
+                                    <span className="font-medium dark:text-slate-100">{patient.medicalHistory || 'N/A'}</span>
                                 </div>
                                 <div className="flex justify-between border-b dark:border-slate-700 pb-1 text-sm">
                                     <span className="text-gray-600 dark:text-slate-400">Blood Pressure</span>
@@ -276,7 +212,7 @@ const PatientDetail = () => {
                                 Recent Activity
                             </h3>
                             <ul className="space-y-1.5">
-                                {medicalHistory.slice(0, 3).map(item => (
+                                {mockMedicalHistory.slice(0, 3).map(item => (
                                     <li key={item.id} className="text-xs">
                                         <span className="font-bold text-gray-700 dark:text-slate-300">{item.date}:</span> <span className="dark:text-slate-400">{item.type} - {item.note}</span>
                                     </li>
@@ -295,13 +231,9 @@ const PatientDetail = () => {
                                     <h3 className="font-bold text-sm text-blue-900 dark:text-blue-100">Active Prescriptions</h3>
                                     <p className="text-xs text-blue-700 dark:text-blue-300">Currently being taken by patient</p>
                                 </div>
-                                <IconButton 
-                                   icon={Plus} 
-                                   label="Add New" 
-                                   variant="primary"
-                                   size="sm"
-                                   onClick={() => setIsPrescriptionModalOpen(true)}
-                                />
+                                <Button onClick={() => setIsRxModalOpen(true)} className="flex items-center text-xs shadow-none">
+                                    <Plus className="w-3.5 h-3.5 mr-1" /> Add New
+                                </Button>
                             </div>
 
                             {activePrescriptions.length > 0 ? (
@@ -313,7 +245,7 @@ const PatientDetail = () => {
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-1.5">
-                                                    <h4 className="font-bold text-gray-800 dark:text-slate-100 text-sm">{rx.name}</h4>
+                                                    <h4 className="font-bold text-gray-800 dark:text-slate-100 text-sm">{rx.name || rx.medicationName}</h4>
                                                     <Badge type="green">Active</Badge>
                                                 </div>
                                                 <div className="text-xs text-gray-600 dark:text-slate-400 font-medium">{rx.dosage} • {rx.frequency}</div>
@@ -349,7 +281,7 @@ const PatientDetail = () => {
                                     {historyPrescriptions.map((rx, idx) => (
                                         <div key={rx.id} className={`p-2.5 flex justify-between items-center ${idx !== historyPrescriptions.length - 1 ? 'border-b border-gray-200 dark:border-slate-700' : ''}`}>
                                             <div className="opacity-70">
-                                                <h4 className="font-bold text-sm text-gray-700 dark:text-slate-300">{rx.name}</h4>
+                                                <h4 className="font-bold text-sm text-gray-700 dark:text-slate-300">{rx.name || rx.medicationName}</h4>
                                                 <p className="text-xs text-gray-500 dark:text-slate-400">{rx.dosage} • {rx.frequency}</p>
                                                 <p className="text-xs text-gray-400 dark:text-slate-500">Ended: {rx.date}</p>
                                             </div>
@@ -373,13 +305,9 @@ const PatientDetail = () => {
                     <div className="space-y-2">
                         <div className="flex justify-between items-center bg-gray-50 dark:bg-slate-800 p-2.5 rounded">
                             <h3 className="font-bold text-sm text-gray-700 dark:text-slate-300">Active Treatments</h3>
-                            <IconButton 
-                               icon={Plus} 
-                               label="Add Treatment" 
-                               variant="primary"
-                               size="sm"
-                               onClick={() => setIsTreatmentModalOpen(true)}
-                            />
+                            <Button onClick={() => setIsTreatmentModalOpen(true)} className="flex items-center text-xs">
+                                <Plus className="w-3.5 h-3.5 mr-1" /> Add Treatment
+                            </Button>
                         </div>
                         {treatments.map(item => (
                             <Card key={item.id} className="p-3 flex flex-col md:flex-row justify-between items-start md:items-center dark:bg-slate-800">
@@ -396,8 +324,8 @@ const PatientDetail = () => {
                     </div>
                 )}
 
-                {activeTab === 'history' && <MedicalHistoryList history={medicalHistory} />}
-                {activeTab === 'labs' && <LabResultsList labs={labs} />}
+                {activeTab === 'history' && <MedicalHistoryList history={mockMedicalHistory} />}
+                {activeTab === 'labs' && <LabResultsList labs={mockLabs} />}
             </div>
 
             {/* Add Prescription Modal */}
@@ -454,42 +382,10 @@ const PatientDetail = () => {
                 </form>
             </Modal>
 
-            {/* Update Prescription Click Handler - Change to use new PrescriptionModal */}
-            {/* Old modal kept for backward compatibility - now clicking shows new API-integrated modal */}
-            
             <TreatmentModal
                 isOpen={isTreatmentModalOpen}
                 onClose={() => setIsTreatmentModalOpen(false)}
                 onAdd={handleAddTreatment}
-            />
-
-            {/* New Clinical Operations Modals */}
-            <VitalSignModal
-                isOpen={isVitalsModalOpen}
-                onClose={() => setIsVitalsModalOpen(false)}
-                patientId={patient?.id}
-                onAdd={handleAddVitals}
-            />
-
-            <LabTestModal
-                isOpen={isLabTestModalOpen}
-                onClose={() => setIsLabTestModalOpen(false)}
-                patientId={patient?.id}
-                onAdd={handleAddLabTest}
-            />
-
-            <MedicalRecordModal
-                isOpen={isMedicalRecordModalOpen}
-                onClose={() => setIsMedicalRecordModalOpen(false)}
-                patientId={patient?.id}
-                onAdd={handleAddMedicalRecord}
-            />
-
-            <PrescriptionModal
-                isOpen={isPrescriptionModalOpen}
-                onClose={() => setIsPrescriptionModalOpen(false)}
-                patientId={patient?.id}
-                onAdd={handleAddPrescription}
             />
         </div>
     );

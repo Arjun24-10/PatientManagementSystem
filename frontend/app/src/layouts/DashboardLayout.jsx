@@ -11,11 +11,9 @@ const DashboardLayout = ({ role, userName = "User" }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-
     const { isDark, toggleTheme } = useTheme();
     const { logout } = useAuth();
     const navigate = useNavigate();
-
 
     const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
     const toggleCollapse = () => setIsCollapsed(!isCollapsed);

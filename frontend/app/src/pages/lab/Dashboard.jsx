@@ -4,18 +4,39 @@ import { Activity, Clock, FileText, CheckCircle, Upload } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import { useAuth } from '../../contexts/AuthContext';
-import { mockLabOrders, mockLabActivity } from '../../mocks/labOrders';
+import api from '../../services/api';
 
 const LabDashboard = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
 
     const techName = user?.fullName || user?.full_name || 'Tech';
+    const [dashboard, setDashboard] = React.useState({
+        pending: 0,
+        collected: 0,
+        resultsPending: 0,
+        completed: 0,
+        recentActivity: []
+    });
 
-    const pendingCount = mockLabOrders.filter(o => o.status === 'Pending').length;
-    const collectedCount = mockLabOrders.filter(o => o.status === 'Collected').length;
-    const resultsPendingCount = mockLabOrders.filter(o => o.status === 'Results Pending').length;
-    const completedCount = mockLabOrders.filter(o => o.status === 'Completed').length;
+    React.useEffect(() => {
+        const fetchDashboard = async () => {
+            try {
+                const data = await api.labTechnician.getDashboard();
+                if (data) {
+                    setDashboard(data);
+                }
+            } catch (err) {
+                console.error('Failed to load dashboard', err);
+            }
+        };
+        fetchDashboard();
+    }, []);
+
+    const pendingCount = dashboard.pending || 0;
+    const collectedCount = dashboard.collected || 0;
+    const resultsPendingCount = dashboard.resultsPending || 0;
+    const completedCount = dashboard.completed || 0;
 
     return (
         <div className="space-y-3">
@@ -79,27 +100,40 @@ const LabDashboard = () => {
                     <Card className="p-3 dark:bg-slate-800">
                         <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100 mb-3">Recent Lab Activity</h3>
                         <div className="space-y-3">
-                            {mockLabActivity.map((activity, index) => (
-                                <div key={activity.id} className="flex relative">
-                                    {index !== mockLabActivity.length - 1 && (
+                            {dashboard.recentActivity && dashboard.recentActivity.length > 0 ? dashboard.recentActivity.map((activity, index) => {
+                                const action = activity.status === 'Completed' ? 'Completed' : activity.status === 'Collected' ? 'Sample Collected' : 'Order Created';
+                                const actionIcon = activity.status === 'Completed' ? <CheckCircle size={14} /> :
+                                    activity.status === 'Collected' ? <Activity size={14} /> :
+                                        <FileText size={14} />;
+                                return (
+                                <div key={activity.testId || index} className="flex relative">
+                                    {index !== dashboard.recentActivity.length - 1 && (
                                         <div className="absolute left-4 top-8 bottom-0 w-0.5 bg-gray-100 dark:bg-slate-700"></div>
                                     )}
                                     <div className="w-8 h-8 rounded-full bg-gray-50 dark:bg-slate-700 flex items-center justify-center text-gray-500 dark:text-slate-400 z-10 border-2 border-white dark:border-slate-800 shadow-sm">
-                                        {activity.action.includes('Upload') ? <Upload size={14} /> :
-                                            activity.action.includes('Collected') ? <Activity size={14} /> :
-                                                activity.action.includes('Completed') ? <CheckCircle size={14} /> :
-                                                    <FileText size={14} />}
+                                        {actionIcon}
                                     </div>
                                     <div className="ml-2.5 flex-1 pt-0.5">
                                         <div className="flex justify-between items-start">
-                                            <h4 className="text-xs font-bold text-gray-900 dark:text-slate-100">{activity.action}</h4>
-                                            <span className="text-[10px] text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded-full">{activity.time}</span>
+                                            <h4 className="text-xs font-bold text-gray-900 dark:text-slate-100">{action}</h4>
+                                            <span className="text-[10px] text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded-full">
+                                                {activity.orderedAt ? new Date(activity.orderedAt).toLocaleDateString() : 'Today'}
+                                            </span>
                                         </div>
-                                        <p className="text-xs text-gray-600 dark:text-slate-300 mt-0.5">{activity.details}</p>
-                                        <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">by {activity.user}</p>
+                                        <p className="text-xs text-gray-600 dark:text-slate-300 mt-0.5">
+                                            {activity.testName} - {activity.patientName || 'Patient'}
+                                        </p>
+                                        <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">
+                                            {activity.testCategory || 'Lab Test'}
+                                        </p>
                                     </div>
                                 </div>
-                            ))}
+                            );
+                            })
+                            : (
+                                <p className="text-xs text-gray-500">No recent activity</p>
+                            )
+                            }
                         </div>
                     </Card>
                 </div>
@@ -112,7 +146,7 @@ const LabDashboard = () => {
                             Priority Attention
                         </h3>
                         <p className="text-blue-100 text-xs mb-3 leading-relaxed">
-                            You have <span className="font-bold text-white">2 urgent samples</span> that need processing within the next hour.
+                            You have <span className="font-bold text-white">{pendingCount} pending order{pendingCount !== 1 ? 's' : ''}</span> that need processing.
                         </p>
                         <Button
                             className="w-full !bg-white !text-blue-900 hover:!bg-gray-50 border-none text-xs font-bold shadow-sm"

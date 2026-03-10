@@ -105,8 +105,19 @@ export default function CreateAccount() {
             {/* Left Panel - Branding */}
             <div className="hidden lg:flex lg:col-span-2 bg-gradient-to-br from-blue-600 to-purple-700 p-8 flex-col justify-between text-white relative overflow-hidden">
               <div className="relative z-10 space-y-6">
+                {/* CALYX Logo Section */}
+                <div className="flex items-center gap-3 pb-2 border-b border-white/30">
+                  <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm h-12 w-12 flex items-center justify-center">
+                    <img src="/calyx-logo.png" alt="CALYX" className="h-full w-full object-contain" />
+                  </div>
+                  <div>
+                    <h1 className="text-xl font-bold">CALYX</h1>
+                    <p className="text-xs text-blue-100">Healthcare Network</p>
+                  </div>
+                </div>
+
                 <div>
-                  <h1 className="text-3xl font-bold leading-tight">Join Our <br />Platform</h1>
+                  <h2 className="text-3xl font-bold leading-tight">Join Our <br />Platform</h2>
                   <p className="mt-2 text-blue-100 text-sm">Create an account to manage your health or practice.</p>
                 </div>
 
@@ -187,7 +198,7 @@ export default function CreateAccount() {
                       >
                         <option value="DOCTOR">Doctor</option>
                         <option value="NURSE">Nurse</option>
-                        <option value="LAB_TECH">Lab Technician</option>
+                        <option value="LAB_TECHNICIAN">Lab Technician</option>
                         <option value="ADMIN">Administrator</option>
                       </select>
                     </div>

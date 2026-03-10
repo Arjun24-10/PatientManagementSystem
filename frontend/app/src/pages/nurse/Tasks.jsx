@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Clock,
     MessageSquare,
@@ -11,33 +11,55 @@ import Badge from '../../components/common/Badge';
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '../../components/common/Table';
 import Input from '../../components/common/Input';
 import Select from '../../components/common/Select';
-import { mockNursePatients } from '../../mocks/nursePatients';
+import api from '../../services/api';
 
 const Tasks = () => {
-    const [tasks, setTasks] = useState([
-        { id: 1, text: 'Administer insulin', patientId: 'P001', priority: 'high', status: 'pending', dueTime: '08:00', type: 'medication' },
-        { id: 2, text: 'Wound dressing change', patientId: 'P002', priority: 'medium', status: 'pending', dueTime: '10:00', type: 'procedure' },
-        { id: 3, text: 'Check vitals', patientId: 'P003', priority: 'routine', status: 'pending', dueTime: '12:00', type: 'vitals' },
-        { id: 4, text: 'Update care plan', patientId: 'P001', priority: 'low', status: 'completed', dueTime: '14:00', type: 'documentation' },
-        { id: 5, text: 'Assist with feeding', patientId: 'P004', priority: 'medium', status: 'pending', dueTime: '11:30', type: 'care' },
-    ]);
+    const [tasks, setTasks] = useState([]);
 
     const [filterPriority, setFilterPriority] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
 
-    const handleToggleTask = (id) => {
-        setTasks(prev => prev.map(t =>
-            t.id === id ? { ...t, status: t.status === 'completed' ? 'pending' : 'completed' } : t
-        ));
+    useEffect(() => {
+        const fetchTasks = async () => {
+            try {
+                const data = await api.nurse.getTasks();
+                if (data && Array.isArray(data)) {
+                    setTasks(data);
+                } else {
+                    setTasks([]);
+                }
+            } catch (err) {
+                console.error('Failed to fetch tasks:', err);
+                setTasks([]);
+            }
+        };
+        fetchTasks();
+    }, []);
+
+    const handleToggleTask = async (id) => {
+        try {
+            await api.nurse.toggleTaskStatus(id);
+            // Refresh tasks after toggling
+            const data = await api.nurse.getTasks();
+            if (data && Array.isArray(data)) {
+                setTasks(data);
+            }
+        } catch (err) {
+            console.error('Failed to toggle task:', err);
+        }
     };
 
-    const getPatientName = (id) => {
-        const patient = mockNursePatients.find(p => p.id === id);
-        return patient ? `${patient.name} (${patient.room})` : 'Unknown Patient';
+    const getPatientName = (task) => {
+        // Build patient name from task data if available
+        if (task.patient && task.patient.firstName && task.patient.lastName) {
+            return `${task.patient.firstName} ${task.patient.lastName}${task.room ? ' (Room ' + task.room + ')' : ''}`;
+        }
+        return 'Unknown Patient';
     };
 
     const getPriorityBadge = (priority) => {
         switch (priority) {
+            case 'critical': return <Badge type="red">Critical</Badge>;
             case 'high': return <Badge type="red">High</Badge>;
             case 'medium': return <Badge type="yellow">Medium</Badge>;
             case 'low': return <Badge type="green">Low</Badge>;
@@ -46,7 +68,7 @@ const Tasks = () => {
     };
 
     const filteredTasks = tasks.filter(task => {
-        const matchesSearch = task.text.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch = (task.title || '').toLowerCase().includes(searchTerm.toLowerCase());
         const matchesPriority = filterPriority === 'all' || task.priority === filterPriority;
         return matchesSearch && matchesPriority;
     });
@@ -70,13 +92,16 @@ const Tasks = () => {
                     <Select
                         value={filterPriority}
                         onChange={(e) => setFilterPriority(e.target.value)}
-                        className="w-32"
-                    >
-                        <option value="all">Priority</option>
-                        <option value="high">High</option>
-                        <option value="medium">Medium</option>
-                        <option value="low">Low</option>
-                    </Select>
+                        className="w-36"
+                        placeholder="All Priorities"
+                        options={[
+                            { value: 'all',      label: 'All Priorities' },
+                            { value: 'critical', label: 'Critical' },
+                            { value: 'high',     label: 'High' },
+                            { value: 'medium',   label: 'Medium' },
+                            { value: 'low',      label: 'Low' },
+                        ]}
+                    />
                 </div>
             </div>
 
@@ -107,15 +132,15 @@ const Tasks = () => {
                                     </TableCell>
                                     <TableCell>
                                         <div className={`font-medium ${task.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-900 dark:text-white'}`}>
-                                            {task.text}
+                                            {task.title}
                                         </div>
                                     </TableCell>
-                                    <TableCell>{getPatientName(task.patientId)}</TableCell>
+                                    <TableCell>{getPatientName(task)}</TableCell>
                                     <TableCell>{getPriorityBadge(task.priority)}</TableCell>
                                     <TableCell>
                                         <div className="flex items-center text-gray-500">
                                             <Clock className="w-3 h-3 mr-1" />
-                                            {task.dueTime}
+                                            {task.dueTime ? new Date(task.dueTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
                                         </div>
                                     </TableCell>
                                     <TableCell align="right">

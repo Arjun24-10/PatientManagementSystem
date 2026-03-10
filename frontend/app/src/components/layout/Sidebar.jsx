@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Home, Users, FileText, LogOut, Activity, Calendar, Shield,
-    Upload, LayoutDashboard, Heart, Clock, X, Pill,
+    Upload, LayoutDashboard, Clock, X, Pill,
     ChevronLeft, ChevronRight, CheckSquare
 } from 'lucide-react';
 
@@ -92,13 +92,16 @@ const Sidebar = ({ role, userName, isOpen, setIsOpen, isCollapsed, toggleCollaps
                     {/* Header */}
                     <div className={`flex items-center h-16 px-4 border-b border-gray-100 dark:border-slate-700 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
                         <div className="flex items-center gap-3 overflow-hidden">
-                            <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex-shrink-0 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                                <Heart className="w-5 h-5 text-white" fill="currentColor" />
+                            <div className="flex-shrink-0 h-10 w-10">
+                                <img src="/calyx-logo.png" alt="CALYX" className="h-full w-full object-contain" />
                             </div>
                             {!isCollapsed && (
-                                <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-slate-300 tracking-tight whitespace-nowrap">
-                                    MediCare
-                                </h1>
+                                <div className="flex flex-col min-w-0">
+                                    <h1 className="text-sm font-bold text-blue-600 dark:text-blue-400 tracking-tight whitespace-nowrap">
+                                        CALYX
+                                    </h1>
+                                    <p className="text-xs text-gray-600 dark:text-slate-400 whitespace-nowrap">Healthcare</p>
+                                </div>
                             )}
                         </div>
 

@@ -1,13 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Search, Filter, Pill } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
-import IconButton from '../../components/common/IconButton';
 import Modal from '../../components/common/Modal';
-import api from '../../services/api';
-import { mockPrescriptions } from '../../mocks/records';
 import { useAuth } from '../../contexts/AuthContext';
+import api from '../../services/api';
 
 const Prescriptions = () => {
     const { user } = useAuth();
@@ -17,6 +15,8 @@ const Prescriptions = () => {
     const [isNewRxModalOpen, setIsNewRxModalOpen] = useState(false);
     const [isManageModalOpen, setIsManageModalOpen] = useState(false);
     const [selectedRx, setSelectedRx] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     // Form states
     const [newRxData, setNewRxData] = useState({
@@ -24,6 +24,7 @@ const Prescriptions = () => {
         name: '',
         dosage: '',
         frequency: '',
+        duration: '7 days',
         notes: ''
     });
 
@@ -33,76 +34,86 @@ const Prescriptions = () => {
         active: true
     });
 
-    React.useEffect(() => {
-        const fetchPatients = async () => {
-            try {
-                const doctorId = user?.userId;
-                if (!doctorId) {
-                   console.error('Doctor ID not available');
-                   throw new Error('Doctor ID is required');
+    // Load prescriptions on mount
+    const loadData = useCallback(async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const doctorId = user?.userId;
+            if (!doctorId) throw new Error('User ID not found');
+
+            // Get doctor's patients
+            const doctorPatients = await api.doctors.getPatients(doctorId);
+            setPatients(doctorPatients);
+
+            // Get prescriptions for all patients
+            const allPrescriptions = [];
+            for (const patient of doctorPatients) {
+                try {
+                    const patientPrescriptions = await api.prescriptions.getByPatient(patient.id);
+                    const enriched = (patientPrescriptions || []).map(rx => ({
+                        ...rx,
+                        patientName: `${patient.firstName} ${patient.lastName}`,
+                        patientId: patient.id,
+                    }));
+                    allPrescriptions.push(...enriched);
+                } catch (err) {
+                    console.error(`Failed to load prescriptions for patient ${patient.id}`);
                 }
-                const data = await api.doctors.getPatientsByDoctor(doctorId);
-                if (Array.isArray(data)) setPatients(data);
-            } catch (error) {
-                if (!error?.message?.includes('not yet available')) {
-                    console.error('Failed to fetch patients for prescriptions', error);
-                }
-                setPatients([
-                    { id: 'P001', name: 'John Doe', email: 'john.doe@email.com' },
-                    { id: 'P002', name: 'Jane Smith', email: 'jane.smith@email.com' },
-                    { id: 'P003', name: 'Bob Wilson', email: 'bob.wilson@email.com' }
-                ]);
             }
-        };
+            setPrescriptions(allPrescriptions);
+        } catch (err) {
+            console.error('Failed to load prescriptions:', err);
+            setError('Failed to load prescriptions. Please refresh the page.');
+        } finally {
+            setIsLoading(false);
+        }
+    }, [user?.userId]);
 
-        const fetchPrescriptions = async () => {
-            try {
-                const data = await api.prescriptions.getAll();
-                if (Array.isArray(data)) setPrescriptions(data);
-            } catch (error) {
-                if (!error?.message?.includes('not yet available')) {
-                    console.error('Failed to fetch prescriptions', error);
-                }
-                // Always fallback to mock data for testing when API is not available
-                setPrescriptions(mockPrescriptions);
-            }
-        };
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
 
-        fetchPatients();
-        fetchPrescriptions();
-    }, [user]);
-
-    const filteredPrescriptions = prescriptions.filter(rx =>
-        rx.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (rx.patientName && rx.patientName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (rx.prescribedBy && rx.prescribedBy.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+    const filteredPrescriptions = prescriptions.filter(rx => {
+        const patientName = rx.patientName || '';
+        const medicationName = rx.medicationName || '';
+        return medicationName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            patientName.toLowerCase().includes(searchTerm.toLowerCase());
+    });
 
     const handleNewRxSubmit = async (e) => {
         e.preventDefault();
-        const patient = patients.find(p => p.id === newRxData.patientId);
-
-        const newPrescription = {
-            medicationName: newRxData.name,
-            dosage: newRxData.dosage,
-            frequency: newRxData.frequency,
-            status: 'ACTIVE',
-            notes: newRxData.notes,
-            patientId: newRxData.patientId
-        };
+        
+        if (!newRxData.patientId) {
+            setError('Please select a patient');
+            return;
+        }
 
         try {
-            const created = await api.prescriptions.create(newPrescription);
-            // Append mock data to created if backend omits it to ensure UI renders properly
-            setPrescriptions([
-                { ...created, patientName: patient ? patient.name : 'Unknown', name: created.medicationName || created.name },
-                ...prescriptions
-            ]);
+            setIsLoading(true);
+            setError(null);
+
+            const payload = {
+                patientId: parseInt(newRxData.patientId),
+                medicationName: newRxData.name,
+                dosage: newRxData.dosage,
+                frequency: newRxData.frequency,
+                duration: newRxData.duration || '7 days',
+                specialInstructions: newRxData.notes || '',
+                startDate: new Date().toISOString().split('T')[0],
+                refillsAllowed: 0
+            };
+
+            const createdPrescription = await api.prescriptions.create(payload);
+            setPrescriptions([createdPrescription, ...prescriptions]);
             setIsNewRxModalOpen(false);
-            setNewRxData({ patientId: '', name: '', dosage: '', frequency: '', notes: '' });
-        } catch (error) {
-            console.error('Failed to create prescription', error);
-            alert('Failed to create prescription.');
+            setNewRxData({ patientId: '', name: '', dosage: '', frequency: '', duration: '7 days', notes: '' });
+            
+        } catch (err) {
+            console.error('Failed to create prescription:', err);
+            setError(err.message || 'Failed to create prescription. Please try again.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -111,44 +122,34 @@ const Prescriptions = () => {
         setEditRxData({
             dosage: rx.dosage,
             frequency: rx.frequency,
-            active: rx.active
+            active: rx.status === 'ACTIVE'
         });
         setIsManageModalOpen(true);
     };
 
     const handleUpdateRx = async (e) => {
         e.preventDefault();
-
+        
         try {
-            const updatePayload = {
-                ...selectedRx,
-                dosage: editRxData.dosage,
-                frequency: editRxData.frequency,
-                status: editRxData.active ? 'ACTIVE' : 'DISCONTINUED',
-            };
-            await api.prescriptions.update(selectedRx.id, updatePayload);
+            setIsLoading(true);
+            setError(null);
 
+            const updatedPrescription = {
+                ...selectedRx,
+                ...editRxData
+            };
+
+            await api.prescriptions.update(selectedRx.prescriptionId, editRxData);
             setPrescriptions(prescriptions.map(rx =>
-                rx.id === selectedRx.id
-                    ? { ...rx, ...editRxData, active: editRxData.active }
-                    : rx
+                rx.prescriptionId === selectedRx.prescriptionId ? updatedPrescription : rx
             ));
             setIsManageModalOpen(false);
             setSelectedRx(null);
-        } catch (error) {
-            if (!error?.message?.includes('not yet available')) {
-                console.error('Failed to update prescription', error);
-                alert('Failed to update prescription.');
-            } else {
-                // UI state already optimistically updated just above, so do nothing or close modal
-                setPrescriptions(prescriptions.map(rx =>
-                    rx.id === selectedRx.id
-                        ? { ...rx, ...editRxData, active: editRxData.active }
-                        : rx
-                ));
-                setIsManageModalOpen(false);
-                setSelectedRx(null);
-            }
+        } catch (err) {
+            console.error('Failed to update prescription:', err);
+            setError(err.message || 'Failed to update prescription. Please try again.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -159,13 +160,16 @@ const Prescriptions = () => {
                     <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">Prescriptions</h2>
                     <p className="text-xs text-gray-500 dark:text-slate-400">Manage patient medications and refills.</p>
                 </div>
-                <IconButton
-                    icon={Plus}
-                    label="New Prescription"
-                    variant="primary"
-                    onClick={() => setIsNewRxModalOpen(true)}
-                />
+                <Button onClick={() => setIsNewRxModalOpen(true)} className="flex items-center text-sm" disabled={isLoading}>
+                    <Plus className="w-4 h-4 mr-1" /> New Prescription
+                </Button>
             </div>
+
+            {error && (
+                <Card className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                    <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+                </Card>
+            )}
 
             <Card className="p-3 dark:bg-slate-800">
                 <div className="flex items-center gap-2">
@@ -177,21 +181,27 @@ const Prescriptions = () => {
                             className="w-full pl-8 pr-3 py-1.5 border border-gray-200 dark:border-slate-600 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-400"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
+                            disabled={isLoading}
                         />
                     </div>
-                    <IconButton
-                        icon={Filter}
-                        label="Filter"
-                        variant="outline"
-                        size="sm"
-                        className="hidden md:inline-flex"
-                    />
+                    <Button variant="outline" className="hidden md:flex items-center text-sm">
+                        <Filter className="w-3.5 h-3.5 mr-1" /> Filter
+                    </Button>
                 </div>
             </Card>
 
-            <div className="grid gap-2">
-                {filteredPrescriptions.map(rx => (
-                    <Card key={rx.id} className="p-3 flex flex-col md:flex-row justify-between items-center hover:shadow-md transition-shadow dark:bg-slate-800">
+            {isLoading ? (
+                <Card className="p-6 text-center">
+                    <p className="text-gray-500 dark:text-slate-400">Loading prescriptions...</p>
+                </Card>
+            ) : filteredPrescriptions.length === 0 ? (
+                <Card className="p-6 text-center">
+                    <p className="text-gray-500 dark:text-slate-400">No prescriptions found. Create one to get started.</p>
+                </Card>
+            ) : (
+                <div className="grid gap-2">
+                    {filteredPrescriptions.map(rx => (
+                        <Card key={rx.prescriptionId} className="p-3 flex flex-col md:flex-row justify-between items-center hover:shadow-md transition-shadow dark:bg-slate-800">
                         <div className="flex items-center gap-3 w-full md:w-auto">
                             <div className="p-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded">
                                 <Pill size={16} />
@@ -200,7 +210,7 @@ const Prescriptions = () => {
                                 <div className="text-xs text-gray-500 dark:text-slate-400 mb-0.5">
                                     Patient: <span className="font-semibold text-gray-700 dark:text-slate-300">{rx.patientName}</span> ({rx.patientId})
                                 </div>
-                                <h3 className="font-bold text-sm text-gray-800 dark:text-slate-100">{rx.name}</h3>
+                                <h3 className="font-bold text-sm text-gray-800 dark:text-slate-100">{rx.medicationName}</h3>
                                 <div className="text-xs text-gray-500 dark:text-slate-400 flex flex-wrap gap-1">
                                     <span>{rx.dosage}</span>
                                     <span>•</span>
@@ -212,10 +222,10 @@ const Prescriptions = () => {
                         <div className="flex items-center gap-4 mt-2 md:mt-0 w-full md:w-auto justify-between md:justify-end">
                             <div className="text-right mr-2">
                                 <div className="text-xs text-gray-500 dark:text-slate-400">Prescribed By</div>
-                                <div className="font-medium text-xs text-gray-800 dark:text-slate-100">{rx.prescribedBy || 'Dr. Smith'}</div>
+                                <div className="font-medium text-xs text-gray-800 dark:text-slate-100">{rx.doctorName || 'N/A'}</div>
                             </div>
-                            <Badge type={rx.active ? 'green' : 'gray'}>
-                                {rx.active ? 'Active' : 'Discontinued'}
+                            <Badge type={rx.status === 'ACTIVE' ? 'green' : 'gray'}>
+                                {rx.status === 'ACTIVE' ? 'Active' : 'Discontinued'}
                             </Badge>
                             <Button
                                 variant="outline"
@@ -227,9 +237,8 @@ const Prescriptions = () => {
                         </div>
                     </Card>
                 ))}
-            </div>
-
-            {/* New Prescription Modal */}
+                </div>
+            )}
             <Modal
                 isOpen={isNewRxModalOpen}
                 onClose={() => setIsNewRxModalOpen(false)}
@@ -246,7 +255,7 @@ const Prescriptions = () => {
                         >
                             <option value="">-- Select Patient --</option>
                             {patients.map(p => (
-                                <option key={p.id} value={p.id}>{p.name} ({p.id})</option>
+                                <option key={p.id} value={p.id}>{p.firstName} {p.lastName} ({p.id})</option>
                             ))}
                         </select>
                     </div>
@@ -304,7 +313,7 @@ const Prescriptions = () => {
                 {selectedRx && (
                     <form onSubmit={handleUpdateRx} className="space-y-4">
                         <div className="bg-gray-50 dark:bg-slate-700/50 p-3 rounded-lg mb-4">
-                            <p className="text-sm font-medium text-gray-800 dark:text-slate-200">{selectedRx.name}</p>
+                            <p className="text-sm font-medium text-gray-800 dark:text-slate-200">{selectedRx.medicationName}</p>
                             <p className="text-xs text-gray-500 dark:text-slate-400">Patient: {selectedRx.patientName}</p>
                         </div>
 

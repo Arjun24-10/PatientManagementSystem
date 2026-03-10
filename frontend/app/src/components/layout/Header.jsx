@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, Search, Bell, Sun, Moon, ChevronDown, Users, Shield, LogOut } from 'lucide-react';
+import { Menu, Search, Bell, Sun, Moon, ChevronDown, Users, Shield, LogOut, Clock } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -26,6 +26,15 @@ const Header = ({
                     >
                         <Menu size={20} />
                     </button>
+
+                    {/* CALYX Logo */}
+                    <div className="hidden lg:flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg">
+                        <img src="/calyx-logo.png" alt="CALYX" className="h-6 w-6 object-contain" />
+                        <div className="flex flex-col">
+                            <span className="text-xs font-bold text-blue-600 dark:text-blue-400">CALYX</span>
+                            <span className="text-xs text-gray-600 dark:text-slate-400">Patient Management</span>
+                        </div>
+                    </div>
 
                     {/* Search Bar - Hidden on small mobile */}
                     <div className="hidden md:flex items-center w-full max-w-md ml-2">

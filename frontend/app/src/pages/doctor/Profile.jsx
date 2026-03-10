@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Mail, Phone, Award, Clock, Shield } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import api from '../../services/api';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
@@ -9,9 +10,29 @@ import Badge from '../../components/common/Badge';
 const Profile = () => {
     const { user } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
+    const [profile, setProfile] = useState(null);
 
-    const displayName = user?.fullName || user?.full_name || 'Doctor';
+    useEffect(() => {
+        const fetchProfile = async () => {
+            const doctorId = user?.userId;
+            if (!doctorId) return;
+            try {
+                const data = await api.doctors.getById(doctorId);
+                setProfile(data);
+            } catch (err) {
+                console.error('Failed to load profile:', err);
+            }
+        };
+        fetchProfile();
+    }, [user?.userId]);
+
+    const displayName = profile
+        ? `${profile.firstName || ''} ${profile.lastName || ''}`.trim()
+        : (user?.fullName || user?.full_name || 'Doctor');
     const email = user?.email || '';
+    const specialty = profile?.specialty || 'N/A';
+    const phone = profile?.contactNumber || 'N/A';
+    const department = profile?.department || '';
     const initials = displayName.charAt(0);
 
     return (
@@ -25,7 +46,7 @@ const Profile = () => {
                         {initials}
                     </div>
                     <h3 className="text-sm font-bold text-gray-900 dark:text-slate-100">{displayName}</h3>
-                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">Cardiologist (MBBS, MD)</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">{specialty}{department ? ` — ${department}` : ''}</p>
                     <p className="text-gray-500 dark:text-slate-400 text-xs">License #MD-12345-NY</p>
 
                     <div className="mt-3 flex justify-center space-x-1">
@@ -38,7 +59,7 @@ const Profile = () => {
                             <Mail className="w-3.5 h-3.5 mr-2" /> {email}
                         </div>
                         <div className="flex items-center text-gray-600 dark:text-slate-400 text-xs">
-                            <Phone className="w-3.5 h-3.5 mr-2" /> +1 (555) 123-4567
+                            <Phone className="w-3.5 h-3.5 mr-2" /> {phone}
                         </div>
                         <div className="flex items-center text-gray-600 dark:text-slate-400 text-xs">
                             <Award className="w-3.5 h-3.5 mr-2" /> 15 Years Experience
@@ -61,11 +82,11 @@ const Profile = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                             <Input label="Name" defaultValue={displayName} disabled={!isEditing} />
-                            <Input label="Title" defaultValue="Cardiologist" disabled={!isEditing} />
+                            <Input label="Specialty" defaultValue={specialty} disabled={!isEditing} />
                             <Input label="Email" defaultValue={email} disabled={!isEditing} />
-                            <Input label="Phone" defaultValue="+1 (555) 123-4567" disabled={!isEditing} />
+                            <Input label="Phone" defaultValue={phone} disabled={!isEditing} />
                             <div className="md:col-span-2">
-                                <Input label="Clinic Address" defaultValue="123 Medical Center Dr, Suite 400" disabled={!isEditing} />
+                                <Input label="Department" defaultValue={department || 'N/A'} disabled={!isEditing} />
                             </div>
                         </div>
 

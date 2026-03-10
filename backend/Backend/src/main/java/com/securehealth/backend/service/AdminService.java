@@ -33,7 +33,7 @@ public class AdminService {
         metrics.setTotalPatients(patientProfileRepository.count());
 
         // 2. Total Doctors
-        metrics.setTotalDoctors(loginRepository.countByRole(Role.DOCTOR.name()));
+        metrics.setTotalDoctors(loginRepository.countByRole(Role.DOCTOR));
 
         // 3. Pending Approvals
         metrics.setPendingApprovals(appointmentRepository.countByStatus(AppointmentStatus.PENDING_APPROVAL));

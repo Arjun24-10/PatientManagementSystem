@@ -19,8 +19,7 @@ import {
 
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import { mockNurseOverview } from '../../mocks/nurseOverview';
-import VitalsSectionHeader from './components/VitalsSectionHeader';
+import api from '../../services/api';
 import VitalsAlertBanner from './components/VitalsAlertBanner';
 import VitalsEntryForm from './components/VitalsEntryForm';
 import VitalsOverviewCard from './components/VitalsOverviewCard';
@@ -208,21 +207,37 @@ const sortOptions = [
 ];
 
 const NurseVitals = () => {
-   const [overview, setOverview] = useState(mockNurseOverview);
+   const [overview, setOverview] = useState({
+      assignedPatients: [],
+      vitalsStatus: 'done',
+      vitalsSchedule: [],
+      nurse: { name: 'Nurse Profile', unit: 'ICU' },
+      stats: {
+         assignedPatients: 0,
+         pendingVitals: 0,
+         overdueVitals: 0,
+         medicationsDue: 0,
+         overdueMedications: 0,
+         nextMedicationIn: 0,
+         pendingTasks: 0,
+         highPriorityTasks: 0,
+      }
+   });
    const [currentTime, setCurrentTime] = useState(new Date());
    const [viewMode, setViewMode] = useState('grid');
    const [activeFilter, setActiveFilter] = useState('all');
    const [sortBy, setSortBy] = useState('room');
-   const [temperatureUnit, setTemperatureUnit] = useState(mockNurseOverview.vitals?.current?.temperature?.unit || 'F');
-   const [temperatureRoute, setTemperatureRoute] = useState(mockNurseOverview.vitals?.current?.temperature?.route || 'oral');
+   const [temperatureUnit, setTemperatureUnit] = useState('F');
+   const [temperatureRoute, setTemperatureRoute] = useState('oral');
+   const [selectedPatientId, setSelectedPatientId] = useState(null);
    const [vitalsForm, setVitalsForm] = useState(() => ({
-      systolic: mockNurseOverview.vitals?.current?.bp?.systolic ?? '',
-      diastolic: mockNurseOverview.vitals?.current?.bp?.diastolic ?? '',
-      heartRate: mockNurseOverview.vitals?.current?.heartRate ?? '',
-      temperature: mockNurseOverview.vitals?.current?.temperature?.value ?? '',
-      respiratoryRate: mockNurseOverview.vitals?.current?.respiratoryRate ?? '',
-      oxygenSaturation: mockNurseOverview.vitals?.current?.oxygenSaturation ?? '',
-      painLevel: mockNurseOverview.vitals?.current?.painLevel ?? 0,
+      systolic: '',
+      diastolic: '',
+      heartRate: '',
+      temperature: '',
+      respiratoryRate: '',
+      oxygenSaturation: '',
+      painLevel: 0,
    }));
    const [vitalsNotes, setVitalsNotes] = useState('');
    const [showCriticalModal, setShowCriticalModal] = useState(false);
@@ -245,6 +260,31 @@ const NurseVitals = () => {
    const [formError, setFormError] = useState('');
 
    useEffect(() => {
+      const fetchPatients = async () => {
+         try {
+            const data = await api.nurse.getAssignedPatients();
+            if (data && Array.isArray(data)) {
+               setOverview(prev => ({
+                  ...prev,
+                  assignedPatients: data.map(p => ({
+                     id: p.profileId,
+                     name: `${p.firstName} ${p.lastName}`,
+                     room: p.room || "101",
+                     bed: p.bed || "A",
+                     acuityLevel: p.acuityLevel || "stable",
+                     vitalsStatus: p.vitalsStatus || "done",
+                     medicationStatus: p.medicationStatus || "all-given",
+                     codeStatus: p.codeStatus || "Full Code",
+                     specialAlerts: p.specialAlerts || []
+                  }))
+               }));
+            }
+         } catch (err) {
+            console.error('Failed to load patients', err);
+         }
+      };
+      fetchPatients();
+
       const interval = setInterval(() => setCurrentTime(new Date()), 60_000);
       return () => clearInterval(interval);
    }, []);
@@ -264,7 +304,7 @@ const NurseVitals = () => {
          hour: 'numeric',
          minute: '2-digit',
       }),
-   [currentTime]);
+      [currentTime]);
 
    const segmentedPatients = useMemo(() => overview.assignedPatients.map((patient) => {
       let filterKey = 'stable';
@@ -465,7 +505,6 @@ const NurseVitals = () => {
       info: 'bg-brand-medium text-white',
    };
 
-   const vitalsPatient = vitalsData?.patient;
    const lastVitalsTimestamp = vitalsData?.current?.timestamp ? formatTimestamp(vitalsData.current.timestamp) : 'Not recorded';
    const alertToneClasses = getStatusClasses(alertSeverity);
    const selectedPainFace = painFaces.find((face) => face.values.includes(Number(vitalsForm.painLevel))) || painFaces[0];
@@ -508,7 +547,7 @@ const NurseVitals = () => {
       setToast({ type, message, id: Date.now() });
    };
 
-   const persistVitals = (notifyPhysician = false) => {
+   const persistVitals = async (notifyPhysician = false) => {
       const timestamp = new Date().toISOString();
       const tempF = temperatureUnit === 'F' ? Number(vitalsForm.temperature) : Number(convertTemperature(vitalsForm.temperature, 'C', 'F').toFixed(1));
       const overallStatus = Object.values(formStatuses).includes('critical')
@@ -517,56 +556,91 @@ const NurseVitals = () => {
             ? 'abnormal'
             : 'normal';
 
-      const newHistoryEntry = {
-         timestamp,
-         bp: `${Number(vitalsForm.systolic)}/${Number(vitalsForm.diastolic)}`,
-         hr: Number(vitalsForm.heartRate),
-         temp: Number(tempF.toFixed(1)),
-         rr: Number(vitalsForm.respiratoryRate),
-         spo2: Number(vitalsForm.oxygenSaturation),
-         pain: Number(vitalsForm.painLevel),
-         status: overallStatus,
-         recordedBy: overview.nurse.name,
-         route: temperatureRoute,
-         notes: vitalsNotes,
-      };
+      try {
+         // Get patient ID - either from selected patient or first assigned patient
+         const patientId = selectedPatientId || overview.assignedPatients?.[0]?.id;
 
-      setOverview((prev) => {
-         const updatedHistory = [newHistoryEntry, ...(prev.vitals?.history || [])];
-         return {
-            ...prev,
-            vitals: {
-               ...prev.vitals,
-               current: {
-                  bp: { systolic: Number(vitalsForm.systolic), diastolic: Number(vitalsForm.diastolic) },
-                  heartRate: Number(vitalsForm.heartRate),
-                  temperature: { value: Number(vitalsForm.temperature), unit: temperatureUnit, route: temperatureRoute },
-                  respiratoryRate: Number(vitalsForm.respiratoryRate),
-                  oxygenSaturation: Number(vitalsForm.oxygenSaturation),
-                  painLevel: Number(vitalsForm.painLevel),
-                  timestamp,
-                  recordedBy: prev.nurse.name,
-               },
-               history: updatedHistory,
-            },
+         if (!patientId) {
+            triggerToast('error', 'Please select a patient before saving vital signs.');
+            return;
+         }
+
+         // Prepare vital signs data according to backend VitalSignRequest DTO
+         const vitalSignsPayload = {
+            patientId: Number(patientId),
+            bloodPressure: `${Number(vitalsForm.systolic)}/${Number(vitalsForm.diastolic)}`,
+            heartRate: Number(vitalsForm.heartRate),
+            temperature: Number(tempF.toFixed(1)),
+            respiratoryRate: Number(vitalsForm.respiratoryRate),
+            oxygenSaturation: Number(vitalsForm.oxygenSaturation)
          };
-      });
 
-      setAlertAcknowledged(false);
-      setAlertNotified(notifyPhysician);
-      setVitalsNotes('');
-      setFormError('');
-      triggerToast('success', notifyPhysician ? 'Vitals saved and physician notified.' : 'Vitals saved successfully.');
+         // Call backend API to save vital signs
+         const response = await api.nurse.recordVitals(vitalSignsPayload);
+
+         if (!response) {
+            throw new Error('No response from server');
+         }
+
+         // Add entry to local history for UI update
+         const newHistoryEntry = {
+            timestamp,
+            bp: `${Number(vitalsForm.systolic)}/${Number(vitalsForm.diastolic)}`,
+            hr: Number(vitalsForm.heartRate),
+            temp: Number(tempF.toFixed(1)),
+            rr: Number(vitalsForm.respiratoryRate),
+            spo2: Number(vitalsForm.oxygenSaturation),
+            pain: Number(vitalsForm.painLevel),
+            status: overallStatus,
+            recordedBy: overview.nurse?.name || 'Nurse',
+            route: temperatureRoute,
+            notes: vitalsNotes,
+         };
+
+         // Update local state with new vitals entry
+         setOverview((prev) => {
+            const updatedHistory = [newHistoryEntry, ...(prev.vitals?.history || [])];
+            return {
+               ...prev,
+               vitals: {
+                  ...prev.vitals,
+                  patient: { id: patientId, name: 'Selected Patient' },
+                  current: {
+                     bp: { systolic: Number(vitalsForm.systolic), diastolic: Number(vitalsForm.diastolic) },
+                     heartRate: Number(vitalsForm.heartRate),
+                     temperature: { value: Number(vitalsForm.temperature), unit: temperatureUnit, route: temperatureRoute },
+                     respiratoryRate: Number(vitalsForm.respiratoryRate),
+                     oxygenSaturation: Number(vitalsForm.oxygenSaturation),
+                     painLevel: Number(vitalsForm.painLevel),
+                     timestamp,
+                     recordedBy: prev.nurse?.name || 'Nurse',
+                  },
+                  history: updatedHistory,
+               },
+            };
+         });
+
+         // Reset form and show success message
+         setAlertAcknowledged(false);
+         setAlertNotified(notifyPhysician);
+         setVitalsNotes('');
+         setFormError('');
+         setSelectedPatientId(null);
+         triggerToast('success', notifyPhysician ? 'Vitals saved and physician notified.' : 'Vitals saved successfully to backend.');
+      } catch (err) {
+         console.error('Failed to save vitals:', err);
+         triggerToast('error', `Failed to save vital signs: ${err.message}`);
+      }
    };
 
-   const executeVitalsSave = (action) => {
+   const executeVitalsSave = async (action) => {
       const notifyPhysician = action === 'notify';
-      persistVitals(notifyPhysician);
+      await persistVitals(notifyPhysician);
       setShowCriticalModal(false);
       setPendingAction(null);
    };
 
-   const handleVitalsSubmit = (action) => {
+   const handleVitalsSubmit = async (action) => {
       setFormError('');
       if (!validateVitalsForm()) {
          setFormError('Please complete all required fields with valid numeric values.');
@@ -580,7 +654,7 @@ const NurseVitals = () => {
          return;
       }
 
-      executeVitalsSave(action);
+      await executeVitalsSave(action);
    };
 
    const handleCriticalCancel = () => {
@@ -588,12 +662,12 @@ const NurseVitals = () => {
       setPendingAction(null);
    };
 
-   const handleCriticalProceed = () => {
-      executeVitalsSave(pendingAction || 'save');
+   const handleCriticalProceed = async () => {
+      await executeVitalsSave(pendingAction || 'save');
    };
 
-   const handleCriticalNotify = () => {
-      executeVitalsSave('notify');
+   const handleCriticalNotify = async () => {
+      await executeVitalsSave('notify');
    };
 
    const handleAcknowledgeAlert = () => {
@@ -769,13 +843,12 @@ const NurseVitals = () => {
                               </div>
                               <div className="relative h-1.5 bg-white/60 dark:bg-slate-600/60 rounded-full overflow-hidden">
                                  <div
-                                    className={`absolute inset-y-0 left-0 rounded-full ${
-                                       slot.status === 'overdue'
-                                          ? 'bg-red-400'
-                                          : slot.status === 'completed'
-                                             ? 'bg-green-500'
-                                             : 'bg-brand-medium'
-                                    }`}
+                                    className={`absolute inset-y-0 left-0 rounded-full ${slot.status === 'overdue'
+                                       ? 'bg-red-400'
+                                       : slot.status === 'completed'
+                                          ? 'bg-green-500'
+                                          : 'bg-brand-medium'
+                                       }`}
                                     style={{ width: `${completion}%` }}
                                  />
                               </div>
@@ -797,11 +870,15 @@ const NurseVitals = () => {
 
          {/* Patient Vitals Section */}
          <section aria-labelledby="patient-vitals" className="space-y-3">
-            <VitalsSectionHeader
-               patient={vitalsPatient}
-               onExportPdf={() => triggerToast('info', 'Export to PDF coming soon. (mock)')}
-               onPrint={() => triggerToast('info', 'Print dialog opened (mock).')}
-            />
+            <div className="flex items-center gap-2 mb-3">
+               <Activity className="w-5 h-5 text-brand-medium" aria-hidden="true" />
+               <h2 id="patient-vitals" className="text-sm font-bold text-gray-900 dark:text-slate-100">Patient Vitals</h2>
+               {selectedPatientId && (
+                  <span className="ml-auto text-xs bg-brand-light text-brand-deep px-3 py-1 rounded-full font-semibold">
+                     {overview.assignedPatients.find(p => p.id === selectedPatientId)?.name || `Patient #${selectedPatientId}`}
+                  </span>
+               )}
+            </div>
 
             <VitalsAlertBanner
                severity={alertSeverity}
@@ -858,6 +935,8 @@ const NurseVitals = () => {
                   acuityStyles={acuityStyles}
                   vitalsStatusMap={vitalsStatusMap}
                   medicationStatusMap={medicationStatusMap}
+                  selectedPatientId={selectedPatientId}
+                  onSelectPatient={setSelectedPatientId}
                />
             </div>
 

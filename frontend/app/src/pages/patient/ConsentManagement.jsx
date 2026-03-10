@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
    Shield, Info, CheckCircle, Clock, XCircle, ChevronDown, ChevronUp,
    Stethoscope, FlaskConical, Users, Network, Bell, Megaphone, BookOpen, Lock,
@@ -14,6 +14,7 @@ import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
 import GrantModifyConsent from './GrantModifyConsent';
 import { useAuth } from '../../contexts/AuthContext';
+import { consentAPI } from '../../services/api';
 
 const ConsentManagement = () => {
    const { user } = useAuth();
@@ -60,6 +61,70 @@ const ConsentManagement = () => {
    const [consentMode, setConsentMode] = useState('grant');
    const [activeTab, setActiveTab] = useState('overview');
    const [dataSearchQuery, setDataSearchQuery] = useState('');
+   const [isLoading, setIsLoading] = useState(true);
+   const [fetchError, setFetchError] = useState(null);
+
+   // Consent type → display metadata mapping
+   const consentTypeDisplayMap = {
+      VIEW_RECORDS: { title: 'Medical Records Access', icon: 'BookOpen', description: 'Access to your full medical records and health history.' },
+      PRESCRIPTIONS: { title: 'Prescription Data Access', icon: 'FlaskConical', description: 'Access to your current and past prescriptions.' },
+      VITAL_SIGNS: { title: 'Vital Signs Access', icon: 'Stethoscope', description: 'Access to your recorded vital signs and measurements.' },
+      LAB_RESULTS: { title: 'Lab Results Access', icon: 'FlaskConical', description: 'Access to your laboratory test results.' },
+      ALL: { title: 'Full Health Data Access', icon: 'Users', description: 'Full access to all your health information and records.' },
+   };
+
+   const transformApiConsent = (c) => {
+      const display = consentTypeDisplayMap[c.consentType] || {
+         title: c.consentType.replace(/_/g, ' '),
+         icon: 'Shield',
+         description: `Health data access for ${c.consentType.replace(/_/g, ' ').toLowerCase()}.`,
+      };
+      return {
+         id: c.id,
+         title: display.title,
+         icon: display.icon,
+         description: c.reason || display.description,
+         type: 'optional',
+         status: c.status === 'ACTIVE' ? 'active' : 'withdrawn',
+         canWithdraw: c.status === 'ACTIVE',
+         grantedDate: c.grantedAt,
+         lastModified: c.revokedAt || c.grantedAt,
+         withdrawnDate: c.revokedAt || null,
+         expiresAt: c.expiresAt,
+         grantedTo: c.grantedTo,
+         consentType: c.consentType,
+      };
+   };
+
+   // Fetch consents from backend on mount
+   useEffect(() => {
+      const fetchConsents = async () => {
+         try {
+            setIsLoading(true);
+            setFetchError(null);
+            const apiConsents = await consentAPI.getMyConsents();
+            const mapped = apiConsents.map(transformApiConsent);
+            setConsentData(prev => ({
+               ...prev,
+               consents: mapped,
+               summary: {
+                  ...prev.summary,
+                  activeConsents: mapped.filter(c => c.status === 'active').length,
+                  pendingReview: 0,
+                  withdrawn: mapped.filter(c => c.status === 'withdrawn').length,
+                  lastReviewed: new Date().toISOString(),
+               },
+            }));
+         } catch (err) {
+            console.error('Failed to load consents:', err);
+            setFetchError('Unable to load consent data. Please try again.');
+         } finally {
+            setIsLoading(false);
+         }
+      };
+      fetchConsents();
+   // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, []);
 
    // Tab configuration
    const tabs = [
@@ -199,11 +264,33 @@ const ConsentManagement = () => {
    };
 
    // Confirm withdrawal
-   const confirmWithdraw = () => {
-      if (!withdrawConfirmed) return;
+   const confirmWithdraw = async () => {
+      if (!withdrawConfirmed || !selectedConsent) return;
 
-      // In production, this would call an API
-      showToast('success', `Consent withdrawn for "${selectedConsent.title}". Confirmation email sent.`);
+      try {
+         await consentAPI.revokeConsent(selectedConsent.id);
+         // Update local state immediately so UI reflects revocation
+         setConsentData(prev => {
+            const updated = prev.consents.map(c =>
+               c.id === selectedConsent.id
+                  ? { ...c, status: 'withdrawn', canWithdraw: false, withdrawnDate: new Date().toISOString(), lastModified: new Date().toISOString() }
+                  : c
+            );
+            return {
+               ...prev,
+               consents: updated,
+               summary: {
+                  ...prev.summary,
+                  activeConsents: updated.filter(c => c.status === 'active').length,
+                  withdrawn: updated.filter(c => c.status === 'withdrawn').length,
+               },
+            };
+         });
+         showToast('success', `Consent withdrawn for "${selectedConsent.title}". Confirmation email sent.`);
+      } catch (err) {
+         console.error('Revoke consent failed:', err);
+         showToast('error', 'Failed to withdraw consent. Please try again.');
+      }
       setShowWithdrawModal(false);
       setSelectedConsent(null);
    };
@@ -736,7 +823,18 @@ const ConsentManagement = () => {
          </div>
 
          {/* Tab Content */}
-         {activeTab === 'overview' && (
+         {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+               <RefreshCw className="w-6 h-6 animate-spin text-blue-500 mr-2" />
+               <span className="text-gray-500 dark:text-slate-400">Loading your consent data...</span>
+            </div>
+         ) : fetchError ? (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center gap-3">
+               <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+               <span className="text-red-700 dark:text-red-300 text-sm">{fetchError}</span>
+            </div>
+         ) : null}
+         {!isLoading && !fetchError && activeTab === 'overview' && (
             <>
                {/* Important Notice Banner */}
                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 flex items-start gap-3">
@@ -1015,7 +1113,7 @@ const ConsentManagement = () => {
          )}
 
          {/* Modify Consent Tab */}
-         {activeTab === 'modify' && (
+         {!isLoading && !fetchError && activeTab === 'modify' && (
             <>
                {/* Modify Consent Header */}
                <div className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
@@ -1161,7 +1259,7 @@ const ConsentManagement = () => {
          )}
 
          {/* Data Management Tab */}
-         {activeTab === 'data' && (
+         {!isLoading && !fetchError && activeTab === 'data' && (
             <>
                {/* Data Management Header */}
                <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-800 rounded-xl p-6">
