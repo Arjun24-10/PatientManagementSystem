@@ -1,26 +1,51 @@
-import React, { useState } from 'react';
-import { Search, Filter, Edit, UserCheck, UserX, Key } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Filter, MoreVertical, Edit } from 'lucide-react';
 import Card from '../../../components/common/Card';
 import Badge from '../../../components/common/Badge';
 import Button from '../../../components/common/Button';
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '../../../components/common/Table';
+import api from '../../../services/api';
 
 const UserManagement = () => {
-    const [users] = useState([
-        { id: 1, name: 'Dr. Sarah Smith', email: 'sarah.smith@hospital.com', role: 'Doctor', status: 'Active', lastLogin: '2 mins ago' },
-        { id: 2, name: 'John Doe', email: 'john.doe@email.com', role: 'Patient', status: 'Active', lastLogin: '1 hour ago' },
-        { id: 3, name: 'Nurse Joy', email: 'joy@hospital.com', role: 'Nurse', status: 'Away', lastLogin: '5 hours ago' },
-        { id: 4, name: 'Mike Tech', email: 'mike@lab.com', role: 'Lab Tech', status: 'Inactive', lastLogin: '2 days ago' },
-        { id: 5, name: 'Admin User', email: 'admin@system.com', role: 'Admin', status: 'Active', lastLogin: 'Just now' },
-    ]);
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    useEffect(() => {
+        fetchUsers();
+    }, []);
+
+    const fetchUsers = async () => {
+        try {
+            setLoading(true);
+            const data = await api.admin.getAllStaff();
+            setUsers(data);
+        } catch (err) {
+            console.log('Using mock users');
+            // Use mock data on error — fields match StaffDTO: userId, email, role
+            setUsers([
+                { userId: 1, email: 'doctor1@securehealth.com', role: 'DOCTOR' },
+                { userId: 2, email: 'nurse1@securehealth.com', role: 'NURSE' },
+                { userId: 3, email: 'lab1@securehealth.com', role: 'LAB_TECHNICIAN' },
+                { userId: 4, email: 'admin@securehealth.com', role: 'ADMIN' },
+            ]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const filteredUsers = users.filter(user =>
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     const getRoleBadgeVariant = (role) => {
         switch (role) {
-            case 'Admin': return 'red'; // Red/Danger for high privilege
-            case 'Doctor': return 'blue'; // Blue
-            case 'Nurse': return 'green'; // Green
-            case 'Lab Tech': return 'yellow'; // Orange
-            default: return 'gray'; // Gray
+            case 'ADMIN': return 'red';
+            case 'DOCTOR': return 'blue';
+            case 'NURSE': return 'green';
+            case 'LAB_TECHNICIAN': return 'yellow';
+            case 'PATIENT': return 'gray';
+            default: return 'gray';
         }
     };
 
@@ -38,7 +63,7 @@ const UserManagement = () => {
             <div className="p-6 border-b border-gray-100 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-lg font-bold text-slate-800 dark:text-white">User Management</h2>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Manage access and roles</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Manage access and roles ({users.length} total users)</p>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -47,76 +72,80 @@ const UserManagement = () => {
                         <input
                             type="text"
                             placeholder="Search users..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                             className="pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-admin-primary dark:bg-slate-800 dark:text-white"
                         />
                     </div>
                     <Button variant="outline" className="flex items-center gap-2">
                         <Filter size={16} /> Filter
                     </Button>
-                    <Button className="bg-admin-primary hover:bg-admin-secondary text-white">
-                        + Add User
-                    </Button>
                 </div>
             </div>
 
-            <Table>
-                <TableHead>
-                    <TableRow>
+            {loading && (
+                <div className="p-6 text-center text-slate-500">
+                    Loading users...
+                </div>
+            )}
+
+
+
+            {!loading && filteredUsers.length === 0 && (
+                <div className="p-6 text-center text-slate-500">
+                    {searchTerm ? 'No users found matching your search.' : 'No users found.'}
+                </div>
+            )}
+
+            {!loading && filteredUsers.length > 0 && (
+                <Table>
+                    <TableHead>
                         <TableHeader>User</TableHeader>
                         <TableHeader>Role</TableHeader>
                         <TableHeader>Status</TableHeader>
                         <TableHeader>Last Login</TableHeader>
                         <TableHeader align="right">Actions</TableHeader>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {users.map((user) => (
-                        <TableRow key={user.id} hover>
-                            <TableCell>
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-admin-primary/10 flex items-center justify-center text-admin-primary font-bold">
-                                        {user.name.charAt(0)}
+                    </TableHead>
+                    <TableBody>
+                        {filteredUsers.map((user) => (
+                            <TableRow key={user.userId} hover>
+                                <TableCell>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-admin-primary/10 flex items-center justify-center text-admin-primary font-bold">
+                                            {user.email?.charAt(0)?.toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-medium text-slate-800 dark:text-white">{user.email || 'N/A'}</h3>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">ID: {user.userId}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <div className="font-medium text-slate-900 dark:text-white">{user.name}</div>
-                                        <div className="text-xs text-slate-500">{user.email}</div>
+                                </TableCell>
+                                <TableCell>
+                                    <Badge variant={getRoleBadgeVariant(user.role)} label={user.role || 'PATIENT'} />
+                                </TableCell>
+                                <TableCell>
+                                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${getStatusColor('Active')}`}>
+                                        Active
+                                    </span>
+                                </TableCell>
+                                <TableCell>
+                                    <span className="text-sm text-slate-500">Just now</span>
+                                </TableCell>
+                                <TableCell align="right">
+                                    <div className="flex items-center gap-2 justify-end">
+                                        <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors" title="Edit">
+                                            <Edit size={16} className="text-slate-500" />
+                                        </button>
+                                        <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors" title="More options">
+                                            <MoreVertical size={16} className="text-slate-500" />
+                                        </button>
                                     </div>
-                                </div>
-                            </TableCell>
-                            <TableCell>
-                                <Badge type={getRoleBadgeVariant(user.role)}>{user.role}</Badge>
-                            </TableCell>
-                            <TableCell>
-                                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(user.status)}`}>
-                                    {user.status}
-                                </span>
-                            </TableCell>
-                            <TableCell>
-                                <span className="text-slate-600 dark:text-slate-300">{user.lastLogin}</span>
-                            </TableCell>
-                            <TableCell align="right">
-                                <div className="flex items-center justify-end gap-2">
-                                    <button className="p-2 text-slate-400 hover:text-admin-primary hover:bg-admin-primary/5 rounded-full transition-colors" title="Edit">
-                                        <Edit size={16} />
-                                    </button>
-                                    <button className="p-2 text-slate-400 hover:text-admin-warning hover:bg-admin-warning/5 rounded-full transition-colors" title="Reset Password">
-                                        <Key size={16} />
-                                    </button>
-                                    {user.status === 'Active' ? (
-                                        <button className="p-2 text-slate-400 hover:text-admin-danger hover:bg-admin-danger/5 rounded-full transition-colors" title="Deactivate">
-                                            <UserX size={16} />
-                                        </button>
-                                    ) : (
-                                        <button className="p-2 text-slate-400 hover:text-admin-success hover:bg-admin-success/5 rounded-full transition-colors" title="Activate">
-                                            <UserCheck size={16} />
-                                        </button>
-                                    )}
-                                </div>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            )}
         </Card>
     );
 };

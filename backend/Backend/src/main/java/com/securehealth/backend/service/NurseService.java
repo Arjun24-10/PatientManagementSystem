@@ -123,6 +123,38 @@ public class NurseService {
      * @return a result map containing a success message and the updated task
      * @throws RuntimeException if the task is not found or not assigned to the requester
      */
+    public NurseTask createTask(Map<String, Object> payload, String nurseEmail) {
+        Login nurse = getAuthUser(nurseEmail);
+
+        if (payload.get("title") == null || payload.get("title").toString().isBlank()) {
+            throw new RuntimeException("Task title is required.");
+        }
+        if (payload.get("dueTime") == null || payload.get("dueTime").toString().isBlank()) {
+            throw new RuntimeException("Due time is required.");
+        }
+
+        NurseTask task = new NurseTask();
+        task.setAssignedNurse(nurse);
+        task.setTitle(payload.get("title").toString().trim());
+        task.setCategory(payload.getOrDefault("category", "general").toString());
+        task.setPriority(payload.getOrDefault("priority", "medium").toString());
+        task.setCompleted(false);
+        task.setStatus("upcoming");
+
+        if (payload.containsKey("description") && payload.get("description") != null) {
+            task.setDescription(payload.get("description").toString());
+        }
+
+        task.setDueTime(LocalDateTime.parse(payload.get("dueTime").toString()));
+
+        if (payload.containsKey("patientId") && payload.get("patientId") != null && !payload.get("patientId").toString().isBlank()) {
+            Long patientId = Long.valueOf(payload.get("patientId").toString());
+            patientProfileRepository.findById(patientId).ifPresent(task::setPatient);
+        }
+
+        return nurseTaskRepository.save(task);
+    }
+
     public Map<String, Object> toggleTaskStatus(Long taskId, String nurseEmail) {
         Login nurse = getAuthUser(nurseEmail);
         NurseTask task = nurseTaskRepository.findById(taskId)

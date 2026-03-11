@@ -34,9 +34,9 @@ import LabOrders from './pages/lab/Orders.jsx';
 import LabOrderDetail from './pages/lab/OrderDetail.jsx';
 import UploadResults from './pages/lab/UploadResults.jsx';
 import LabHistory from './pages/lab/History.jsx';
-// New Nurse Pages
 import NursePatients from './pages/nurse/Patients.jsx';
 import NursePatientDetail from './pages/nurse/PatientDetail.jsx';
+import PatientDetails from './pages/nurse/PatientDetails.jsx';
 import NurseVitalsEntry from './pages/nurse/VitalsEntry.jsx';
 import NurseMedication from './pages/nurse/MedicationAdministration.jsx';
 import NurseTasks from './pages/nurse/Tasks.jsx';

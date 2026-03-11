@@ -11,11 +11,9 @@ const DashboardLayout = ({ role, userName = "User" }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-
     const { isDark, toggleTheme } = useTheme();
     const { logout } = useAuth();
     const navigate = useNavigate();
-
 
     const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
     const toggleCollapse = () => setIsCollapsed(!isCollapsed);
@@ -97,28 +95,21 @@ const DashboardLayout = ({ role, userName = "User" }) => {
                                     className="relative p-2 text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                                 >
                                     <Bell className="w-5 h-5" />
-                                    <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-800"></span>
                                 </button>
 
                                 {isNotificationsOpen && (
                                     <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-gray-100 dark:border-slate-700 py-2 z-50 animate-in fade-in zoom-in-95 duration-200">
                                         <div className="px-4 py-3 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center">
                                             <h3 className="font-semibold text-gray-900 dark:text-slate-100">Notifications</h3>
-                                            <button className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700">
-                                                Mark all read
+                                            <button
+                                                className="text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700"
+                                                onClick={() => setIsNotificationsOpen(false)}
+                                            >
+                                                Close
                                             </button>
                                         </div>
-                                        <div className="max-h-[300px] overflow-y-auto">
-                                            {[
-                                                { id: 1, text: 'New lab results for Sarah Johnson', time: '5m ago', unread: true },
-                                                { id: 2, text: 'Appointment with Mike Ross cancelled', time: '1h ago', unread: true },
-                                                { id: 3, text: 'System maintenance scheduled', time: '1d ago', unread: false },
-                                            ].map((notif) => (
-                                                <div key={notif.id} className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors ${notif.unread ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}>
-                                                    <p className="text-sm text-gray-700 dark:text-slate-200 font-medium">{notif.text}</p>
-                                                    <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">{notif.time}</p>
-                                                </div>
-                                            ))}
+                                        <div className="px-4 py-6 text-center text-sm text-gray-500 dark:text-slate-400">
+                                            No new notifications
                                         </div>
                                     </div>
                                 )}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, FileText, ArrowRight, Activity, Bell, Search } from 'lucide-react';
 
@@ -10,117 +10,70 @@ import AppointmentList from '../../components/AppointmentList';
 import MiniCalendar from '../../components/MiniCalendar';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { getFullName } from '../../utils/formatters';
 
 
 const DoctorDashboard = () => {
    const { user } = useAuth();
    const navigate = useNavigate();
    const [searchTerm, setSearchTerm] = useState('');
+   const [isLoading, setIsLoading] = useState(false);
+   const [error, setError] = useState(null);
 
-   const doctorName = user?.fullName || user?.full_name || 'Doctor';
+   const doctorName = getFullName(user) || 'Doctor';
 
    // State for data
    const [patients, setPatients] = useState([]);
    const [appointments, setAppointments] = useState([]);
 
    // Fetch data from API
-   React.useEffect(() => {
+   useEffect(() => {
       const fetchData = async () => {
-         // Fetch patients with graceful fallback
-         try {
-            const doctorId = user?.userId;
-            if (!doctorId) {
-               console.warn('Doctor ID not available - using mock data');
-               setPatients([]);
-               return;
-            }
-            const patientsData = await api.doctors.getPatientsByDoctor(doctorId);
-            if (Array.isArray(patientsData)) {
-               setPatients(patientsData);
-            }
-         } catch (error) {
-            if (!error?.message?.includes('not yet available')) {
-               console.error('Failed to fetch patients', error);
-            }
-            // Use mock patient data for doctor dashboard
-            const mockPatients = [
-               {
-                  id: 'P001',
-                  name: 'John Smith',
-                  email: 'john.smith@example.com',
-                  age: 45,
-                  gender: 'Male',
-                  condition: 'Hypertension',
-                  status: 'Stable',
-                  lastVisit: '2024-02-15',
-                  avatar: 'JS'
-               },
-               {
-                  id: 'P002',
-                  name: 'Sarah Johnson',
-                  email: 'sarah.j@example.com',
-                  age: 32,
-                  gender: 'Female',
-                  condition: 'Diabetes',
-                  status: 'Needs Review',
-                  lastVisit: '2024-02-20',
-                  avatar: 'SJ'
-               }
-            ];
-            setPatients(mockPatients);
-         }
+         const doctorId = user?.userId;
+         if (!doctorId) return;
 
-         // Fetch appointments with graceful fallback
+         setIsLoading(true);
+         setError(null);
          try {
-            const doctorId = user?.userId;
-            if (!doctorId) {
-               console.warn('Doctor ID not available - using mock appointments');
-               setAppointments([]);
-               return;
-            }
-            const appointmentsData = await api.appointments.getByDoctor(doctorId);
-            if (Array.isArray(appointmentsData)) {
-               setAppointments(appointmentsData);
-            }
-         } catch (error) {
-            if (!error?.message?.includes('not yet available')) {
-               console.error('Failed to fetch appointments', error);
-            }
-            // Use mock appointments data
-            const mockAppointments = [
-               {
-                  id: 'A001',
-                  patientName: 'John Smith',
-                  date: new Date().toISOString().split('T')[0],
-                  time: '09:00',
-                  type: 'Follow-up',
-                  status: 'Confirmed'
-               },
-               {
-                  id: 'A002',
-                  patientName: 'Sarah Johnson',
-                  date: new Date().toISOString().split('T')[0],
-                  time: '10:30',
-                  type: 'Check-up',
-                  status: 'Pending'
-               }
-            ];
-            setAppointments(mockAppointments);
+            // Fetch doctor's patients and appointments in parallel
+            const [patientsData, appointmentsData] = await Promise.all([
+               api.doctors.getPatients(doctorId),
+               api.appointments.getByDoctor(doctorId)
+            ]);
+            
+            setPatients(patientsData || []);
+            setAppointments((appointmentsData || []).map(a => ({
+               id: a.appointmentId,
+               date: a.appointmentDate,
+               time: a.appointmentDate
+                  ? new Date(a.appointmentDate).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                  : '',
+               patientName: a.patientName,
+               type: a.status || 'Appointment',
+            })));
+         } catch (err) {
+            console.error('Failed to fetch dashboard data:', err);
+            setError('Failed to load dashboard data. Please refresh the page.');
+         } finally {
+            setIsLoading(false);
          }
       };
 
       fetchData();
-   }, []);
+   }, [user?.userId]);
 
    // Filter patients based on search
-   const filteredPatients = patients.filter(p =>
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.id.toLowerCase().includes(searchTerm.toLowerCase())
-   );
+   const filteredPatients = patients.filter(p => {
+      const name = `${p.firstName || ''} ${p.lastName || ''}`.toLowerCase();
+      const id = (p.id || '').toString().toLowerCase();
+      return name.includes(searchTerm.toLowerCase()) || id.includes(searchTerm.toLowerCase());
+   });
 
-   const todayStr = new Date().toISOString().split('T')[0];
-   const todaysAppointments = appointments.filter(a => a.date === todayStr);
-
+   // Get today's appointments
+   const today = new Date().toISOString().split('T')[0];
+   const todaysAppointments = appointments.filter(a => 
+      a.date && a.date.split('T')[0] === today
+   ).length;
 
    return (
       <div className="space-y-4">
@@ -135,6 +88,18 @@ const DoctorDashboard = () => {
             </div>
          </div>
 
+         {error && (
+            <Card className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+               <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+            </Card>
+         )}
+
+         {isLoading ? (
+            <Card className="p-6 text-center">
+               <p className="text-gray-500 dark:text-slate-400">Loading dashboard...</p>
+            </Card>
+         ) : (
+            <>
          {/* Metrics */}
          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             <Card className="p-3 border border-gray-100 dark:border-slate-700 shadow-soft hover:shadow-lg transition-shadow duration-300 flex items-center justify-between group dark:bg-slate-800">
@@ -149,7 +114,7 @@ const DoctorDashboard = () => {
             <Card className="p-3 border border-gray-100 dark:border-slate-700 shadow-soft hover:shadow-lg transition-shadow duration-300 flex items-center justify-between group dark:bg-slate-800">
                <div>
                   <h3 className="text-gray-500 dark:text-slate-400 text-xs font-medium">Appointments</h3>
-                  <p className="text-xl font-bold text-gray-800 dark:text-slate-100 mt-1 group-hover:text-brand-medium transition-colors">{todaysAppointments.length}</p>
+                  <p className="text-xl font-bold text-gray-800 dark:text-slate-100 mt-1 group-hover:text-brand-medium transition-colors">{todaysAppointments}</p>
                </div>
                <div className="w-8 h-8 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center text-green-600 group-hover:scale-110 transition-transform">
                   <FileText className="w-4 h-4" />
@@ -208,28 +173,28 @@ const DoctorDashboard = () => {
                                     <td className="px-4 py-2 whitespace-nowrap">
                                        <div className="flex items-center">
                                           <div className="flex-shrink-0 h-8 w-8 rounded-full bg-brand-light dark:bg-brand-medium/20 flex items-center justify-center text-brand-deep dark:text-brand-light text-xs font-bold border border-brand-medium/10">
-                                             {patient.avatar}
+                                             {`${patient.firstName?.charAt(0) || ''}${patient.lastName?.charAt(0) || ''}`}
                                           </div>
                                           <div className="ml-2">
-                                             <div className="text-xs font-semibold text-gray-900 dark:text-slate-100 group-hover:text-brand-deep dark:group-hover:text-brand-light transition-colors">{patient.name}</div>
+                                             <div className="text-xs font-semibold text-gray-900 dark:text-slate-100 group-hover:text-brand-deep dark:group-hover:text-brand-light transition-colors">{patient.firstName} {patient.lastName}</div>
                                              <div className="text-xs text-gray-500 dark:text-slate-400">ID: {patient.id}</div>
                                           </div>
                                        </div>
                                     </td>
                                     <td className="px-4 py-2 whitespace-nowrap">
-                                       <div className="text-xs text-gray-900 dark:text-slate-100">{patient.age} yrs</div>
+                                       <div className="text-xs text-gray-900 dark:text-slate-100">{patient.dateOfBirth ? Math.floor((Date.now() - new Date(patient.dateOfBirth)) / (365.25 * 24 * 60 * 60 * 1000)) + ' yrs' : 'N/A'}</div>
                                        <div className="text-xs text-gray-500 dark:text-slate-400">{patient.gender}</div>
                                     </td>
                                     <td className="px-4 py-2 whitespace-nowrap">
-                                       <span className="text-xs text-gray-700 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{patient.condition}</span>
+                                       <span className="text-xs text-gray-700 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">{patient.medicalHistory || 'N/A'}</span>
                                     </td>
                                     <td className="px-4 py-2 whitespace-nowrap">
-                                       <Badge type={patient.status === 'Needs Review' ? 'red' : 'green'}>
-                                          {patient.status}
+                                       <Badge type="green">
+                                          Active
                                        </Badge>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">
-                                       {patient.lastVisit}
+                                       N/A
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                        <button
@@ -306,6 +271,8 @@ const DoctorDashboard = () => {
                </div>
             </div>
          </div>
+            </>
+         )}
       </div >
    );
 };

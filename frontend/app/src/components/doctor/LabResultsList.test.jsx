@@ -12,6 +12,10 @@ jest.mock('../common/Button', () => ({ children, onClick, className }) => (
    </button>
 ));
 
+jest.mock('./LabTestModal', () => ({ isOpen }) => (
+   isOpen ? <div data-testid="lab-test-modal">Lab Test Modal</div> : null
+));
+
 describe('LabResultsList', () => {
    const mockLabs = [
       {
@@ -49,12 +53,10 @@ describe('LabResultsList', () => {
       expect(screen.getByText('Pending')).toBeInTheDocument();
    });
 
-   test('renders order button', () => {
-      // Create a mock for alert since the component uses window.alert
-      window.alert = jest.fn();
-      render(<LabResultsList labs={mockLabs} />);
+   test('renders order button and opens modal', () => {
+      render(<LabResultsList labs={mockLabs} patientId="patient123" />);
       const button = screen.getByText(/Order New Labs/i);
       fireEvent.click(button);
-      expect(window.alert).toHaveBeenCalledWith('Order Labs Modal');
+      expect(screen.getByTestId('lab-test-modal')).toBeInTheDocument();
    });
 });

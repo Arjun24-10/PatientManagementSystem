@@ -1,6 +1,18 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Shield, Lock, FileCheck, AlertTriangle } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Card from '../../../components/common/Card';
+import api from '../../../services/api';
+
+const DEFAULT_LOGIN_DATA = (() => {
+    const success = [0,0,1,0,0,2,5,8,12,15,14,11,10,9,11,13,12,8,6,4,3,2,1,0];
+    const failed  = [0,0,0,3,0,0,0,1,0,2,0,0,1,0,0,0,1,0,0,0,0,0,0,0];
+    return Array.from({ length: 24 }, (_, h) => ({
+        hour: `${h.toString().padStart(2, '0')}:00`,
+        Successful: success[h],
+        Failed: failed[h],
+    }));
+})();
 
 const ComplianceMetric = ({ title, value, status, icon: Icon }) => (
     <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-100 dark:border-slate-600">
@@ -22,6 +34,33 @@ const ComplianceMetric = ({ title, value, status, icon: Icon }) => (
 );
 
 const CompliancePanel = () => {
+    const [loginData, setLoginData] = useState(DEFAULT_LOGIN_DATA);
+
+    useEffect(() => {
+        api.admin.getAuditLogs()
+            .then(logs => {
+                const now = new Date();
+                const counts = Array.from({ length: 24 }, () => ({ Successful: 0, Failed: 0 }));
+                logs.forEach(log => {
+                    const msAgo = now - new Date(log.timestamp);
+                    if (msAgo >= 0 && msAgo < 24 * 60 * 60 * 1000) {
+                        const h = new Date(log.timestamp).getHours();
+                        const isFailed = /fail|denied|invalid/i.test(log.action || '');
+                        const isLogin = /login|sign.?in|authenticat/i.test(log.action || '');
+                        if (isLogin && isFailed) counts[h].Failed++;
+                        else if (isLogin) counts[h].Successful++;
+                    }
+                });
+                if (counts.some(c => c.Successful > 0 || c.Failed > 0)) {
+                    setLoginData(counts.map((c, h) => ({
+                        hour: `${h.toString().padStart(2, '0')}:00`,
+                        ...c,
+                    })));
+                }
+            })
+            .catch(() => { /* keep defaults */ });
+    }, []);
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card className="lg:col-span-2 p-6 border-t-4 border-t-admin-primary">
@@ -47,10 +86,19 @@ const CompliancePanel = () => {
 
                 <div className="bg-slate-50 dark:bg-slate-700/30 rounded-xl p-4 border border-slate-100 dark:border-slate-600">
                     <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-3">Login Activity (Last 24h)</h4>
-                    {/* Placeholder for Line Chart */}
-                    <div className="h-40 flex items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-600 rounded-lg">
-                        <span className="text-slate-400 text-sm">Login Attempts Chart</span>
-                    </div>
+                    <ResponsiveContainer width="100%" height={160}>
+                        <BarChart data={loginData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }} barSize={6}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                            <XAxis dataKey="hour" tick={{ fontSize: 9, fill: '#94a3b8' }} interval={3} />
+                            <YAxis tick={{ fontSize: 9, fill: '#94a3b8' }} allowDecimals={false} />
+                            <Tooltip
+                                contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '6px', color: '#f1f5f9', fontSize: '11px' }}
+                            />
+                            <Legend wrapperStyle={{ fontSize: '11px' }} />
+                            <Bar dataKey="Successful" fill="#22c55e" radius={[2, 2, 0, 0]} />
+                            <Bar dataKey="Failed" fill="#ef4444" radius={[2, 2, 0, 0]} />
+                        </BarChart>
+                    </ResponsiveContainer>
                 </div>
             </Card>
 

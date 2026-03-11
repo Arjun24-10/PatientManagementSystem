@@ -1,5 +1,6 @@
 package com.securehealth.backend.controller;
 
+import com.securehealth.backend.dto.AppointmentDTO;
 import com.securehealth.backend.model.AppointmentStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -106,7 +107,7 @@ public class AppointmentControllerTest {
     @Test
     void approveAppointment_AsAdmin_Returns200() throws Exception {
         // Arrange
-        Appointment approved = new Appointment();
+        AppointmentDTO approved = new AppointmentDTO();
         approved.setStatus(AppointmentStatus.SCHEDULED);
         when(appointmentService.approveAppointment(10L)).thenReturn(approved);
 
@@ -138,7 +139,7 @@ public class AppointmentControllerTest {
 
     @Test
     void rejectAppointment_AsAdmin_Returns200() throws Exception {
-        Appointment rejected = new Appointment();
+        AppointmentDTO rejected = new AppointmentDTO();
         rejected.setStatus(AppointmentStatus.REJECTED);
         when(appointmentService.rejectAppointment(eq(10L), any())).thenReturn(rejected);
 

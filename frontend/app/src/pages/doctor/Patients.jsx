@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
-import Button from '../../components/common/Button';
 import PatientSearch from './components/PatientSearch';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -13,75 +12,36 @@ const Patients = () => {
     const { user } = useAuth();
     const [searchTerm, setSearchTerm] = useState('');
     const [patients, setPatients] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     // Fetch Patients
-    React.useEffect(() => {
+    useEffect(() => {
         const fetchPatients = async () => {
+            const doctorId = user?.userId;
+            if (!doctorId) return;
+
+            setIsLoading(true);
+            setError(null);
             try {
-                const doctorId = user?.userId;
-                if (!doctorId) {
-                   console.warn('Doctor ID not available - loading mock patients');
-                   setPatients([]);
-                   return;
-                }
-                const data = await api.doctors.getPatientsByDoctor(doctorId);
-                if (Array.isArray(data)) {
-                    setPatients(data);
-                }
-            } catch (error) {
-                if (!error?.message?.includes('not yet available')) {
-                    console.error('Failed to fetch patients', error);
-                }
-                // Use mock data for doctors when API is not available
-                const mockPatients = [
-                    {
-                        id: 'P001',
-                        name: 'John Smith',
-                        email: 'john.smith@example.com',
-                        phone: '+1-555-0123',
-                        age: 45,
-                        gender: 'Male',
-                        condition: 'Hypertension',
-                        status: 'Stable',
-                        lastVisit: '2024-02-15',
-                        avatar: 'JS'
-                    },
-                    {
-                        id: 'P002',
-                        name: 'Sarah Johnson',
-                        email: 'sarah.j@example.com',
-                        phone: '+1-555-0124',
-                        age: 32,
-                        gender: 'Female',
-                        condition: 'Diabetes',
-                        status: 'Needs Review',
-                        lastVisit: '2024-02-20',
-                        avatar: 'SJ'
-                    },
-                    {
-                        id: 'P003',
-                        name: 'Michael Brown',
-                        email: 'mike.brown@example.com',
-                        phone: '+1-555-0125',
-                        age: 58,
-                        gender: 'Male',
-                        condition: 'Heart Disease',
-                        status: 'Stable',
-                        lastVisit: '2024-02-10',
-                        avatar: 'MB'
-                    }
-                ];
-                setPatients(mockPatients);
+                const data = await api.doctors.getPatients(doctorId);
+                setPatients(data || []);
+            } catch (err) {
+                console.error('Failed to fetch patients:', err);
+                setError('Failed to load patients. Please refresh the page.');
+            } finally {
+                setIsLoading(false);
             }
         };
         fetchPatients();
-    }, [user]);
+    }, [user?.userId]);
 
     // Basic filtering
-    const filteredPatients = patients.filter(p =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.id.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredPatients = patients.filter(p => {
+        const name = `${p.firstName || ''} ${p.lastName || ''}`.toLowerCase();
+        const id = (p.id || '').toString().toLowerCase();
+        return name.includes(searchTerm.toLowerCase()) || id.includes(searchTerm.toLowerCase());
+    });
 
     return (
         <div className="space-y-3">
@@ -89,12 +49,23 @@ const Patients = () => {
                 <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">My Patients</h2>
             </div>
 
+            {error && (
+                <Card className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                    <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+                </Card>
+            )}
+
             <PatientSearch
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
                 onSearch={() => { }}
             />
 
+            {isLoading ? (
+                <Card className="p-6 text-center">
+                    <p className="text-gray-500 dark:text-slate-400">Loading patients...</p>
+                </Card>
+            ) : (
             <Card className="overflow-hidden dark:bg-slate-800">
                 <div className="px-4 py-2 border-b dark:border-slate-700 flex justify-between items-center bg-gray-50 dark:bg-slate-700/50">
                     <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100">Patient Directory</h3>
@@ -120,29 +91,29 @@ const Patients = () => {
                                         <td className="px-4 py-2 whitespace-nowrap">
                                             <div className="flex items-center">
                                                 <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 text-xs font-bold">
-                                                    {patient.avatar}
+                                                    {`${patient.firstName?.charAt(0) || ''}${patient.lastName?.charAt(0) || ''}`}
                                                 </div>
                                                 <div className="ml-2">
-                                                    <div className="text-xs font-medium text-gray-900 dark:text-slate-100">{patient.name}</div>
+                                                    <div className="text-xs font-medium text-gray-900 dark:text-slate-100">{patient.firstName} {patient.lastName}</div>
                                                     <div className="text-xs text-gray-500 dark:text-slate-400">ID: {patient.id}</div>
-                                                    <div className="text-xs text-gray-400 dark:text-slate-500">{patient.age} yrs, {patient.gender}</div>
+                                                    <div className="text-xs text-gray-400 dark:text-slate-500">{patient.dateOfBirth ? Math.floor((Date.now() - new Date(patient.dateOfBirth)) / (365.25 * 24 * 60 * 60 * 1000)) + ' yrs' : 'N/A'}, {patient.gender}</div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-4 py-2 whitespace-nowrap">
                                             <div className="text-xs text-gray-900 dark:text-slate-100">{patient.email}</div>
-                                            <div className="text-xs text-gray-500 dark:text-slate-400">{patient.phone}</div>
+                                            <div className="text-xs text-gray-500 dark:text-slate-400">{patient.contactNumber || 'N/A'}</div>
                                         </td>
                                         <td className="px-4 py-2 whitespace-nowrap">
-                                            <span className="text-xs text-gray-900 dark:text-slate-100">{patient.condition}</span>
+                                            <span className="text-xs text-gray-900 dark:text-slate-100">{patient.medicalHistory || 'N/A'}</span>
                                         </td>
                                         <td className="px-4 py-2 whitespace-nowrap">
-                                            <Badge type={patient.status === 'Needs Review' ? 'red' : 'green'}>
-                                                {patient.status}
+                                            <Badge type="green">
+                                                Active
                                             </Badge>
                                         </td>
                                         <td className="px-4 py-2 whitespace-nowrap text-xs text-gray-500 dark:text-slate-400">
-                                            {patient.lastVisit}
+                                            N/A
                                         </td>
                                         <td className="px-4 py-2 whitespace-nowrap text-right text-xs font-medium">
                                             <button
@@ -163,6 +134,7 @@ const Patients = () => {
                     </div>
                 )}
             </Card>
+            )}
         </div>
     );
 };
