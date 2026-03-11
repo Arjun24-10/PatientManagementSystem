@@ -19,8 +19,8 @@ public class PatientAccessValidator {
                 .map(GrantedAuthority::getAuthority)
                 .orElse("UNKNOWN");
 
-        // Doctors and Admins bypass this specific ownership check
-        if (role.equals("DOCTOR") || role.equals("ADMIN")) {
+        // Doctors, Nurses, and Admins bypass this specific ownership check
+        if (role.equals("DOCTOR") || role.equals("ADMIN") || role.equals("NURSE") || role.equals("LAB_TECHNICIAN")) {
             return;
         }
 

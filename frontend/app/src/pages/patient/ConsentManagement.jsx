@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import IconButton from '../../components/common/IconButton';
 import IconOnlyButton from '../../components/common/IconOnlyButton';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
@@ -255,12 +254,27 @@ const ConsentManagement = () => {
    };
 
    // Handle consent form submission
-   const handleConsentSubmit = (formData) => {
-      // In production, this would call an API
+   const handleConsentSubmit = async (formData) => {
       const action = consentMode === 'grant' ? 'granted' : 'modified';
-      showToast('success', `Consent ${action} for "${selectedConsent.title}". Confirmation email sent.`);
+      showToast('success', `Consent ${action} for "${selectedConsent?.title}". Confirmation email sent.`);
       setShowGrantModal(false);
       setSelectedConsent(null);
+      // Refresh consent list from backend
+      try {
+         const apiConsents = await consentAPI.getMyConsents();
+         const mapped = apiConsents.map(transformApiConsent);
+         setConsentData(prev => ({
+            ...prev,
+            consents: mapped,
+            summary: {
+               ...prev.summary,
+               activeConsents: mapped.filter(c => c.status === 'active').length,
+               withdrawn: mapped.filter(c => c.status === 'withdrawn').length,
+            },
+         }));
+      } catch (err) {
+         console.error('Failed to refresh consents:', err);
+      }
    };
 
    // Confirm withdrawal
@@ -1636,6 +1650,9 @@ const ConsentManagement = () => {
                [selectedConsent.id]: true
             } : {}}
             onSubmit={handleConsentSubmit}
+            consentId={selectedConsent?.id}
+            grantedToId={selectedConsent?.grantedTo?.userId}
+            backendConsentType={selectedConsent?.consentType}
          />
       </div>
    );

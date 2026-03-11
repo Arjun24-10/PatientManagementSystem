@@ -22,6 +22,12 @@ public class LabResultController {
     @Autowired private PatientAccessValidator accessValidator;
     @Autowired private LabTestService labTestService;
 
+    @GetMapping
+    @PreAuthorize("hasAnyAuthority('DOCTOR', 'ADMIN')")
+    public ResponseEntity<List<LabTestDTO>> getAllLabTests() {
+        return ResponseEntity.ok(labTestService.getAllLabTests());
+    }
+
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<List<LabTestDTO>> getByPatient(@PathVariable Long patientId, Authentication auth) {
         accessValidator.validateAccess(patientId, auth);

@@ -53,6 +53,15 @@ public class NurseController {
         }
     }
 
+    @PostMapping("/tasks")
+    public ResponseEntity<?> createTask(@RequestBody Map<String, Object> payload, Authentication authentication) {
+        try {
+            return ResponseEntity.ok(nurseService.createTask(payload, authentication.getName()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @GetMapping("/handover")
     public ResponseEntity<?> getHandoverNotes(Authentication authentication) {
         try {

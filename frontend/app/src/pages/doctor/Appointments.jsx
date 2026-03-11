@@ -143,7 +143,6 @@ const Appointments = () => {
                             <Columns size={20} className="rotate-90" />
                         </button>
                     </div>
-                    <Button>+ New Appointment</Button>
                 </div>
             </div>
 

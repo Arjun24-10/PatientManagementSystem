@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, Search, Bell, Sun, Moon, ChevronDown, Users, Shield, LogOut, Clock } from 'lucide-react';
+import { Menu, Search, Bell, Sun, Moon, ChevronDown, Users, Shield, LogOut } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -68,40 +68,21 @@ const Header = ({
                             className="relative p-2 text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                         >
                             <Bell className="w-5 h-5" />
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white dark:ring-slate-800 animate-pulse"></span>
                         </button>
 
                         {isNotificationsOpen && (
                             <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-gray-100 dark:border-slate-700 py-2 z-50 transform origin-top-right transition-all animate-fade-in-down">
                                 <div className="px-4 py-2 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center bg-gray-50/50 dark:bg-slate-700/50 rounded-t-xl">
                                     <h3 className="font-semibold text-gray-900 dark:text-slate-100 text-sm">Notifications</h3>
-                                    <button className="text-xs text-primary font-medium hover:text-primary-dark">
-                                        Mark all read
+                                    <button
+                                        className="text-xs text-primary font-medium hover:text-primary-dark"
+                                        onClick={() => setIsNotificationsOpen(false)}
+                                    >
+                                        Close
                                     </button>
                                 </div>
-                                <div className="max-h-80 overflow-y-auto">
-                                    {[
-                                        { id: 1, text: 'New lab results for Sarah Johnson', time: '5m ago', unread: true },
-                                        { id: 2, text: 'Appointment with Mike Ross cancelled', time: '1h ago', unread: true },
-                                        { id: 3, text: 'System maintenance scheduled', time: '1d ago', unread: false },
-                                    ].map((notif) => (
-                                        <div
-                                            key={notif.id}
-                                            className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-700/50 cursor-pointer border-b border-gray-50 dark:border-slate-700/50 last:border-0 ${notif.unread ? 'bg-blue-50/30 dark:bg-blue-900/10' : ''
-                                                }`}
-                                        >
-                                            <p className="text-sm text-gray-800 dark:text-slate-200 font-medium">{notif.text}</p>
-                                            <p className="text-xs text-gray-500 dark:text-slate-400 mt-1 flex items-center gap-1">
-                                                <Clock className="w-3 h-3" />
-                                                {notif.time}
-                                            </p>
-                                        </div>
-                                    ))}
-                                </div>
-                                <div className="px-4 py-2 border-t border-gray-100 dark:border-slate-700 text-center bg-gray-50/50 dark:bg-slate-700/50 rounded-b-xl">
-                                    <button className="text-sm text-gray-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary font-medium transition-colors">
-                                        View all notifications
-                                    </button>
+                                <div className="px-4 py-6 text-center text-sm text-gray-500 dark:text-slate-400">
+                                    No new notifications
                                 </div>
                             </div>
                         )}

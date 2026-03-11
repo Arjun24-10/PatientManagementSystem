@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
    ArrowLeft,
    Activity,
@@ -13,7 +13,6 @@ import {
    Droplet,
    Wind,
    Gauge,
-   Frown,
    CheckCircle,
    XCircle,
 } from 'lucide-react';
@@ -22,18 +21,44 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
-import { mockNurseOverview } from '../../mocks/nurseOverview';
+import api from '../../services/api';
 
 const PatientDetails = () => {
    const navigate = useNavigate();
    const { patientId } = useParams();
    const [activeTab, setActiveTab] = useState('vitals');
    const [careNotes, setCareNotes] = useState('');
+   const [patient, setPatient] = useState(null);
+   const [latestVitals, setLatestVitals] = useState(null);
+   const [prescriptions, setPrescriptions] = useState([]);
+   const [loading, setLoading] = useState(true);
 
-   // Find patient from mock data
-   const patient = useMemo(() => {
-      return mockNurseOverview.assignedPatients.find((p) => p.id === patientId);
+   useEffect(() => {
+      const loadData = async () => {
+         try {
+            const [patients, vitals, rxData] = await Promise.all([
+               api.nurse.getAssignedPatients(),
+               api.vitalSigns.getLatest(patientId).catch(() => null),
+               api.prescriptions.getByPatient(patientId).catch(() => []),
+            ]);
+            const found = Array.isArray(patients)
+               ? patients.find((p) => String(p.profileId) === String(patientId))
+               : null;
+            setPatient(found || null);
+            setLatestVitals(vitals || null);
+            setPrescriptions(Array.isArray(rxData) ? rxData : []);
+         } catch (err) {
+            console.error('Failed to load patient details:', err);
+         } finally {
+            setLoading(false);
+         }
+      };
+      loadData();
    }, [patientId]);
+
+   if (loading) {
+      return <div className="p-8 text-center text-gray-500 dark:text-slate-400">Loading...</div>;
+   }
 
    if (!patient) {
       return (
@@ -46,67 +71,8 @@ const PatientDetails = () => {
       );
    }
 
-   // Mock medication schedule
-   const medicationSchedule = [
-      {
-         id: 1,
-         medication: 'Metformin 500mg',
-         time: '08:00',
-         route: 'Oral',
-         status: 'completed',
-         completedAt: '08:05',
-         notes: 'Given with breakfast',
-      },
-      {
-         id: 2,
-         medication: 'Lisinopril 10mg',
-         time: '08:00',
-         route: 'Oral',
-         status: 'completed',
-         completedAt: '08:05',
-      },
-      {
-         id: 3,
-         medication: 'Insulin Lispro 8 units',
-         time: '12:00',
-         route: 'Subcutaneous',
-         status: 'due',
-      },
-      {
-         id: 4,
-         medication: 'Metformin 500mg',
-         time: '18:00',
-         route: 'Oral',
-         status: 'scheduled',
-      },
-   ];
-
-   // Mock treatment schedule
-   const treatmentSchedule = [
-      {
-         id: 1,
-         treatment: 'Wound dressing change',
-         time: '10:00',
-         status: 'completed',
-         completedAt: '10:15',
-         notes: 'Wound healing well, no signs of infection',
-      },
-      {
-         id: 2,
-         treatment: 'Physical therapy',
-         time: '14:00',
-         status: 'scheduled',
-      },
-      {
-         id: 3,
-         treatment: 'Blood glucose check',
-         time: '16:00',
-         status: 'scheduled',
-      },
-   ];
-
-   // Current vitals from mock data
-   const currentVitals = mockNurseOverview.vitals.current;
+   const patientName = `${patient.firstName || ''} ${patient.lastName || ''}`.trim() || 'Unknown';
+   const bpParts = latestVitals?.bloodPressure ? latestVitals.bloodPressure.split('/') : ['—', '—'];
 
    const getStatusBadge = (status) => {
       if (status === 'completed') return { type: 'green', icon: CheckCircle, text: 'Completed' };
@@ -129,15 +95,12 @@ const PatientDetails = () => {
                Back
             </Button>
             <div className="flex-1">
-               <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100">{patient.name}</h1>
+               <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100">{patientName}</h1>
                <p className="text-sm text-gray-500 dark:text-slate-400">
-                  Room {patient.room} • Bed {patient.bed} • MRN: {patient.mrn}
+                  MRN: {patient.profileId}
                </p>
             </div>
-            <Badge type={patient.acuityLevel === 'critical' ? 'red' : patient.acuityLevel === 'high' ? 'yellow' : 'green'}>
-               {patient.acuityLevel}
-            </Badge>
-         </div>
+            </div>
 
          {/* Patient Basic Info - HIPAA Compliant (Demographics Only) */}
          <Card>
@@ -146,56 +109,37 @@ const PatientDetails = () => {
                   <User className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   Patient Information
                </h2>
-               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div>
                      <p className="text-xs text-gray-500 dark:text-slate-400">Age</p>
-                     <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{patient.age} years</p>
+                     <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+                        {patient.dateOfBirth
+                           ? `${new Date().getFullYear() - new Date(patient.dateOfBirth).getFullYear()} years`
+                           : '—'}
+                     </p>
                   </div>
                   <div>
                      <p className="text-xs text-gray-500 dark:text-slate-400">Gender</p>
-                     <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{patient.gender}</p>
+                     <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{patient.gender || '—'}</p>
                   </div>
                   <div>
                      <p className="text-xs text-gray-500 dark:text-slate-400">Admission Date</p>
                      <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-                        {new Date(patient.admissionDate).toLocaleDateString()}
+                        {patient.createdAt ? new Date(patient.createdAt).toLocaleDateString() : '—'}
                      </p>
-                  </div>
-                  <div>
-                     <p className="text-xs text-gray-500 dark:text-slate-400">Acuity Level</p>
-                     <Badge type={patient.acuityLevel === 'critical' ? 'red' : 'yellow'} size="sm">
-                        {patient.acuityLevel}
-                     </Badge>
                   </div>
                </div>
 
-               {/* Allergies Alert */}
-               {patient.allergies && patient.allergies.length > 0 && (
+               {/* Medical History / Allergies */}
+               {patient.medicalHistory && (
                   <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
                      <div className="flex items-start gap-2">
                         <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
                         <div>
-                           <p className="text-sm font-semibold text-red-900 dark:text-red-100">Allergies</p>
-                           <div className="flex flex-wrap gap-2 mt-1">
-                              {patient.allergies.map((allergy, idx) => (
-                                 <Badge key={idx} type="red" size="sm">
-                                    {allergy.allergen} ({allergy.severity})
-                                 </Badge>
-                              ))}
-                           </div>
+                           <p className="text-sm font-semibold text-red-900 dark:text-red-100">Medical History / Allergies</p>
+                           <p className="text-xs text-red-800 dark:text-red-200 mt-1">{patient.medicalHistory}</p>
                         </div>
                      </div>
-                  </div>
-               )}
-
-               {/* Special Alerts */}
-               {patient.specialAlerts && patient.specialAlerts.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                     {patient.specialAlerts.map((alert, idx) => (
-                        <Badge key={idx} type="yellow" size="sm">
-                           {alert.replace('-', ' ').toUpperCase()}
-                        </Badge>
-                     ))}
                   </div>
                )}
             </div>
@@ -241,7 +185,7 @@ const PatientDetails = () => {
                         <div>
                            <p className="text-xs text-gray-500 dark:text-slate-400">Blood Pressure</p>
                            <p className="text-lg font-bold text-gray-900 dark:text-slate-100">
-                              {currentVitals.bp.systolic}/{currentVitals.bp.diastolic}
+                              {bpParts[0]}/{bpParts[1]}
                            </p>
                            <p className="text-xs text-gray-500 dark:text-slate-400">mmHg</p>
                         </div>
@@ -258,7 +202,7 @@ const PatientDetails = () => {
                         </div>
                         <div>
                            <p className="text-xs text-gray-500 dark:text-slate-400">Heart Rate</p>
-                           <p className="text-lg font-bold text-gray-900 dark:text-slate-100">{currentVitals.heartRate}</p>
+                           <p className="text-lg font-bold text-gray-900 dark:text-slate-100">{latestVitals?.heartRate ?? '—'}</p>
                            <p className="text-xs text-gray-500 dark:text-slate-400">bpm</p>
                         </div>
                      </div>
@@ -275,9 +219,9 @@ const PatientDetails = () => {
                         <div>
                            <p className="text-xs text-gray-500 dark:text-slate-400">Temperature</p>
                            <p className="text-lg font-bold text-gray-900 dark:text-slate-100">
-                              {currentVitals.temperature.value}°{currentVitals.temperature.unit}
+                              {latestVitals?.temperature != null ? `${latestVitals.temperature}°F` : '—'}
                            </p>
-                           <p className="text-xs text-gray-500 dark:text-slate-400">{currentVitals.temperature.route}</p>
+                           <p className="text-xs text-gray-500 dark:text-slate-400">oral</p>
                         </div>
                      </div>
                   </div>
@@ -292,7 +236,7 @@ const PatientDetails = () => {
                         </div>
                         <div>
                            <p className="text-xs text-gray-500 dark:text-slate-400">Respiratory Rate</p>
-                           <p className="text-lg font-bold text-gray-900 dark:text-slate-100">{currentVitals.respiratoryRate}</p>
+                           <p className="text-lg font-bold text-gray-900 dark:text-slate-100">{latestVitals?.respiratoryRate ?? '—'}</p>
                            <p className="text-xs text-gray-500 dark:text-slate-400">breaths/min</p>
                         </div>
                      </div>
@@ -308,24 +252,8 @@ const PatientDetails = () => {
                         </div>
                         <div>
                            <p className="text-xs text-gray-500 dark:text-slate-400">Oxygen Saturation</p>
-                           <p className="text-lg font-bold text-gray-900 dark:text-slate-100">{currentVitals.oxygenSaturation}%</p>
+                           <p className="text-lg font-bold text-gray-900 dark:text-slate-100">{latestVitals?.oxygenSaturation != null ? `${latestVitals.oxygenSaturation}%` : '—'}</p>
                            <p className="text-xs text-gray-500 dark:text-slate-400">SpO₂</p>
-                        </div>
-                     </div>
-                  </div>
-               </Card>
-
-               {/* Pain Level */}
-               <Card className="p-4">
-                  <div className="flex items-start justify-between">
-                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                           <Frown className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                        </div>
-                        <div>
-                           <p className="text-xs text-gray-500 dark:text-slate-400">Pain Level</p>
-                           <p className="text-lg font-bold text-gray-900 dark:text-slate-100">{currentVitals.painLevel}/10</p>
-                           <p className="text-xs text-gray-500 dark:text-slate-400">self-reported</p>
                         </div>
                      </div>
                   </div>
@@ -334,7 +262,9 @@ const PatientDetails = () => {
                {/* Last Recorded */}
                <Card className="p-4 md:col-span-2 lg:col-span-3 bg-gray-50 dark:bg-slate-800/50">
                   <p className="text-xs text-gray-500 dark:text-slate-400">
-                     Last recorded: {new Date(currentVitals.timestamp).toLocaleString()} by {currentVitals.recordedBy}
+                     {latestVitals?.recordedAt
+                        ? `Last recorded: ${new Date(latestVitals.recordedAt).toLocaleString()}${latestVitals.nurse?.username ? ` by ${latestVitals.nurse.username}` : ''}`
+                        : 'No vitals recorded yet'}
                   </p>
                   <Button
                      onClick={() => navigate('/nurse/vitals')}
@@ -350,91 +280,51 @@ const PatientDetails = () => {
 
          {activeTab === 'medications' && (
             <Card>
-               <div className="divide-y divide-gray-100 dark:divide-slate-700/50">
-                  {medicationSchedule.map((med) => {
-                     const statusInfo = getStatusBadge(med.status);
-                     const StatusIcon = statusInfo.icon;
-                     return (
-                        <div key={med.id} className="p-4 hover:bg-gray-50 dark:hover:bg-slate-800/30">
-                           <div className="flex items-start justify-between gap-4">
-                              <div className="flex-1">
-                                 <div className="flex items-center gap-2 mb-1">
-                                    <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-                                       {med.medication}
-                                    </h3>
-                                    <Badge type={statusInfo.type} size="sm" className="flex items-center gap-1">
-                                       <StatusIcon className="w-3 h-3" />
-                                       {statusInfo.text}
-                                    </Badge>
+               {prescriptions.length === 0 ? (
+                  <p className="p-6 text-sm text-gray-500 dark:text-slate-400 text-center">No prescriptions found.</p>
+               ) : (
+                  <div className="divide-y divide-gray-100 dark:divide-slate-700/50">
+                     {prescriptions.map((med) => {
+                        const status = (med.status || 'ACTIVE').toUpperCase();
+                        const normalized = status === 'ACTIVE' ? 'scheduled' : status === 'COMPLETED' ? 'completed' : 'scheduled';
+                        const statusInfo = getStatusBadge(normalized);
+                        const StatusIcon = statusInfo.icon;
+                        return (
+                           <div key={med.prescriptionId} className="p-4 hover:bg-gray-50 dark:hover:bg-slate-800/30">
+                              <div className="flex items-start justify-between gap-4">
+                                 <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                       <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+                                          {med.medicationName}{med.dosage ? ` (${med.dosage})` : ''}
+                                       </h3>
+                                       <Badge type={statusInfo.type} size="sm" className="flex items-center gap-1">
+                                          <StatusIcon className="w-3 h-3" />
+                                          {statusInfo.text}
+                                       </Badge>
+                                    </div>
+                                    <p className="text-xs text-gray-500 dark:text-slate-400">
+                                       Frequency: {med.frequency || '—'}
+                                    </p>
+                                    {med.specialInstructions && (
+                                       <p className="text-xs text-gray-600 dark:text-slate-300 mt-1 italic">
+                                          Note: {med.specialInstructions}
+                                       </p>
+                                    )}
                                  </div>
-                                 <p className="text-xs text-gray-500 dark:text-slate-400">
-                                    Scheduled: {med.time} • Route: {med.route}
-                                 </p>
-                                 {med.completedAt && (
-                                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                                       Administered at {med.completedAt}
-                                    </p>
-                                 )}
-                                 {med.notes && (
-                                    <p className="text-xs text-gray-600 dark:text-slate-300 mt-1 italic">
-                                       Note: {med.notes}
-                                    </p>
-                                 )}
                               </div>
-                              {med.status === 'due' && (
-                                 <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white">
-                                    Mark Given
-                                 </Button>
-                              )}
                            </div>
-                        </div>
-                     );
-                  })}
-               </div>
+                        );
+                     })}
+                  </div>
+               )}
             </Card>
          )}
 
          {activeTab === 'treatments' && (
-            <Card>
-               <div className="divide-y divide-gray-100 dark:divide-slate-700/50">
-                  {treatmentSchedule.map((treatment) => {
-                     const statusInfo = getStatusBadge(treatment.status);
-                     const StatusIcon = statusInfo.icon;
-                     return (
-                        <div key={treatment.id} className="p-4 hover:bg-gray-50 dark:hover:bg-slate-800/30">
-                           <div className="flex items-start justify-between gap-4">
-                              <div className="flex-1">
-                                 <div className="flex items-center gap-2 mb-1">
-                                    <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-                                       {treatment.treatment}
-                                    </h3>
-                                    <Badge type={statusInfo.type} size="sm" className="flex items-center gap-1">
-                                       <StatusIcon className="w-3 h-3" />
-                                       {statusInfo.text}
-                                    </Badge>
-                                 </div>
-                                 <p className="text-xs text-gray-500 dark:text-slate-400">Scheduled: {treatment.time}</p>
-                                 {treatment.completedAt && (
-                                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                                       Completed at {treatment.completedAt}
-                                    </p>
-                                 )}
-                                 {treatment.notes && (
-                                    <p className="text-xs text-gray-600 dark:text-slate-300 mt-1 italic">
-                                       Note: {treatment.notes}
-                                    </p>
-                                 )}
-                              </div>
-                              {treatment.status === 'scheduled' && (
-                                 <Button size="sm" variant="outline">
-                                    Mark Complete
-                                 </Button>
-                              )}
-                           </div>
-                        </div>
-                     );
-                  })}
-               </div>
+            <Card className="p-6">
+               <p className="text-sm text-gray-500 dark:text-slate-400 text-center">
+                  Treatment information is managed in the EMR system.
+               </p>
             </Card>
          )}
 

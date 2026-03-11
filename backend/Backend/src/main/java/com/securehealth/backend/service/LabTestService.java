@@ -33,13 +33,10 @@ public class LabTestService {
 
         LabTest labTest = new LabTest();
         labTest.setPatient(patient);
-        // labTest.setOrderedBy(staff); // Optional: if your entity tracks who ordered it
-        
+        labTest.setOrderedBy(staff);
+        labTest.setStatus("PENDING");
         labTest.setTestName(request.getTestName());
         labTest.setTestCategory(request.getTestCategory());
-        labTest.setResultValue(request.getResultValue());
-        labTest.setUnit(request.getUnit());
-        labTest.setReferenceRange(request.getReferenceRange());
         labTest.setRemarks(request.getRemarks());
 
         return labTestRepository.save(labTest);
@@ -53,6 +50,24 @@ public class LabTestService {
             // Safely trigger the lazy load
             dto.setOrderedByName(lt.getOrderedBy() != null ? lt.getOrderedBy().getEmail() : "Unknown Staff");
             
+            dto.setTestName(lt.getTestName());
+            dto.setTestCategory(lt.getTestCategory());
+            dto.setResultValue(lt.getResultValue());
+            dto.setUnit(lt.getUnit());
+            dto.setReferenceRange(lt.getReferenceRange());
+            dto.setRemarks(lt.getRemarks());
+            dto.setStatus(lt.getStatus());
+            dto.setOrderedAt(lt.getOrderedAt());
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<LabTestDTO> getAllLabTests() {
+        return labTestRepository.findAll().stream().map(lt -> {
+            LabTestDTO dto = new LabTestDTO();
+            dto.setTestId(lt.getTestId());
+            dto.setOrderedByName(lt.getOrderedBy() != null ? lt.getOrderedBy().getEmail() : "Unknown Staff");
             dto.setTestName(lt.getTestName());
             dto.setTestCategory(lt.getTestCategory());
             dto.setResultValue(lt.getResultValue());
@@ -91,3 +106,4 @@ public class LabTestService {
         labTestRepository.deleteById(id);
     }
 }
+

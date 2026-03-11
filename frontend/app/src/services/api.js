@@ -295,6 +295,13 @@ export const prescriptionAPI = {
 // ============================================
 
 export const labResultAPI = {
+   // Get all lab results (doctor/admin)
+   getAll: async () => {
+      return apiCall('/lab-results', {
+         method: 'GET',
+      });
+   },
+
    // Get all lab results for a patient
    getByPatient: async (patientId) => {
       return apiCall(`/lab-results/patient/${patientId}`, {
@@ -427,6 +434,9 @@ export const nurseAPI = {
    },
    toggleTaskStatus: async (taskId) => {
       return apiCall(`/nurse/tasks/${taskId}/toggle`, { method: 'PUT' });
+   },
+   createTask: async (taskData) => {
+      return apiCall('/nurse/tasks', { method: 'POST', body: JSON.stringify(taskData) });
    },
    getHandoverNotes: async () => {
       return apiCall('/nurse/handover', { method: 'GET' });
