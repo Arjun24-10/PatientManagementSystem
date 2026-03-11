@@ -196,6 +196,28 @@ export const appointmentAPI = {
       });
    },
 
+   // Get all pending-approval appointments (ADMIN only)
+   getPending: async () => {
+      return apiCall('/appointments/pending', {
+         method: 'GET',
+      });
+   },
+
+   // Approve a pending appointment (ADMIN only)
+   approve: async (id) => {
+      return apiCall(`/appointments/${id}/approve`, {
+         method: 'PUT',
+      });
+   },
+
+   // Reject a pending appointment with optional reason (ADMIN only)
+   reject: async (id, reason = '') => {
+      return apiCall(`/appointments/${id}/reject`, {
+         method: 'PUT',
+         body: JSON.stringify(reason),
+      });
+   },
+
    // Delete appointment
    delete: async (id) => {
       return apiCall(`/appointments/${id}`, {

@@ -118,11 +118,11 @@ const PatientAppointments = () => {
    const filteredAppointments = useMemo(() => {
       return appointments.filter(a => {
          if (activeTab === 'upcoming') {
-            return !['COMPLETED', 'CANCELLED'].includes(a.statusRaw || 'PENDING_APPROVAL');
+            return !['COMPLETED', 'CANCELLED', 'REJECTED'].includes(a.statusRaw || 'PENDING_APPROVAL');
          } else if (activeTab === 'past') {
             return a.statusRaw === 'COMPLETED';
          } else if (activeTab === 'cancelled') {
-            return a.statusRaw === 'CANCELLED';
+            return ['CANCELLED', 'REJECTED'].includes(a.statusRaw);
          }
          return true;
       });
@@ -131,7 +131,7 @@ const PatientAppointments = () => {
    // Get next 3 upcoming appointments for reminder sidebar
    const upcomingReminders = useMemo(() => {
       return appointments
-         .filter(a => !['COMPLETED', 'CANCELLED'].includes(a.statusRaw || ''))
+         .filter(a => !['COMPLETED', 'CANCELLED', 'REJECTED'].includes(a.statusRaw || ''))
          .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
          .slice(0, 3);
    }, [appointments]);
@@ -568,9 +568,9 @@ const PatientAppointments = () => {
                                  <span className="ml-1.5 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 py-0.5 px-1.5 rounded text-xs">
                                     {
                                        appointments.filter(a => {
-                                          if (tab.key === 'upcoming') return !['COMPLETED', 'CANCELLED'].includes(a.statusRaw);
+                                          if (tab.key === 'upcoming') return !['COMPLETED', 'CANCELLED', 'REJECTED'].includes(a.statusRaw);
                                           if (tab.key === 'past') return a.statusRaw === 'COMPLETED';
-                                          if (tab.key === 'cancelled') return a.statusRaw === 'CANCELLED';
+                                          if (tab.key === 'cancelled') return ['CANCELLED', 'REJECTED'].includes(a.statusRaw);
                                           return false;
                                        }).length
                                     }

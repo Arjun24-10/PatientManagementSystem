@@ -115,7 +115,7 @@ public class AppointmentService {
      * ADMIN ONLY: Approves a pending appointment request.
      */
     @Transactional
-    public Appointment approveAppointment(Long appointmentId) {
+    public AppointmentDTO approveAppointment(Long appointmentId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("404: Appointment not found"));
 
@@ -124,14 +124,15 @@ public class AppointmentService {
         }
 
         appointment.setStatus(com.securehealth.backend.model.AppointmentStatus.SCHEDULED);
-        return appointmentRepository.save(appointment);
+        Appointment saved = appointmentRepository.save(appointment);
+        return toDTO(saved);
     }
 
     /**
      * ADMIN ONLY: Rejects a pending appointment request, freeing up the slot.
      */
     @Transactional
-    public Appointment rejectAppointment(Long appointmentId, String rejectionReason) {
+    public AppointmentDTO rejectAppointment(Long appointmentId, String rejectionReason) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("404: Appointment not found"));
 
@@ -140,25 +141,27 @@ public class AppointmentService {
         }
 
         appointment.setStatus(com.securehealth.backend.model.AppointmentStatus.REJECTED);
-        // Optional: If you added a 'adminNotes' column, you could save the reason here
-        // appointment.setDoctorNotes("Rejected by Admin: " + rejectionReason);
+        Appointment saved = appointmentRepository.save(appointment);
+        return toDTO(saved);
+    }
 
-        return appointmentRepository.save(appointment);
+    private AppointmentDTO toDTO(Appointment app) {
+        AppointmentDTO dto = new AppointmentDTO();
+        dto.setAppointmentId(app.getAppointmentId());
+        dto.setDoctorId(app.getDoctor().getUserId());
+        dto.setDoctorName(app.getDoctor().getEmail());
+        dto.setPatientName(app.getPatient().getFirstName() + " " + app.getPatient().getLastName());
+        dto.setAppointmentDate(app.getAppointmentDate());
+        dto.setStatus(app.getStatus());
+        dto.setReasonForVisit(app.getReasonForVisit());
+        return dto;
     }
 
     @Transactional(readOnly = true)
     public List<AppointmentDTO> getPendingAppointments() {
-        return appointmentRepository.findByStatus(com.securehealth.backend.model.AppointmentStatus.PENDING_APPROVAL).stream().map(app -> {
-            AppointmentDTO dto = new AppointmentDTO();
-            dto.setAppointmentId(app.getAppointmentId());
-            dto.setDoctorId(app.getDoctor().getUserId());
-            dto.setDoctorName(app.getDoctor().getEmail());
-            dto.setPatientName(app.getPatient().getFirstName() + " " + app.getPatient().getLastName());
-            dto.setAppointmentDate(app.getAppointmentDate());
-            dto.setStatus(app.getStatus());
-            dto.setReasonForVisit(app.getReasonForVisit());
-            return dto;
-        }).collect(Collectors.toList());
+        return appointmentRepository.findByStatus(com.securehealth.backend.model.AppointmentStatus.PENDING_APPROVAL).stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
     @Transactional

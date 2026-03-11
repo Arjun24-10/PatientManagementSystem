@@ -1,5 +1,6 @@
 package com.securehealth.backend.service;
 
+import com.securehealth.backend.dto.AppointmentDTO;
 import com.securehealth.backend.dto.AppointmentRequest;
 import com.securehealth.backend.model.Appointment;
 import com.securehealth.backend.model.AppointmentStatus;
@@ -109,7 +110,7 @@ public class AppointmentServiceTest {
         when(appointmentRepository.findById(anyLong())).thenReturn(Optional.of(pendingAppointment));
         when(appointmentRepository.save(any(Appointment.class))).thenAnswer(i -> i.getArguments()[0]);
 
-        Appointment approved = appointmentService.approveAppointment(10L);
+        AppointmentDTO approved = appointmentService.approveAppointment(10L);
 
         assertEquals(AppointmentStatus.SCHEDULED, approved.getStatus());
     }
