@@ -61,6 +61,8 @@ public class AppointmentServiceTest {
         pendingAppointment = new Appointment();
         pendingAppointment.setAppointmentId(10L);
         pendingAppointment.setStatus(AppointmentStatus.PENDING_APPROVAL);
+        pendingAppointment.setDoctor(doctorLogin);
+        pendingAppointment.setPatient(patientProfile);
     }
 
     @Test
