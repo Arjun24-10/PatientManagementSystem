@@ -6,6 +6,13 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * Repository interface for {@link Prescription} entities.
+ * <p>
+ * Facilitates retrieval of medication prescriptions for patients, 
+ * including filtering by status (active vs historical) and chronological sorting.
+ * </p>
+ */
 @Repository
 public interface PrescriptionRepository extends JpaRepository<Prescription, Long> {
 

@@ -10,17 +10,11 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * Data Access Object (DAO) for the PasswordHistory entity.
+ * Repository interface for {@link PasswordHistory} entities.
  * <p>
- * This interface extends JpaRepository to provide standard CRUD operations
- * (Create, Read, Update, Delete) without writing SQL.
+ * Facilitates NIST-compliant password reuse policies by allowing retrieval 
+ * of a user's recent password hashes for comparison during updates.
  * </p>
- * <p>
- * Used for checking password reuse during password changes/resets.
- * </p>
- *
- * @author Manas
- * @version 1.0
  */
 @Repository
 public interface PasswordHistoryRepository extends JpaRepository<PasswordHistory, Long> {

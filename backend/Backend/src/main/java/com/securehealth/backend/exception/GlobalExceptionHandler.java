@@ -29,6 +29,12 @@ public class GlobalExceptionHandler {
             LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     // --- Validation Errors (e.g., @Valid on DTOs) ---
+    /**
+     * Handles validation errors triggered by {@code @Valid} annotations on DTOs.
+     *
+     * @param ex the {@link MethodArgumentNotValidException} encountered
+     * @return a {@link ResponseEntity} containing an {@link ErrorResponse} with specific field error details
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
         List<String> details = ex.getBindingResult().getFieldErrors().stream()
@@ -45,6 +51,13 @@ public class GlobalExceptionHandler {
     }
 
     // --- Access Denied (Spring Security @PreAuthorize failures) ---
+    /**
+     * Handles {@link AccessDeniedException} which occurs when a user lacks the required 
+     * authority to access a protected endpoint.
+     *
+     * @param ex the {@link AccessDeniedException} encountered
+     * @return a {@link ResponseEntity} with a 403 Forbidden status and a standardized error message
+     */
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
         ErrorResponse error = new ErrorResponse(
@@ -55,6 +68,12 @@ public class GlobalExceptionHandler {
     }
 
     // --- JWT: Expired Token ---
+    /**
+     * Handles {@link ExpiredJwtException} when a provided JWT token has expired.
+     *
+     * @param ex the {@link ExpiredJwtException} encountered
+     * @return a {@link ResponseEntity} with a 401 Unauthorized status, prompting the user to log in again
+     */
     @ExceptionHandler(ExpiredJwtException.class)
     public ResponseEntity<ErrorResponse> handleExpiredJwt(ExpiredJwtException ex) {
         ErrorResponse error = new ErrorResponse(
@@ -65,6 +84,12 @@ public class GlobalExceptionHandler {
     }
 
     // --- JWT: Malformed or Invalid Signature ---
+    /**
+     * Handles malformed JWTs or tokens with invalid signatures.
+     *
+     * @param ex the exception encountered (either {@link MalformedJwtException} or {@link SignatureException})
+     * @return a {@link ResponseEntity} with a 401 Unauthorized status and an invalid token message
+     */
     @ExceptionHandler({MalformedJwtException.class, SignatureException.class})
     public ResponseEntity<ErrorResponse> handleBadJwt(Exception ex) {
         ErrorResponse error = new ErrorResponse(
@@ -75,6 +100,13 @@ public class GlobalExceptionHandler {
     }
 
     // --- Illegal Argument (e.g., bad enum values, parsing errors) ---
+    /**
+     * Handles {@link IllegalArgumentException}, often used for invalid enum values or 
+     * general bad request scenarios in business logic.
+     *
+     * @param ex the {@link IllegalArgumentException} encountered
+     * @return a {@link ResponseEntity} with a 400 Bad Request status and the exception's message
+     */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
         ErrorResponse error = new ErrorResponse(
@@ -85,6 +117,13 @@ public class GlobalExceptionHandler {
     }
 
     // --- General RuntimeException (catch-all for business logic errors) ---
+    /**
+     * Catch-all handler for {@link RuntimeException}. 
+     * Maps common business logic errors to appropriate HTTP statuses (e.g., 404 for not found, 409 for conflict).
+     *
+     * @param ex the {@link RuntimeException} encountered
+     * @return a {@link ResponseEntity} with the derived HTTP status and an appropriate error message
+     */
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntime(RuntimeException ex) {
         String message = ex.getMessage() != null ? ex.getMessage() : "An unexpected error occurred.";
@@ -113,6 +152,12 @@ public class GlobalExceptionHandler {
     }
 
     // --- Ultimate fallback for truly unexpected errors ---
+    /**
+     * Ultimate fallback handler for any unhandled {@link Exception}.
+     *
+     * @param ex the unexpected {@link Exception} encountered
+     * @return a {@link ResponseEntity} with a 500 Internal Server Error status and a generic message
+     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAll(Exception ex) {
         ErrorResponse error = new ErrorResponse(

@@ -6,6 +6,13 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * Repository interface for {@link MedicalRecord} entities.
+ * <p>
+ * Provides methods for retrieving clinical encounter records for patients, 
+ * typically ordered by creation date to show a chronological history.
+ * </p>
+ */
 @Repository
 public interface MedicalRecordRepository extends JpaRepository<MedicalRecord, Long> {
 

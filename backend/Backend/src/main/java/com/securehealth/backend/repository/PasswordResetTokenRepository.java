@@ -12,14 +12,11 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 /**
- * Data Access Object (DAO) for the PasswordResetToken entity.
+ * Repository interface for {@link PasswordResetToken} entities.
  * <p>
- * This interface extends JpaRepository to provide standard CRUD operations
- * (Create, Read, Update, Delete) without writing SQL.
+ * Manages the lifecycle of recovery tokens, including validation of active tokens, 
+ * invalidation of old tokens upon new requests, and periodic cleanup of expired entries.
  * </p>
- *
- * @author Manas
- * @version 1.0
  */
 @Repository
 public interface PasswordResetTokenRepository extends JpaRepository<PasswordResetToken, Long> {

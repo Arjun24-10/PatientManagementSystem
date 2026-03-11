@@ -5,6 +5,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
+/**
+ * Entity representing a set of patient vital sign readings.
+ * <p>
+ * Records clinical measurements like blood pressure, heart rate, and temperature 
+ * at a specific point in time, typically performed by a nurse.
+ * </p>
+ */
 @Data
 @NoArgsConstructor
 @Entity

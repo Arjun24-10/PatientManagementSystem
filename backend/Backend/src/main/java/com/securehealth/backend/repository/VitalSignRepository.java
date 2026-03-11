@@ -9,6 +9,13 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repository interface for {@link VitalSign} entities.
+ * <p>
+ * Supports clinical tracking of physical measurements, providing chronological 
+ * timelines for patients and audit trails for recording nursing staff.
+ * </p>
+ */
 @Repository
 public interface VitalSignRepository extends JpaRepository<VitalSign, Long> {
 

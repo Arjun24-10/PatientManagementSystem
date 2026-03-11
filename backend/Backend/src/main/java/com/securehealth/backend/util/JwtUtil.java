@@ -15,6 +15,13 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 
+/**
+ * Utility class for handling JSON Web Tokens (JWT).
+ * <p>
+ * This component provides methods for generating, extracting, and validating 
+ * access tokens using the JJWT library (0.12.x syntax).
+ * </p>
+ */
 @Component
 public class JwtUtil {
 
@@ -26,10 +33,23 @@ public class JwtUtil {
 
     // ================== READING TOKEN ==================
 
+    /**
+     * Extracts the subject (username/email) from a JWT.
+     *
+     * @param token the JWT
+     * @return the extracted username
+     */
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
+    /**
+     * Validates if a token belongs to the given user and is not expired.
+     *
+     * @param token the JWT
+     * @param userDetails the user details to validate against
+     * @return true if valid, false otherwise
+     */
     public boolean validateToken(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
@@ -37,6 +57,14 @@ public class JwtUtil {
 
     // ================== GENERATING TOKEN ==================
 
+    /**
+     * Generates a signed access token with custom claims.
+     *
+     * @param email the user's email (subject)
+     * @param role the user's assigned role
+     * @param userId the user's internal ID
+     * @return a signed JWT string
+     */
     public String generateAccessToken(String email, String role, Long userId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
@@ -44,12 +72,25 @@ public class JwtUtil {
         return createToken(claims, email, jwtExpiration);
     }
 
+    /**
+     * Generates a random UUID-based refresh token.
+     *
+     * @return a unique refresh token string
+     */
     public String generateRefreshToken() {
         return UUID.randomUUID().toString();
     }
 
     // ================== HELPER METHODS (UPDATED FOR 0.12.x) ==================
 
+    /**
+     * Generic method to extract a specific claim from a token.
+     *
+     * @param <T> the type of the claim
+     * @param token the JWT
+     * @param claimsResolver a function to extract the desired claim
+     * @return the extracted claim value
+     */
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
@@ -68,6 +109,12 @@ public class JwtUtil {
         return extractExpiration(token).before(new Date());
     }
 
+    /**
+     * Extracts the expiration date from a JWT.
+     *
+     * @param token the JWT
+     * @return the expiration {@link Date}
+     */
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }

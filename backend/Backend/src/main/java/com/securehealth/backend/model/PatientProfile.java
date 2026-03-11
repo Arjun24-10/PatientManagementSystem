@@ -8,6 +8,13 @@ import lombok.AllArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * Entity representing a patient's detailed profile.
+ * <p>
+ * Stores personal information, contact details, medical history, and 
+ * handles relationships with assigned doctors and nurses for coordinated care.
+ * </p>
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

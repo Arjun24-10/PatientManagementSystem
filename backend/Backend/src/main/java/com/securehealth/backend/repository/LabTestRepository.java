@@ -8,6 +8,13 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * Repository interface for {@link LabTest} entities.
+ * <p>
+ * Provides methods for patient-specific result lookups, processing queues 
+ * for technicians, and diagnostic order status for doctors.
+ * </p>
+ */
 @Repository
 public interface LabTestRepository extends JpaRepository<LabTest, Long> {
 

@@ -8,6 +8,13 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 
+/**
+ * Service for enforcing security rate limiting and account locking.
+ * <p>
+ * Uses Redis to track failed login and OTP attempts, providing 
+ * temporary lockouts to prevent brute-force attacks.
+ * </p>
+ */
 @Service
 public class RateLimiterService {
 
@@ -17,6 +24,14 @@ public class RateLimiterService {
     @Autowired
     private AuditLogRepository auditLogRepository;
 
+    /**
+     * Validates that a user account is not currently locked due to failed attempts.
+     *
+     * @param email the user's email
+     * @param ipAddress original IP address for auditing
+     * @param userAgent original user agent for auditing
+     * @throws RuntimeException if the account is locked
+     */
     public void checkLoginAttempts(String email, String ipAddress, String userAgent) {
         String lockKey = "auth:lock:" + email;
         if (Boolean.TRUE.equals(redisTemplate.hasKey(lockKey))) {
@@ -26,6 +41,17 @@ public class RateLimiterService {
     }
 
 
+    /**
+     * Increments the failure count for a login attempt.
+     * <p>
+     * Triggers a 30-minute account lock if the threshold is reached.
+     * </p>
+     *
+     * @param email the user's email
+     * @param ipAddress originating IP address
+     * @param userAgent originating user agent
+     * @throws RuntimeException if the lockout threshold is reached
+     */
     public void registerFailedLogin(String email, String ipAddress, String userAgent) {
         String failKey = "auth:fail:" + email;
         String lockKey = "auth:lock:" + email;
@@ -47,11 +73,24 @@ public class RateLimiterService {
         }
     }
         
+    /**
+     * Resets the failed login counter for a user (e.g., after a successful login).
+     *
+     * @param email the user's email
+     */
     public void resetLoginAttempts(String email) {
         redisTemplate.delete("auth:fail:" + email);
     }
 
 
+    /**
+     * Validates that a user has not exceeded the OTP verification attempt limit.
+     *
+     * @param email the user's email
+     * @param ipAddress originating IP address
+     * @param userAgent originating user agent
+     * @throws RuntimeException if the attempt limit is reached
+     */
     public void checkOtpAttempts(String email, String ipAddress, String userAgent) {
         String key = "otp:attempt:" + email;
         String attemptsStr = redisTemplate.opsForValue().get(key);
@@ -62,6 +101,14 @@ public class RateLimiterService {
         }
     }
     
+    /**
+     * Increments the failure count for an OTP verification attempt.
+     *
+     * @param email the user's email
+     * @param ipAddress originating IP address
+     * @param userAgent originating user agent
+     * @throws RuntimeException if the attempt limit is reached
+     */
     public void registerFailedOtp(String email, String ipAddress, String userAgent) {
         String key = "otp:attempt:" + email;
 
@@ -78,6 +125,11 @@ public class RateLimiterService {
         }
     }
 
+    /**
+     * Resets the OTP attempt counter for a user.
+     *
+     * @param email the user's email
+     */
     public void resetOtpAttempts(String email) {
         redisTemplate.delete("otp:attempt:" + email);
     }

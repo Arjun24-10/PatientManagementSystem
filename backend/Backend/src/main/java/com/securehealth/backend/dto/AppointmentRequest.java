@@ -6,6 +6,13 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import java.time.LocalDateTime;
 
+/**
+ * Data Transfer Object for creating a new appointment request.
+ * <p>
+ * This DTO is used by patients to submit appointment bookings, requiring 
+ * a doctor ID, a future appointment date, and a reason for the visit.
+ * </p>
+ */
 @Data
 public class AppointmentRequest {
     @NotNull(message = "Doctor ID is required")

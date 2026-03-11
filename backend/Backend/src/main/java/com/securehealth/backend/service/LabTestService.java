@@ -16,6 +16,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Service for clinical lab test ordering and patient-facing lookups.
+ * <p>
+ * Allows doctors to order new tests and patients to retrieve their existing 
+ * test results and order history.
+ * </p>
+ */
 @Service
 public class LabTestService {
 
@@ -23,6 +30,13 @@ public class LabTestService {
     @Autowired private LoginRepository loginRepository;
     @Autowired private PatientProfileRepository patientProfileRepository;
 
+    /**
+     * Creates a new lab test order for a patient.
+     *
+     * @param request the {@link LabTestRequest} details
+     * @param staffEmail the email of the healthcare professional ordering the test
+     * @return the saved {@link LabTest} entity
+     */
     @Transactional
     public LabTest createLabTest(LabTestRequest request, String staffEmail) {
         Login staff = loginRepository.findByEmail(staffEmail)
@@ -41,6 +55,12 @@ public class LabTestService {
 
         return labTestRepository.save(labTest);
     }
+    /**
+     * Retrieves all lab tests associated with a specific patient.
+     *
+     * @param patientId the ID of the patient
+     * @return a list of {@link LabTestDTO} objects
+     */
     @Transactional(readOnly = true)
     public List<LabTestDTO> getLabTestsByPatient(Long patientId) {
         return labTestRepository.findByPatient_ProfileId(patientId).stream().map(lt -> {
@@ -62,6 +82,11 @@ public class LabTestService {
         }).collect(Collectors.toList());
     }
 
+    /**
+     * Retrieves all lab test orders currently in "PENDING" status.
+     *
+     * @return a list of {@link LabTestDTO} objects
+     */
     @Transactional(readOnly = true)
     public List<LabTestDTO> getAllLabTests() {
         return labTestRepository.findAll().stream().map(lt -> {
@@ -98,6 +123,12 @@ public class LabTestService {
         }).collect(Collectors.toList());
     }
 
+    /**
+     * Permanently deletes a lab test order.
+     *
+     * @param id the ID of the lab test to delete
+     * @throws RuntimeException if the lab test is not found
+     */
     @Transactional
     public void deleteLabTest(Long id) {
         if (!labTestRepository.existsById(id)) {

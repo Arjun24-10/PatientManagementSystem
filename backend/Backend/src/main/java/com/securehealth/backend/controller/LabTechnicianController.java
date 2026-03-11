@@ -9,6 +9,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+/**
+ * REST controller for lab technician dashboard and order management.
+ * <p>
+ * Provides endpoints for lab technicians to view their dashboard, manage test orders,
+ * update order status, and upload results. Access is restricted to users with LAB_TECHNICIAN authority.
+ * </p>
+ */
 @RestController
 @RequestMapping("/api/lab-technician")
 @PreAuthorize("hasAuthority('LAB_TECHNICIAN')")

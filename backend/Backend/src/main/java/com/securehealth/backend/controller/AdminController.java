@@ -16,6 +16,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * REST controller for administrative operations.
+ * <p>
+ * This controller provides endpoints for managing system metrics, appointments, 
+ * staff members, and patients. Access is restricted to users with ADMIN authority.
+ * </p>
+ */
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {

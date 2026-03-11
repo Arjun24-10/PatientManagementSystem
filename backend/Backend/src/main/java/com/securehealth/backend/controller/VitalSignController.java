@@ -14,6 +14,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * REST controller for managing patient vital signs.
+ * <p>
+ * Provides endpoints for retrieving vital signs history, getting the latest readings,
+ * and recording new vital signs (restricted to authorized personnel).
+ * </p>
+ */
 @RestController
 @RequestMapping("/api/vital-signs")
 public class VitalSignController {

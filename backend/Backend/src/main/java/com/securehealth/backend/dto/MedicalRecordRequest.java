@@ -4,6 +4,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+/**
+ * Data Transfer Object for creating or updating a medical record request.
+ * <p>
+ * Used by medical professionals to submit new medical records, requiring 
+ * the patient ID, diagnosis, symptoms, and treatment details.
+ * </p>
+ */
 @Data
 public class MedicalRecordRequest {
     @NotNull(message = "Patient ID is required")

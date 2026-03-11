@@ -12,7 +12,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDate;
 
 /**
- * Data Transfer Object (DTO) for User Registration.
+ * Data Transfer Object for user registration requests.
+ * <p>
+ * Contains the necessary information to create a new user account, 
+ * including email, password, role, and optional profile details like 
+ * full name, date of birth, and address.
+ * </p>
  */
 @Data
 @NoArgsConstructor  // Fixes Test Error

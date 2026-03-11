@@ -5,6 +5,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
+/**
+ * Entity representing a system audit log entry.
+ * <p>
+ * Captures critical events for security and administrative review, 
+ * including who performed the action, what was done, when, and from where.
+ * </p>
+ */
 @Entity
 @Data
 @NoArgsConstructor

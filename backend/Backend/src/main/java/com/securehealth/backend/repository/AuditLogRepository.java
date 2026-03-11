@@ -4,6 +4,13 @@ import com.securehealth.backend.model.AuditLog;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
+/**
+ * Repository interface for {@link AuditLog} entities.
+ * <p>
+ * Used primarily for administrative review of system events, 
+ * allowing for retrieval of logs by user email ordered by time.
+ * </p>
+ */
 public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
     
     // This will be used later for the Admin Dashboard (User Story 1.4)

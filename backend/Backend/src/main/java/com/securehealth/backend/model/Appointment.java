@@ -6,6 +6,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
+/**
+ * Entity representing a medical appointment.
+ * <p>
+ * Links a patient profile with a doctor (Login) and tracks the date, 
+ * status, reason for visit, and any doctor notes for the encounter.
+ * </p>
+ */
 @Data
 @NoArgsConstructor
 @Entity

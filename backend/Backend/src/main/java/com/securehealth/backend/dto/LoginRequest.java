@@ -8,7 +8,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;  // [NEW] Generates empty constructor
 
 /**
- * DTO for login requests.
+ * Data Transfer Object for login requests.
+ * <p>
+ * This DTO is used by users to provide their credentials (email and password)
+ * for authentication. It includes validation constraints to ensure data integrity.
+ * </p>
  */
 @Data
 @NoArgsConstructor  // Fixes "The constructor LoginRequest() is undefined"

@@ -5,6 +5,13 @@ import java.time.LocalTime;
 import java.time.DayOfWeek;
 import java.util.List;
 
+/**
+ * Data Transfer Object representing a doctor's profile information.
+ * <p>
+ * Includes basic details like name and contact information, as well as 
+ * professional details like specialty, department, and working schedule.
+ * </p>
+ */
 @Data
 public class DoctorDTO {
     private Long id; 

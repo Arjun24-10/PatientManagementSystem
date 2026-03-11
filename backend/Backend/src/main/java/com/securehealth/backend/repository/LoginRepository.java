@@ -9,14 +9,11 @@ import java.util.Optional;
 import java.util.List;
 
 /**
- * Data Access Object (DAO) for the Login entity.
+ * Repository interface for {@link Login} entities, handling user authentication and core identity.
  * <p>
- * This interface extends JpaRepository to provide standard CRUD operations
- * (Create, Read, Update, Delete) without writing SQL.
+ * Provides essential methods for finding users by email, checking for existence, 
+ * and retrieving users by role for security and administrative purposes.
  * </p>
- * * @author Manas
- * 
- * @version 1.0
  */
 @Repository
 public interface LoginRepository extends JpaRepository<Login, Long> {

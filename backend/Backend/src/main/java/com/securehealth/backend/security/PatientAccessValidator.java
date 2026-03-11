@@ -7,12 +7,27 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
+/**
+ * Component for enforcing granular row-level access control for patient data.
+ * <p>
+ * Ensures that patients can only access their own records, while providing 
+ * bypasses for staff roles like DOCTOR and ADMIN.
+ * </p>
+ */
 @Component
 public class PatientAccessValidator {
 
     @Autowired
     private PatientProfileRepository patientProfileRepository;
 
+    /**
+     * Validates if the currently authenticated user is authorized to access 
+     * the specified patient's data.
+     *
+     * @param patientId the ID of the patient record being accessed
+     * @param auth the current {@link Authentication} object
+     * @throws RuntimeException if access is forbidden or the patient is not found
+     */
     public void validateAccess(Long patientId, Authentication auth) {
         String role = auth.getAuthorities().stream()
                 .findFirst()

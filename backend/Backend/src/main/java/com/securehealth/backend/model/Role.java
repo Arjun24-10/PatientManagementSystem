@@ -1,8 +1,11 @@
 package com.securehealth.backend.model;
 
 /**
- * Defines the authorized roles within the Healthcare System.
- * Used for Role-Based Access Control (RBAC).
+ * Enumeration of authorized user roles within the system.
+ * <p>
+ * Used for Role-Based Access Control (RBAC) to restrict access to 
+ * specific API endpoints and application features.
+ * </p>
  */
 public enum Role {
     PATIENT,

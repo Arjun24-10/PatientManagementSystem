@@ -11,6 +11,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Service for clinical tracking of patient vital signs.
+ * <p>
+ * Handles the recording of vitals by nursing staff and provides 
+ * chronological timelines/latest snapshots for clinical review.
+ * </p>
+ */
+/**
+ * Service for clinical tracking of patient vital signs.
+ * <p>
+ * Handles the recording of vitals by nursing staff and provides 
+ * chronological timelines/latest snapshots for clinical review.
+ * </p>
+ */
 @Service
 public class VitalSignService {
 
@@ -18,6 +32,20 @@ public class VitalSignService {
     @Autowired private LoginRepository loginRepository;
     @Autowired private PatientProfileRepository patientProfileRepository;
 
+    /**
+     * Records a new set of vital signs for a patient.
+     *
+     * @param request the {@link VitalSignRequest} details
+     * @param recorderEmail the email of the person recording the vitals
+     * @return the saved {@link VitalSign} entity
+     */
+    /**
+     * Records a new set of vital signs for a patient.
+     *
+     * @param request the {@link VitalSignRequest} details
+     * @param recorderEmail the email of the person recording the vitals
+     * @return the saved {@link VitalSign} entity
+     */
     @Transactional
     public VitalSign createVitalSign(VitalSignRequest request, String recorderEmail) {
         Login recorder = loginRepository.findByEmail(recorderEmail)
@@ -41,12 +69,38 @@ public class VitalSignService {
         return vitalSignRepository.save(vitalSign);
     }
 
+    /**
+     * Retrieves a chronological history of vital signs for a specific patient.
+     *
+     * @param patientId the ID of the patient
+     * @return a list of {@link com.securehealth.backend.dto.VitalSignDTO} objects
+     */
+    /**
+     * Retrieves a chronological history of vital signs for a specific patient.
+     *
+     * @param patientId the ID of the patient
+     * @return a list of {@link com.securehealth.backend.dto.VitalSignDTO} objects
+     */
     @Transactional(readOnly = true)
     public java.util.List<com.securehealth.backend.dto.VitalSignDTO> getVitalSignsByPatient(Long patientId) {
         return vitalSignRepository.findByPatient_ProfileIdOrderByRecordedAtDesc(patientId)
                 .stream().map(this::mapToDTO).collect(java.util.stream.Collectors.toList());
     }
 
+    /**
+     * Retrieves the most recent vital sign recording for a specific patient.
+     *
+     * @param patientId the ID of the patient
+     * @return the latest {@link com.securehealth.backend.dto.VitalSignDTO}
+     * @throws RuntimeException if no vital signs are found for the patient
+     */
+    /**
+     * Retrieves the most recent vital sign recording for a specific patient.
+     *
+     * @param patientId the ID of the patient
+     * @return the latest {@link com.securehealth.backend.dto.VitalSignDTO}
+     * @throws RuntimeException if no vital signs are found for the patient
+     */
     @Transactional(readOnly = true)
     public com.securehealth.backend.dto.VitalSignDTO getLatestVitalSignByPatient(Long patientId) {
         return vitalSignRepository.findFirstByPatient_ProfileIdOrderByRecordedAtDesc(patientId)
@@ -54,6 +108,18 @@ public class VitalSignService {
                 .orElseThrow(() -> new RuntimeException("404: No vital signs found for patient"));
     }
 
+    /**
+     * Permanently deletes a vital sign recording.
+     *
+     * @param id the ID of the recording to delete
+     * @throws RuntimeException if the recording is not found
+     */
+    /**
+     * Permanently deletes a vital sign recording.
+     *
+     * @param id the ID of the recording to delete
+     * @throws RuntimeException if the recording is not found
+     */
     @Transactional
     public void deleteVitalSign(Long id) {
         if (!vitalSignRepository.existsById(id)) {

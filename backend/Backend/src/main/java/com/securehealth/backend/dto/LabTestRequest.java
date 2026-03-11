@@ -4,6 +4,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+/**
+ * Data Transfer Object for creating or updating a lab test request.
+ * <p>
+ * Used to specify the patient, test name, category, and initial results or remarks 
+ * when ordering or recording a lab test.
+ * </p>
+ */
 @Data
 public class LabTestRequest {
     @NotNull(message = "Patient ID is required")

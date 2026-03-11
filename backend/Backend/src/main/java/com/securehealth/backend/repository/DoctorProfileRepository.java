@@ -8,6 +8,13 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repository interface for {@link DoctorProfile} entities.
+ * <p>
+ * Facilitates doctor searches by specialty or department, 
+ * and links core authentication accounts to professional profiles.
+ * </p>
+ */
 @Repository
 public interface DoctorProfileRepository extends JpaRepository<DoctorProfile, Long> {
 

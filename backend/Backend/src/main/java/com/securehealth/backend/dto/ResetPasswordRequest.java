@@ -7,9 +7,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * DTO for password reset requests.
+ * Data Transfer Object for password reset requests.
  * <p>
- * Used when a user submits a new password along with the reset token.
+ * Used when a user submits a new password along with a valid reset token 
+ * to complete the password recovery process.
  * </p>
  */
 @Data

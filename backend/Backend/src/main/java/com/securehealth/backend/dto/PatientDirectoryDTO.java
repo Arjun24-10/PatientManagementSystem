@@ -3,6 +3,13 @@ package com.securehealth.backend.dto;
 import lombok.Data;
 import java.time.LocalDate;
 
+/**
+ * Data Transfer Object for patient directory listings.
+ * <p>
+ * Provides a subset of patient details suitable for directory views, 
+ * including profile and user IDs, name, email, contact info, and birth date.
+ * </p>
+ */
 @Data
 public class PatientDirectoryDTO {
     private Long profileId;

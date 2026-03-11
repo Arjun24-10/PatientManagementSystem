@@ -16,6 +16,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Service for managing patient profiles and administrative directory lookups.
+ * <p>
+ * Handles profile creation, secure retrieval with IDOR protection, and 
+ * updates for personal and medical history data.
+ * </p>
+ */
 @Service
 public class PatientService {
 
@@ -32,6 +39,17 @@ public class PatientService {
      * GET /patients
      * Only Doctors and Admins should be able to pull a full list of patients.
      */
+    /**
+     * Retrieves a paginated list of all patients in the system.
+     * <p>
+     * Restricted to healthcare professionals (DOCTOR/ADMIN).
+     * </p>
+     *
+     * @param requesterRole the role of the user making the request
+     * @param pageable pagination and sorting information
+     * @return a page of {@link PatientDTO} objects
+     * @throws RuntimeException if the requester has insufficient privileges
+     */
     @Transactional(readOnly = true)
     public Page<PatientDTO> getAllPatients(String requesterRole, Pageable pageable) {
         if (!requesterRole.equals("DOCTOR") && !requesterRole.equals("ADMIN")) {
@@ -45,6 +63,19 @@ public class PatientService {
     /**
      * GET /patients/:id
      * SECURITY CORE: Prevents IDOR. 
+     */
+    /**
+     * Retrieves a specific patient profile by its ID.
+     * <p>
+     * Implements strict IDOR protection: Patients can only access their own 
+     * profiles, while Doctors and Admins have general access.
+     * </p>
+     *
+     * @param id the ID of the patient profile
+     * @param requesterEmail the email of the authenticated requester
+     * @param requesterRole the role of the authenticated requester
+     * @return the {@link PatientDTO} of the requested profile
+     * @throws RuntimeException if the patient is not found or access is forbidden
      */
     @Transactional(readOnly = true)
     public PatientDTO getPatientById(Long id, String requesterEmail, String requesterRole) {
@@ -69,6 +100,13 @@ public class PatientService {
      * GET /patients/me
      * SECURITY CORE: Gets the currently logged in patient's profile.
      */
+    /**
+     * Retrieves the profile associated with a specific user email.
+     *
+     * @param email the user's email
+     * @return the {@link PatientDTO} of the profile
+     * @throws RuntimeException if the user or profile is not found
+     */
     @Transactional(readOnly = true)
     public PatientDTO getPatientByEmail(String email) {
         Login user = loginRepository.findByEmail(email)
@@ -81,6 +119,14 @@ public class PatientService {
     /**
      * POST /patients
      * Creates a profile and links it to the logged-in user.
+     */
+    /**
+     * Creates a new patient profile for an existing user account.
+     *
+     * @param dto the profile details
+     * @param requesterEmail the email of the user to link the profile to
+     * @return the saved {@link PatientDTO}
+     * @throws RuntimeException if a profile already exists for the user
      */
     @Transactional
     public PatientDTO createPatientProfile(PatientDTO dto, String requesterEmail) {
@@ -107,6 +153,19 @@ public class PatientService {
     /**
      * PUT /patients/:id
      */
+    /**
+     * Updates an existing patient profile.
+     * <p>
+     * Enforces security by ensuring patients only update their own records.
+     * </p>
+     *
+     * @param id the ID of the profile to update
+     * @param dto the {@link PatientDTO} with updated fields
+     * @param requesterEmail the email of the requester
+     * @param requesterRole the role of the requester
+     * @return the updated {@link PatientDTO}
+     * @throws RuntimeException if the profile is not found or access is forbidden
+     */
     @Transactional
     public PatientDTO updatePatientProfile(Long id, PatientDTO dto, String requesterEmail, String requesterRole) {
         PatientProfile profile = patientProfileRepository.findById(id)
@@ -124,6 +183,18 @@ public class PatientService {
     /**
      * Retrieves a distinct list of all patients who have an active or completed 
      * appointment with a specific doctor.
+     */
+    /**
+     * Retrieves a list of patients who have active or history with a specific doctor.
+     * <p>
+     * Restricted to the doctor themselves or administrators.
+     * </p>
+     *
+     * @param doctorId the ID of the doctor
+     * @param requesterEmail the email of the requester
+     * @param requesterRole the role of the requester
+     * @return a list of {@link PatientDTO} objects
+     * @throws RuntimeException if the doctor is not found or access is forbidden
      */
     @Transactional(readOnly = true)
     public List<PatientDTO> getPatientsByDoctor(Long doctorId, String requesterEmail, String requesterRole) {
