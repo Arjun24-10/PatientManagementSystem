@@ -14,6 +14,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * REST controller for managing medical records.
+ * <p>
+ * Provides endpoints for retrieving medical records by patient, creating new records
+ * (restricted to doctors), and deleting records (restricted to admins).
+ * </p>
+ */
 @RestController
 @RequestMapping("/api/medical-records")
 public class MedicalRecordController {

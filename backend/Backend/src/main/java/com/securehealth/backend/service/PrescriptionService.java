@@ -20,6 +20,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Service for managing medication prescriptions.
+ * <p>
+ * Handles the creation of prescriptions by doctors, chronological 
+ * retrieval for patients, refill management, and administrative cleanup.
+ * </p>
+ */
 @Service
 public class PrescriptionService {
 
@@ -28,6 +35,16 @@ public class PrescriptionService {
     @Autowired private PatientProfileRepository patientProfileRepository;
     @Autowired private AuditLogRepository auditLogRepository;
 
+    /**
+     * Issues a new medication prescription for a patient.
+     * <p>
+     * Automatically captures the prescribing doctor and generates an audit log.
+     * </p>
+     *
+     * @param request the {@link PrescriptionRequest} details
+     * @param doctorEmail the email of the issuing doctor
+     * @return the saved {@link Prescription} entity
+     */
     @Transactional
     public Prescription createPrescription(PrescriptionRequest request, String doctorEmail) {
         Login doctor = loginRepository.findByEmail(doctorEmail)
@@ -58,6 +75,12 @@ public class PrescriptionService {
 
         return saved;
     }
+    /**
+     * Retrieves all prescriptions associated with a specific patient.
+     *
+     * @param patientId the ID of the patient
+     * @return a list of {@link PrescriptionDTO} objects
+     */
     @Transactional(readOnly = true)
     public List<PrescriptionDTO> getPrescriptionsByPatient(Long patientId) {
         return prescriptionRepository.findByPatient_ProfileId(patientId).stream().map(p -> {
@@ -81,6 +104,12 @@ public class PrescriptionService {
         }).collect(Collectors.toList());
     }
 
+    /**
+     * Retrieves only the current "ACTIVE" prescriptions for a specific patient.
+     *
+     * @param patientId the ID of the patient
+     * @return a list of {@link PrescriptionDTO} objects
+     */
     @Transactional(readOnly = true)
     public List<PrescriptionDTO> getActivePrescriptionsByPatient(Long patientId) {
         return prescriptionRepository.findByPatient_ProfileIdAndStatus(patientId, "ACTIVE")
@@ -102,6 +131,14 @@ public class PrescriptionService {
                 }).collect(Collectors.toList());
     }
 
+    /**
+     * Decrements the refill count of an existing prescription.
+     *
+     * @param id the ID of the prescription to refill
+     * @param doctorEmail the email of the doctor authorizing the refill
+     * @return the updated {@link Prescription} entity
+     * @throws RuntimeException if the prescription is not found, unauthorized, or no refills remain
+     */
     @Transactional
     public Prescription refillPrescription(Long id, String doctorEmail) {
         Prescription prescription = prescriptionRepository.findById(id)
@@ -119,6 +156,16 @@ public class PrescriptionService {
         return prescriptionRepository.save(prescription);
     }
 
+    /**
+     * Permanently deletes a prescription from the system.
+     * <p>
+     * Restricted administrative action that generates an audit log entry.
+     * </p>
+     *
+     * @param id the ID of the prescription to delete
+     * @param adminEmail the email of the administrator performing the deletion
+     * @throws RuntimeException if the prescription is not found
+     */
     @Transactional
     public void deletePrescription(Long id, String adminEmail) {
         Prescription prescription = prescriptionRepository.findById(id)

@@ -4,6 +4,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+/**
+ * Data Transfer Object for recording new patient vital signs.
+ * <p>
+ * Used by medical staff to submit new vital sign readings, requiring 
+ * patient identification and core metrics like blood pressure, heart rate, and temperature.
+ * </p>
+ */
 @Data
 public class VitalSignRequest {
     @NotNull(message = "Patient ID is required")

@@ -6,6 +6,13 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * Repository interface for {@link Consent} entities.
+ * <p>
+ * Manages patient data sharing permissions, including active consent checks 
+ * and provider-specific access lookups.
+ * </p>
+ */
 @Repository
 public interface ConsentRepository extends JpaRepository<Consent, Long> {
 

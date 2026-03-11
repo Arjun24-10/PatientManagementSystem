@@ -8,6 +8,14 @@ import java.time.LocalTime;
 import java.time.DayOfWeek;
 import java.util.List;
 
+/**
+ * Entity representing a doctor's professional profile.
+ * <p>
+ * Stores specialized information for doctors, such as their specialty, 
+ * department, and shift schedule, while linking back to their core 
+ * authentication account.
+ * </p>
+ */
 @Data
 @NoArgsConstructor
 @Entity

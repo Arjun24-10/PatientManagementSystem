@@ -11,6 +11,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * REST controller for managing doctor-related operations.
+ * <p>
+ * Provides endpoints for retrieving lists of doctors, searching by specialty or department,
+ * updating doctor profiles, and retrieving lists of patients assigned to a doctor.
+ * </p>
+ */
 @RestController
 @RequestMapping("/api/doctors")
 public class DoctorController {

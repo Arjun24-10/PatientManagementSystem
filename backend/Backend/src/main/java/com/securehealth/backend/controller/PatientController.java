@@ -14,6 +14,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * REST controller for managing patient profiles.
+ * <p>
+ * Provides endpoints for listing all patients (with pagination), retrieving own profile,
+ * creating/updating patient information, and searching by ID.
+ * </p>
+ */
 @RestController
 @RequestMapping("/api/patients")
 public class PatientController {

@@ -5,6 +5,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
+/**
+ * Entity representing a patient's medical record entry.
+ * <p>
+ * Contains clinical information such as diagnosis, symptoms, and treatments, 
+ * recorded by a healthcare professional for a specific patient.
+ * </p>
+ */
 @Data
 @NoArgsConstructor
 @Entity

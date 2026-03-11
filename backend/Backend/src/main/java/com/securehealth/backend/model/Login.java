@@ -9,14 +9,12 @@ import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * Represents the core Identity entity for authentication.
+ * Entity representing the core identity for authentication and authorization.
  * <p>
- * This entity maps to the 'login' table in the database and stores
- * credentials, role information, and active defense states (lockouts).
+ * Stores user credentials (email, hashed password), role information, 
+ * multi-factor authentication states (OTP), and security-related fields 
+ * for account locking and brute-force protection.
  * </p>
- *
- * @see com.securehealth.backend.repository.LoginRepository
- * @author Manas
  */
 @Data // Generates Getters, Setters, toString, Equals, HashCode
 @NoArgsConstructor // Generates empty constructor (Required by JPA)

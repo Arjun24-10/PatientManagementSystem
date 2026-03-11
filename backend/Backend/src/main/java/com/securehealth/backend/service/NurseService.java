@@ -19,6 +19,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Service for nursing operations and clinical task management.
+ * <p>
+ * Provides a dedicated dashboard for nurses to track assigned patients, 
+ * monitor pending vitals and medications, manage shift handovers, and 
+ * update nursing task statuses.
+ * </p>
+ */
 @Service
 @Transactional
 public class NurseService {
@@ -34,6 +42,16 @@ public class NurseService {
                 .orElseThrow(() -> new RuntimeException("Nurse not found with email: " + email));
     }
 
+    /**
+     * Aggregates clinical dashboard metrics for a specific nurse.
+     * <p>
+     * Includes counts of assigned patients, pending/overdue tasks, 
+     * and a countdown to the next scheduled medication.
+     * </p>
+     *
+     * @param nurseEmail the email of the nurse
+     * @return a map containing various clinical activity metrics
+     */
     public Map<String, Object> getDashboardOverview(String nurseEmail) {
         Login nurse = getAuthUser(nurseEmail);
         Long nurseId = nurse.getUserId();
@@ -75,16 +93,36 @@ public class NurseService {
         return stats;
     }
 
+    /**
+     * Retrieves a list of patients assigned to a specific nurse.
+     *
+     * @param nurseEmail the email of the nurse
+     * @return a list of {@link PatientProfile} entities
+     */
     public List<PatientProfile> getAssignedPatients(String nurseEmail) {
         Login nurse = getAuthUser(nurseEmail);
         return patientProfileRepository.findByAssignedNurse(nurse);
     }
 
+    /**
+     * Retrieves all nursing tasks assigned to a specific nurse, ordered by due time.
+     *
+     * @param nurseEmail the email of the nurse
+     * @return a list of {@link NurseTask} entities
+     */
     public List<NurseTask> getTasks(String nurseEmail) {
         Login nurse = getAuthUser(nurseEmail);
         return nurseTaskRepository.findByAssignedNurse_UserIdOrderByDueTimeAsc(nurse.getUserId());
     }
 
+    /**
+     * Toggles the completion status of a nursing task.
+     *
+     * @param taskId the ID of the task to toggle
+     * @param nurseEmail the email of the nurse performing the action (for authorization)
+     * @return a result map containing a success message and the updated task
+     * @throws RuntimeException if the task is not found or not assigned to the requester
+     */
     public Map<String, Object> toggleTaskStatus(Long taskId, String nurseEmail) {
         Login nurse = getAuthUser(nurseEmail);
         NurseTask task = nurseTaskRepository.findById(taskId)
@@ -106,6 +144,12 @@ public class NurseService {
         return Map.of("message", "Task toggled successfully.", "task", task);
     }
 
+    /**
+     * Retrieves shift handover notes, separated by direction.
+     *
+     * @param nurseEmail the email of the nurse (currently unused for filtering)
+     * @return a map containing notes "fromPreviousShift" and "forNextShift"
+     */
     public Map<String, Object> getHandoverNotes(String nurseEmail) {
         Login nurse = getAuthUser(nurseEmail);
         
@@ -118,6 +162,13 @@ public class NurseService {
         );
     }
 
+    /**
+     * Saves a new shift handover note.
+     *
+     * @param payload a map containing 'content', 'type', 'priority', 'direction', and optional 'patientId'
+     * @param nurseEmail the email of the nurse authoring the note
+     * @return the saved {@link HandoverNote} entity
+     */
     public HandoverNote saveHandoverNote(Map<String, Object> payload, String nurseEmail) {
         Login nurse = getAuthUser(nurseEmail);
         

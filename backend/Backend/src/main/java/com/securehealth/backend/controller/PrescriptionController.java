@@ -14,6 +14,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * REST controller for managing prescriptions.
+ * <p>
+ * Provides endpoints for retrieving prescriptions by patient, creating new prescriptions,
+ * refilling existing ones, and deleting records.
+ * </p>
+ */
 @RestController
 @RequestMapping("/api/prescriptions")
 public class PrescriptionController {

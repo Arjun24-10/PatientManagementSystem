@@ -40,8 +40,16 @@ public class FileStorageService {
     private String encryptionKeyBase64;
 
     /**
-     * Stores an uploaded file with AES-256-GCM encryption.
-     * Returns the unique filename used for retrieval.
+     * Stores an uploaded file with AES-256-GCM encryption at rest.
+     * <p>
+     * Validates the file extension against an allowlist and generates a 
+     * unique filename for secure storage.
+     * </p>
+     *
+     * @param file the {@link MultipartFile} to store
+     * @return the unique filename generated for the stored file
+     * @throws IOException if an I/O error occurs during storage
+     * @throws RuntimeException if the file is empty or the type is not allowed
      */
     public String storeFile(MultipartFile file) throws IOException {
         // 1. Validate
@@ -79,8 +87,12 @@ public class FileStorageService {
     }
 
     /**
-     * Retrieves and decrypts a stored file.
-     * Returns the decrypted bytes.
+     * Retrieves and decrypts a stored file based on its filename.
+     *
+     * @param filename the unique name of the encrypted file
+     * @return the decrypted byte array of the file content
+     * @throws IOException if an I/O error occurs during retrieval
+     * @throws RuntimeException if the file is not found or decryption fails
      */
     public byte[] loadFile(String filename) throws IOException {
         Path filePath = Paths.get(uploadDir).resolve(filename);

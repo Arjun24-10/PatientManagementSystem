@@ -9,9 +9,12 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * Represents a patient's consent record for data sharing.
- * A patient can grant or revoke access to specific data categories
- * for individual healthcare providers (doctors, nurses, lab techs).
+ * Entity representing a patient's consent for data sharing.
+ * <p>
+ * Tracks permissions granted by patients to healthcare providers 
+ * (doctors, nurses, technicians) for specific categories of medical data.
+ * Consents can be active, expired, or revoked.
+ * </p>
  */
 @Data
 @NoArgsConstructor

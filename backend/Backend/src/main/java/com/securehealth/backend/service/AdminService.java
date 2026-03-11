@@ -18,6 +18,13 @@ import java.util.stream.Collectors;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * Service for administrative and management operations.
+ * <p>
+ * Provides high-level system metrics for the dashboard, staff account management 
+ * (roles and removal), and access to the full patient directory.
+ * </p>
+ */
 @Service
 public class AdminService {
 
@@ -25,6 +32,12 @@ public class AdminService {
     @Autowired private LoginRepository loginRepository;
     @Autowired private AppointmentRepository appointmentRepository;
 
+    /**
+     * Retrieves aggregated system metrics for the admin dashboard.
+     *
+     * @return an {@link AdminMetricsDTO} containing counts of patients, doctors, 
+     *         pending approvals, and today's appointments
+     */
     @Transactional(readOnly = true)
     public AdminMetricsDTO getDashboardMetrics() {
         AdminMetricsDTO metrics = new AdminMetricsDTO();
@@ -46,6 +59,11 @@ public class AdminService {
         return metrics;
     }
 
+    /**
+     * Retrieves a list of all non-patient staff members.
+     *
+     * @return a list of {@link StaffDTO} objects representing system staff
+     */
     @Transactional(readOnly = true)
     public List<StaffDTO> getAllStaff() {
         // Pass the Enum to the repository, not the string "PATIENT"
@@ -59,6 +77,14 @@ public class AdminService {
         }).collect(Collectors.toList());
     }
 
+    /**
+     * Updates the role of a staff member.
+     *
+     * @param userId the ID of the user to update
+     * @param newRole the new role to assign
+     * @return the updated {@link StaffDTO}
+     * @throws IllegalArgumentException if the user is not found or is a patient
+     */
     @Transactional
     public StaffDTO updateStaffRole(Long userId, String newRole) {
         Login user = loginRepository.findById(userId)
@@ -81,6 +107,12 @@ public class AdminService {
         return dto;
     }
 
+    /**
+     * Permanently removes a staff member from the system.
+     *
+     * @param userId the ID of the user to remove
+     * @throws IllegalArgumentException if the staff member is not found
+     */
     @Transactional
     public void removeStaffMember(Long userId) {
         // Check if the user exists before trying to delete
@@ -90,6 +122,11 @@ public class AdminService {
         loginRepository.deleteById(userId);
     }
 
+    /**
+     * Retrieves a directory of all registered patients.
+     *
+     * @return a list of {@link PatientDirectoryDTO} objects
+     */
     @Transactional(readOnly = true)
     public List<PatientDirectoryDTO> getAllPatients() {
         return patientProfileRepository.findAll().stream().map(patient -> {

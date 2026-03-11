@@ -10,6 +10,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+/**
+ * REST controller for managing patient consents.
+ * <p>
+ * This controller provides endpoints for patients to list their consents, 
+ * grant new ones, and revoke existing ones. Access is restricted to users with PATIENT authority.
+ * </p>
+ */
 @RestController
 @RequestMapping("/api/consent")
 @PreAuthorize("hasAuthority('PATIENT')")

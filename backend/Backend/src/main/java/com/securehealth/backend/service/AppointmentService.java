@@ -24,6 +24,13 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Service for managing medical appointments and scheduling.
+ * <p>
+ * Handles available slot calculation based on doctor shifts, creation of 
+ * appointment requests, administrative approval/rejection, and status updates.
+ * </p>
+ */
 @Service
 public class AppointmentService {
 
@@ -39,6 +46,13 @@ public class AppointmentService {
     @Autowired
     private PatientProfileRepository patientProfileRepository;
 
+    /**
+     * Calculates available time slots for a doctor on a specific date.
+     *
+     * @param doctorId the ID of the doctor
+     * @param targetDate the date to check availability for
+     * @return a list of {@link LocalTime} representing available slots
+     */
     public List<LocalTime> getAvailableSlots(Long doctorId, LocalDate targetDate) {
         // 1. Fetch Doctor Profile (Note: doctorId is the Login ID, so we find by User)
         DoctorProfile doctor = doctorProfileRepository.findByUser_UserId(doctorId)
@@ -78,6 +92,13 @@ public class AppointmentService {
         return availableSlots;
     }
 
+    /**
+     * Creates a new pending appointment request for a patient.
+     *
+     * @param request the {@link AppointmentRequest} containing details
+     * @param requesterEmail the email of the user making the request
+     * @return the saved {@link Appointment}
+     */
     @Transactional
     public Appointment createAppointment(AppointmentRequest request, String requesterEmail) {
         Login user = loginRepository.findByEmail(requesterEmail)
@@ -146,6 +167,11 @@ public class AppointmentService {
         return appointmentRepository.save(appointment);
     }
 
+    /**
+     * Retrieves all appointments currently pending administrative approval.
+     *
+     * @return a list of {@link AppointmentDTO} objects
+     */
     @Transactional(readOnly = true)
     public List<AppointmentDTO> getPendingAppointments() {
         return appointmentRepository.findByStatus(com.securehealth.backend.model.AppointmentStatus.PENDING_APPROVAL).stream().map(app -> {
@@ -161,6 +187,13 @@ public class AppointmentService {
         }).collect(Collectors.toList());
     }
 
+    /**
+     * Marks an appointment as completed by the attending doctor.
+     *
+     * @param id the ID of the appointment
+     * @param doctorEmail the email of the doctor performing the action
+     * @return the updated {@link Appointment}
+     */
     @Transactional
     public Appointment completeAppointment(Long id, String doctorEmail) {
         Appointment appointment = appointmentRepository.findById(id)
@@ -175,6 +208,14 @@ public class AppointmentService {
         return appointmentRepository.save(appointment);
     }
 
+    /**
+     * Updates appointment details, such as the scheduled date/time.
+     *
+     * @param id the ID of the appointment
+     * @param request the {@link AppointmentDTO} with updated details
+     * @param doctorEmail the email of the doctor performing the update
+     * @return the updated {@link Appointment}
+     */
     @Transactional
     public Appointment updateAppointment(Long id, AppointmentDTO request, String doctorEmail) {
         Appointment appointment = appointmentRepository.findById(id)
@@ -192,6 +233,14 @@ public class AppointmentService {
         return appointmentRepository.save(appointment);
     }
 
+    /**
+     * Cancels an existing appointment.
+     *
+     * @param id the ID of the appointment to cancel
+     * @param requesterEmail the email of the user cancelling the appointment
+     * @param role the role of the requester (ADMIN, DOCTOR, or PATIENT)
+     * @return the cancelled {@link Appointment}
+     */
     @Transactional
     public Appointment cancelAppointment(Long id, String requesterEmail, String role) {
         Appointment appointment = appointmentRepository.findById(id)
@@ -207,6 +256,11 @@ public class AppointmentService {
         return appointmentRepository.save(appointment);
     }
 
+    /**
+     * Permanently deletes an appointment from the system.
+     *
+     * @param id the ID of the appointment to delete
+     */
     @Transactional
     public void deleteAppointment(Long id) {
         if (!appointmentRepository.existsById(id)) {
@@ -216,6 +270,12 @@ public class AppointmentService {
     }
 
 
+    /**
+     * Retrieves all appointments for a specific patient.
+     *
+     * @param patientId the ID of the patient
+     * @return a list of {@link AppointmentDTO} objects
+     */
     @Transactional(readOnly = true)
     public List<AppointmentDTO> getAppointmentsByPatient(Long patientId) {
         return appointmentRepository.findByPatient_ProfileId(patientId).stream().map(app -> {
@@ -232,6 +292,11 @@ public class AppointmentService {
         }).collect(Collectors.toList());
     }
 
+    /**
+     * Retrieves a list of all appointments in the system.
+     *
+     * @return a list of {@link AppointmentDTO} objects
+     */
     @Transactional(readOnly = true)
     public List<AppointmentDTO> getAllAppointments() {
         return appointmentRepository.findAll().stream().map(app -> {

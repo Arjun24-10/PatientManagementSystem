@@ -2,6 +2,13 @@ package com.securehealth.backend.dto;
 import lombok.Data;
 import java.time.LocalDateTime;
 
+/**
+ * Data Transfer Object representing the details of a lab test.
+ * <p>
+ * Contains comprehensive information about a lab test, including patient details, 
+ * the ordering doctor, test results, status, and associated files.
+ * </p>
+ */
 @Data
 public class LabTestDTO {
     private Long testId;

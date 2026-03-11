@@ -7,6 +7,13 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repository interface for {@link ArchivedUser} entities.
+ * <p>
+ * Handles lookups for archived accounts by email or their original user ID
+ * to facilitate potential restoration by administrators.
+ * </p>
+ */
 @Repository
 public interface ArchivedUserRepository extends JpaRepository<ArchivedUser, Long> {
 

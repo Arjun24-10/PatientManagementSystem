@@ -8,6 +8,13 @@ import java.time.LocalDateTime;
 
 
 
+/**
+ * Entity representing a laboratory test order and result.
+ * <p>
+ * Tracks the patient, the ordering doctor, test details (name, category),
+ * result values, units, reference ranges, and the current status of the test.
+ * </p>
+ */
 @Data
 @NoArgsConstructor
 @Entity

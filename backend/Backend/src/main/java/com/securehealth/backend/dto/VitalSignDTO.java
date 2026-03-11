@@ -3,6 +3,14 @@ package com.securehealth.backend.dto;
 import lombok.Data;
 import java.time.LocalDateTime;
 
+/**
+ * Data Transfer Object representing patient vital sign readings.
+ * <p>
+ * Contains recorded values for blood pressure, heart rate, temperature, 
+ * respiratory rate, oxygen saturation, weight, and height, along with 
+ * recording metadata.
+ * </p>
+ */
 @Data
 public class VitalSignDTO {
     private Long vitalSignId;

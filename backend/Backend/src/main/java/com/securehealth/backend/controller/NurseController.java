@@ -9,6 +9,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+/**
+ * REST controller for nurse-related operations.
+ * <p>
+ * Provides endpoints for nurses to view their dashboard, assigned patients, tasks,
+ * and manage handover notes. Access is restricted to users with NURSE authority.
+ * </p>
+ */
 @RestController
 @RequestMapping("/api/nurse")
 @PreAuthorize("hasAuthority('NURSE')")

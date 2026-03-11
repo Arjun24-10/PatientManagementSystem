@@ -8,6 +8,13 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/**
+ * Entity representing a clinical task assigned to a nurse.
+ * <p>
+ * Tasks are categorized (e.g., medication, assessment), prioritized, 
+ * and tracked for completion against a due time, often associated with a specific patient.
+ * </p>
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

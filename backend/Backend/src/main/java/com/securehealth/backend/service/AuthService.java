@@ -98,6 +98,14 @@ public class AuthService {
 
     /**
      * Registers a new user and creates an initial profile if applicable.
+     * <p>
+     * For patients, a basic profile is automatically generated using the 
+     * information provided in the registration request.
+     * </p>
+     *
+     * @param request the {@link RegistrationRequest} details
+     * @return the saved {@link Login} entity
+     * @throws RuntimeException if the email is already in use
      */
     @Transactional
     public Login registerUser(RegistrationRequest request) {
@@ -140,7 +148,18 @@ public class AuthService {
     }
 
     /**
-     * Authenticates user and generates tokens.
+     * Authenticates a user and generates access and refresh tokens.
+     * <p>
+     * Includes multi-factor authentication (MFA) logic for staff roles, 
+     * rate limiting for security, and session management.
+     * </p>
+     *
+     * @param email the user's email
+     * @param rawPassword the user's plain-text password
+     * @param ipAddress the originating IP address for audit and security
+     * @param userAgent the user's browser agent for session tracking
+     * @return a {@link LoginResponse} containing tokens or MFA status
+     * @throws RuntimeException for invalid credentials or locked accounts
      */
     public LoginResponse login(String email, String rawPassword, String ipAddress, String userAgent) {
 
@@ -210,7 +229,14 @@ public class AuthService {
     }
 
     /**
-     * Verifies OTP and Completes Login (Generates Tokens).
+     * Verifies a multi-factor authentication (MFA) OTP and completes login.
+     *
+     * @param email the user's email
+     * @param otp the 6-digit one-time password provided by the user
+     * @param ipAddress the originating IP address
+     * @param userAgent the user's browser agent
+     * @return a {@link LoginResponse} containing generated tokens
+     * @throws RuntimeException if the OTP is invalid or expired
      */
     public LoginResponse verifyOtp(String email, String otp, String ipAddress, String userAgent) {
 
@@ -258,7 +284,10 @@ public class AuthService {
         }
     }
     /**
-     * Revokes a session (Logout).
+     * Revokes a user's session and blacklists the provided access token.
+     *
+     * @param accessToken the active JWT to blacklist
+     * @param refreshToken the refresh token to revoke
      */
     @Transactional
     public void logout(String accessToken, String refreshToken) {
@@ -293,7 +322,9 @@ public class AuthService {
     }
 
     /**
-     * Enables Two-Factor Authentication for a user (e.g. Patient).
+     * Enables Two-Factor Authentication for a user.
+     *
+     * @param email the email of the user to enable 2FA for
      */
     @Transactional
     public void enableTwoFactorAuth(String email) {
@@ -533,11 +564,17 @@ public class AuthService {
     }
 
     /**
-     * ROTATION LOGIC:
-     * 1. Validate the old Refresh Token.
-     * 2. Security: If it's already revoked? ALARM! Revoke everything (Theft
-     * detected).
-     * 3. If valid: Kill the old one, create a NEW one.
+     * Rotates a refresh token to generate new session tokens.
+     * <p>
+     * Implements rotation logic to prevent token theft and session hijacking.
+     * Revokes all sessions if a reuse attempt is detected.
+     * </p>
+     *
+     * @param oldRefreshToken the refresh token to rotate
+     * @param ipAddress the current IP address
+     * @param userAgent the current user agent
+     * @return a {@link LoginResponse} with new tokens
+     * @throws RuntimeException if the token is invalid or suspected theft occurs
      */
     @Transactional
     public LoginResponse refreshToken(String oldRefreshToken, String ipAddress, String userAgent) {

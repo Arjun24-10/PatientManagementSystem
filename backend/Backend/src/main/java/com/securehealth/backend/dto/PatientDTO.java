@@ -6,6 +6,13 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import java.time.LocalDate;
 
+/**
+ * Data Transfer Object representing a patient's profile.
+ * <p>
+ * Contains personal details, contact information, date of birth, gender, 
+ * address, medical history, and the ID of the assigned doctor.
+ * </p>
+ */
 @Data
 public class PatientDTO {
     private Long id; // Matches the Frontend's expectation of an 'id'

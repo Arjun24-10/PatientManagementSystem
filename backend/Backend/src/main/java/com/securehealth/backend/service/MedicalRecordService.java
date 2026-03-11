@@ -18,6 +18,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Service for managing patients' clinical medical records.
+ * <p>
+ * Handles the creation of encounter records by doctors, chronological 
+ * retrieval for patients, and secure administrative deletion with auditing.
+ * </p>
+ */
 @Service
 public class MedicalRecordService {
 
@@ -26,6 +33,16 @@ public class MedicalRecordService {
     @Autowired private PatientProfileRepository patientProfileRepository;
     @Autowired private AuditLogRepository auditLogRepository;
 
+    /**
+     * Creates a new clinical medical record for a patient.
+     * <p>
+     * Automatically generates an audit log entry upon successful creation.
+     * </p>
+     *
+     * @param request the {@link MedicalRecordRequest} details
+     * @param doctorEmail the email of the attending doctor
+     * @return the saved {@link MedicalRecord} entity
+     */
     @Transactional
     public MedicalRecord createMedicalRecord(MedicalRecordRequest request, String doctorEmail) {
         Login doctor = loginRepository.findByEmail(doctorEmail)
@@ -49,6 +66,12 @@ public class MedicalRecordService {
 
         return saved;
     }
+    /**
+     * Retrieves all medical records associated with a specific patient.
+     *
+     * @param patientId the ID of the patient
+     * @return a list of {@link MedicalRecordDTO} objects
+     */
     @Transactional(readOnly = true)
     public List<MedicalRecordDTO> getMedicalRecordsByPatient(Long patientId) {
         return medicalRecordRepository.findByPatient_ProfileId(patientId).stream().map(mr -> {
@@ -66,6 +89,16 @@ public class MedicalRecordService {
         }).collect(Collectors.toList());
     }
 
+    /**
+     * Deletes a specific medical record.
+     * <p>
+     * Restricted operation that triggers an audit log entry for accountability.
+     * </p>
+     *
+     * @param id the ID of the medical record to delete
+     * @param adminEmail the email of the administrator performing the deletion
+     * @throws RuntimeException if the record is not found
+     */
     @Transactional
     public void deleteMedicalRecord(Long id, String adminEmail) {
         MedicalRecord record = medicalRecordRepository.findById(id)

@@ -26,6 +26,14 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.List;
 
+/**
+ * Configuration class for Spring Security.
+ * <p>
+ * This class defines the security filter chain, password encoding, CORS configuration, 
+ * and authorization rules for the application. It also integrates JWT-based authentication
+ * and provides custom handling for unauthorized and forbidden access attempts.
+ * </p>
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -40,11 +48,28 @@ public class SecurityConfig {
     @Value("${app.cors.allowed-origins:http://localhost:3000}")
     private String allowedOrigins;
 
+    /**
+     * Defines the {@link PasswordEncoder} bean using the Argon2 algorithm.
+     *
+     * @return an {@link Argon2PasswordEncoder} instance
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new Argon2PasswordEncoder(16, 32, 1, 4096, 3);
     }
 
+    /**
+     * Configures the {@link SecurityFilterChain} for the application.
+     * <p>
+     * This method defines CSRF protection, session management, CORS settings, 
+     * request authorization, and custom exception handling for authentication and access denial.
+     * It also adds the {@link JwtAuthenticationFilter} before the standard username/password filter.
+     * </p>
+     *
+     * @param http the {@link HttpSecurity} object to configure
+     * @return the configured {@link SecurityFilterChain}
+     * @throws Exception if an error occurs during configuration
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
@@ -88,6 +113,12 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * Saves a security log entry for unauthorized or forbidden access attempts.
+     *
+     * @param action  the security action being logged (e.g., "UNAUTHORIZED_ACCESS")
+     * @param request the {@link HttpServletRequest} associated with the attempt
+     */
     private void saveSecurityLog(String action, HttpServletRequest request) {
         try {
             AuditLog log = new AuditLog(
@@ -105,6 +136,15 @@ public class SecurityConfig {
         }
     }
 
+    /**
+     * Configures the CORS (Cross-Origin Resource Sharing) settings.
+     * <p>
+     * This method specifies allowed origins, methods, headers, and credential support 
+     * based on application properties and standard requirements.
+     * </p>
+     *
+     * @return a {@link CorsConfigurationSource} for use in the security filter chain
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

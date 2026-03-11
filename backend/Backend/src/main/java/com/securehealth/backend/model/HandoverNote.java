@@ -8,6 +8,13 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/**
+ * Entity representing a handover note between nursing shifts.
+ * <p>
+ * Handover notes can be general or patient-specific and include a priority level,
+ * the note content, and a read status to ensure critical information is communicated.
+ * </p>
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

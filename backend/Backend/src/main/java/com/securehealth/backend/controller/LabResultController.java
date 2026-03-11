@@ -14,6 +14,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * REST controller for managing lab test results.
+ * <p>
+ * Provides endpoints for retrieving lab results by patient, creating new lab tests,
+ * and listing pending tests for lab technicians.
+ * </p>
+ */
 @RestController
 @RequestMapping("/api/lab-results")
 public class LabResultController {

@@ -5,6 +5,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
+/**
+ * Entity representing a medication prescription.
+ * <p>
+ * Tracks prescribed medications, dosages, frequencies, and durations, 
+ * along with validity periods and remaining refills for a specific patient.
+ * </p>
+ */
 @Data
 @NoArgsConstructor
 @Entity

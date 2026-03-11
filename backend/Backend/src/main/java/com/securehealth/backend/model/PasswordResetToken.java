@@ -9,13 +9,9 @@ import java.time.LocalDateTime;
 /**
  * Entity for storing password reset tokens.
  * <p>
- * This entity maps to the 'password_reset_tokens' table and stores
- * secure tokens used for password recovery. Tokens expire after 30 minutes
- * and can only be used once.
+ * Securely stores hashed recovery tokens issued to users, including 
+ * expiration timestamps and usage status to ensure single-use security.
  * </p>
- *
- * @see com.securehealth.backend.repository.PasswordResetTokenRepository
- * @author Manas
  */
 @Data
 @NoArgsConstructor

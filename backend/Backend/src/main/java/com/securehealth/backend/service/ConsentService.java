@@ -23,7 +23,10 @@ public class ConsentService {
     @Autowired private PatientProfileRepository patientProfileRepository;
 
     /**
-     * Get all consents for the currently logged-in patient.
+     * Retrieves all consent records for the currently logged-in patient.
+     *
+     * @param patientEmail the email of the patient
+     * @return a list of {@link Consent} entities
      */
     public List<Consent> getMyConsents(String patientEmail) {
         PatientProfile profile = getPatientProfile(patientEmail);
@@ -31,7 +34,12 @@ public class ConsentService {
     }
 
     /**
-     * Grant consent for a provider to access a specific data type.
+     * Grants a provider access to a specific type of patient data.
+     *
+     * @param patientEmail the email of the patient granting consent
+     * @param payload a map containing 'grantedToId', 'consentType', 'reason', and optional 'expiresAt'
+     * @return the saved {@link Consent} entity
+     * @throws RuntimeException if the provider is not found or an active consent already exists
      */
     public Consent grantConsent(String patientEmail, Map<String, Object> payload) {
         PatientProfile profile = getPatientProfile(patientEmail);
@@ -66,7 +74,12 @@ public class ConsentService {
     }
 
     /**
-     * Revoke a patient's consent by ID.
+     * Revokes an existing consent record.
+     *
+     * @param patientEmail the email of the patient revoking consent
+     * @param consentId the ID of the consent record to revoke
+     * @return the updated {@link Consent} entity
+     * @throws RuntimeException if the consent is not found, not owned by the patient, or already revoked
      */
     public Consent revokeConsent(String patientEmail, Long consentId) {
         PatientProfile profile = getPatientProfile(patientEmail);
@@ -90,8 +103,15 @@ public class ConsentService {
     }
 
     /**
-     * Utility: Check if a provider has active consent for a specific data type.
-     * Can be called from other services to enforce consent checks.
+     * Validates if a healthcare provider has active consent for a patient's data.
+     * <p>
+     * Checks for either the specific data type or a general "ALL" consent.
+     * </p>
+     *
+     * @param patientProfileId the patient's profile ID
+     * @param providerUserId the provider's user ID
+     * @param consentType the type of data being accessed (e.g., "VITALS", "RECORDS")
+     * @return true if active consent is found, false otherwise
      */
     public boolean hasConsent(Long patientProfileId, Long providerUserId, String consentType) {
         // Check for specific type OR "ALL" type

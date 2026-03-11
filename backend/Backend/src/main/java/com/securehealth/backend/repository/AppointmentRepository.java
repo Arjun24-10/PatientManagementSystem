@@ -11,6 +11,13 @@ import com.securehealth.backend.model.AppointmentStatus;
 import java.util.List;
 import java.time.LocalDateTime;
 
+/**
+ * Repository interface for {@link Appointment} entities.
+ * <p>
+ * Provides methods for retrieving appointments by patient or doctor, 
+ * checking for scheduling conflicts, and calculating administrative metrics.
+ * </p>
+ */
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
 

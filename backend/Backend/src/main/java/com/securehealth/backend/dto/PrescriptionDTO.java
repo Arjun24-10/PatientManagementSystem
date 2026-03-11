@@ -2,6 +2,13 @@ package com.securehealth.backend.dto;
 import lombok.Data;
 import java.time.LocalDateTime;
 
+/**
+ * Data Transfer Object representing a prescription's details.
+ * <p>
+ * Transfers information about prescribed medications, including dosage, 
+ * frequency, duration, status, and refill details.
+ * </p>
+ */
 @Data
 public class PrescriptionDTO {
     private Long prescriptionId;

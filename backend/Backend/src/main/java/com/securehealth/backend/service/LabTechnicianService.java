@@ -13,6 +13,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Service for laboratory technician operations and workflow management.
+ * <p>
+ * Handles the laboratory test lifecycle, including dashboard metrics, 
+ * order list retrieval, status transitions, and final result/report uploads.
+ * </p>
+ */
 @Service
 @Transactional
 public class LabTechnicianService {
@@ -20,6 +27,11 @@ public class LabTechnicianService {
     @Autowired
     private LabTestRepository labTestRepository;
 
+    /**
+     * Aggregates statistical overview data for the lab technician dashboard.
+     *
+     * @return a map containing status counts and recent test activity
+     */
     public Map<String, Object> getDashboardOverview() {
         Map<String, Object> stats = new HashMap<>();
         stats.put("pending", labTestRepository.countByStatusIgnoreCase("Pending"));
@@ -33,6 +45,12 @@ public class LabTechnicianService {
         return stats;
     }
 
+    /**
+     * Retrieves a list of lab test orders, optionally filtered by status.
+     *
+     * @param status the optional status to filter by
+     * @return a list of {@link LabTestDTO} objects
+     */
     public List<LabTestDTO> getAllOrders(String status) {
         List<LabTest> labTests;
         if (status != null && !status.isEmpty()) {
@@ -43,6 +61,14 @@ public class LabTechnicianService {
         return labTests.stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
+    /**
+     * Updates the status of an existing lab test order.
+     *
+     * @param testId the ID of the lab test
+     * @param newStatus the new status to apply
+     * @return the updated {@link LabTestDTO}
+     * @throws RuntimeException if the lab test is not found
+     */
     public LabTestDTO updateOrderStatus(Long testId, String newStatus) {
         LabTest labTest = labTestRepository.findById(testId)
                 .orElseThrow(() -> new RuntimeException("Lab test not found with id: " + testId));
@@ -55,6 +81,19 @@ public class LabTechnicianService {
         return mapToDTO(labTest);
     }
     
+    /**
+     * Uploads the clinical results and optional report file for a lab test.
+     * <p>
+     * Automatically transitions the test status to "Completed" upon upload.
+     * </p>
+     *
+     * @param testId the ID of the lab test
+     * @param resultValue the clinical value recorded
+     * @param remarks optional professional remarks or interpretations
+     * @param fileUrl optional URL/path to the uploaded report file
+     * @return the updated and completed {@link LabTestDTO}
+     * @throws RuntimeException if the lab test is not found
+     */
     public LabTestDTO uploadResults(Long testId, String resultValue, String remarks, String fileUrl) {
          LabTest labTest = labTestRepository.findById(testId)
                 .orElseThrow(() -> new RuntimeException("Lab test not found with id: " + testId));

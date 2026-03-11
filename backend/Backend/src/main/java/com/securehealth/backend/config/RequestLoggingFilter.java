@@ -16,12 +16,33 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+/**
+ * Filter that logs incoming HTTP requests and their corresponding responses for auditing purposes.
+ * <p>
+ * This filter intercepts requests, processes them, and logs key details such as URI, status code, 
+ * authenticated user, IP address, and user agent into the {@link AuditLogRepository}.
+ * </p>
+ */
 @Component
 public class RequestLoggingFilter extends OncePerRequestFilter {
 
     @Autowired
     private AuditLogRepository auditLogRepository;
 
+    /**
+     * Filters incoming requests to log relevant details for authenticated users.
+     * <p>
+     * It captures the request start time, proceed with the filter chain, then calculates the
+     * duration and status code. If the user is authenticated and the request is not an auth 
+     * endpoint, it saves an audit log entry.
+     * </p>
+     *
+     * @param request     the {@link HttpServletRequest} object
+     * @param response    the {@link HttpServletResponse} object
+     * @param filterChain the {@link FilterChain} for further filter execution
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException      if an I/O error occurs during processing
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,

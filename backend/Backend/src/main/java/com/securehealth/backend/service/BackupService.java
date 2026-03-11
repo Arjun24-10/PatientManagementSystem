@@ -45,7 +45,11 @@ public class BackupService {
     private String dbPassword;
 
     /**
-     * Runs on the configured cron schedule (default: 2:00 AM daily).
+     * Orchestrates the database backup process.
+     * <p>
+     * Creates a timestamped {@code .sql} file using {@code pg_dump}, 
+     * and triggers a cleanup of old backups based on the retention policy.
+     * </p>
      */
     @Scheduled(cron = "${backup.cron:0 0 2 * * *}")
     public void performBackup() {

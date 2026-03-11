@@ -8,9 +8,12 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * Stores a snapshot of a user account that has been archived due to inactivity.
- * The original Login account is flagged as archived but not deleted,
- * allowing for future restoration by an admin.
+ * Entity storing a snapshot of a user account archived due to inactivity.
+ * <p>
+ * When a user is archived, their original account is flagged as such, 
+ * and this entity preserves their email, role, and last activity 
+ * for record-keeping or potential restoration.
+ * </p>
  */
 @Data
 @NoArgsConstructor

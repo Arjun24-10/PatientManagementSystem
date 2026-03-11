@@ -92,7 +92,14 @@ public class ArchivalService {
     }
 
     /**
-     * Admin action: restore an archived user.
+     * Restores a previously archived user account.
+     * <p>
+     * Re-enables the core login account and removes the archival snapshot.
+     * </p>
+     *
+     * @param archivedUserId the ID of the archive record
+     * @return the restored {@link Login} entity
+     * @throws RuntimeException if the archive or original user is not found
      */
     @Transactional
     public Login restoreUser(Long archivedUserId) {
@@ -112,7 +119,9 @@ public class ArchivalService {
     }
 
     /**
-     * Admin action: get all archived users.
+     * Retrieves a list of all archived user snapshots.
+     *
+     * @return a list of {@link ArchivedUser} entities
      */
     public List<ArchivedUser> getArchivedUsers() {
         return archivedUserRepository.findAllByOrderByArchivedAtDesc();

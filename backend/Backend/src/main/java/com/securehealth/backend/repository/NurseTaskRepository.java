@@ -8,6 +8,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repository interface for {@link NurseTask} entities.
+ * <p>
+ * Supports task management for nursing staff, including counts of pending tasks, 
+ * priority-based filtering, and category-specific task lookups.
+ * </p>
+ */
 @Repository
 public interface NurseTaskRepository extends JpaRepository<NurseTask, Long> {
     List<NurseTask> findByAssignedNurse_UserIdOrderByDueTimeAsc(Long nurseId);

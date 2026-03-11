@@ -9,7 +9,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Controller to provide static/mock data for frontend dropdowns.
+ * REST controller for providing static or mock catalog data.
+ * <p>
+ * This controller exposes endpoints for frontend dropdowns, such as medications, 
+ * test types, prescription protocols, conditions, and hospital departments.
+ * </p>
  */
 @RestController
 @RequestMapping("/api")

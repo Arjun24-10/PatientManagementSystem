@@ -10,6 +10,13 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 import java.util.List;
 
+/**
+ * Repository interface for {@link Session} entities.
+ * <p>
+ * Manages user authentication sessions, allowing for verification of refresh tokens 
+ * and bulk revocation of sessions for security enforcement.
+ * </p>
+ */
 @Repository
 public interface SessionRepository extends JpaRepository<Session, Long> {
     Optional<Session> findByRefreshTokenHash(String refreshTokenHash);

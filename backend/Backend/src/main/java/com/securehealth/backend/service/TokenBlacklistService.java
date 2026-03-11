@@ -6,6 +6,20 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 
+/**
+ * Service for managing JWT revocation and idle session tracking.
+ * <p>
+ * Uses Redis to maintain a blacklist of revoked access tokens and 
+ * tracks user activity to enforce idle session timeouts.
+ * </p>
+ */
+/**
+ * Service for managing JWT revocation and idle session tracking.
+ * <p>
+ * Uses Redis to maintain a blacklist of revoked access tokens and 
+ * tracks user activity to enforce idle session timeouts.
+ * </p>
+ */
 @Service
 public class TokenBlacklistService {
 
@@ -13,7 +27,10 @@ public class TokenBlacklistService {
     private StringRedisTemplate redisTemplate;
 
     /**
-     * Blacklists an Access Token until its natural expiration time.
+     * Blacklists an access token until its natural expiration time.
+     *
+     * @param token the JWT to blacklist
+     * @param remainingMillis duration in milliseconds until the token expires
      */
     public void blacklistToken(String token, long remainingMillis) {
         if (remainingMillis > 0) {
@@ -24,7 +41,10 @@ public class TokenBlacklistService {
     }
 
     /**
-     * Checks if a token is in the blacklist.
+     * Checks if a specific token has been revoked and blacklisted.
+     *
+     * @param token the JWT to check
+     * @return true if the token is blacklisted, false otherwise
      */
     public boolean isBlacklisted(String token) {
         String key = "jwt:blacklist:" + token;
@@ -32,18 +52,50 @@ public class TokenBlacklistService {
     }
 
 
+    /**
+     * Updates the last active timestamp for a user's session.
+     *
+     * @param email the user's email
+     */
+    /**
+     * Updates the last active timestamp for a user's session.
+     *
+     * @param email the user's email
+     */
     public void updateLastActive(String email) {
         String key = "session:active:" + email;
         // Extend the idle timeout by 30 minutes on every request
         redisTemplate.opsForValue().set(key, "active", Duration.ofMinutes(30));
     }
 
+    /**
+     * Checks if a user's session has been idle beyond the timeout threshold.
+     *
+     * @param email the user's email
+     * @return true if the session is considered idle, false otherwise
+     */
+    /**
+     * Checks if a user's session has been idle beyond the timeout threshold.
+     *
+     * @param email the user's email
+     * @return true if the session is considered idle, false otherwise
+     */
     public boolean isSessionIdle(String email) {
         String key = "session:active:" + email;
         // If the key doesn't exist, they have been idle for > 30 minutes
         return Boolean.FALSE.equals(redisTemplate.hasKey(key));
     }
     
+    /**
+     * Clears the active session status for a user.
+     *
+     * @param email the user's email
+     */
+    /**
+     * Clears the active session status for a user.
+     *
+     * @param email the user's email
+     */
     public void clearIdleSession(String email) {
         redisTemplate.delete("session:active:" + email);
     }

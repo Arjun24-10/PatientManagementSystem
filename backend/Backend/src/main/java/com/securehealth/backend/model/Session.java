@@ -5,6 +5,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
+/**
+ * Entity representing an active user session.
+ * <p>
+ * Tracks refresh tokens, client metadata (IP, User Agent), and 
+ * expiration status to manage authentication persistence and security.
+ * </p>
+ */
 @Data
 @NoArgsConstructor
 @Entity

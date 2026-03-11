@@ -4,6 +4,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+/**
+ * Data Transfer Object for creating or updating a prescription request.
+ * <p>
+ * Used by doctors to prescribe medications, specifying the patient, 
+ * medication name, dosage, frequency, duration, and any special instructions.
+ * </p>
+ */
 @Data
 public class PrescriptionRequest {
     @NotNull(message = "Patient ID is required")

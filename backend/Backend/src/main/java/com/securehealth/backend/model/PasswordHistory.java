@@ -7,18 +7,11 @@ import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * Entity for storing password history.
+ * Entity for storing previous password hashes to prevent password reuse.
  * <p>
- * This entity maps to the 'password_history' table and stores
- * hashed versions of previously used passwords. Used to prevent
- * password reuse (NIST 800-63B compliance).
+ * Maintains NIST compliance by ensuring users cannot reuse a specified number 
+ * of their most recent passwords.
  * </p>
- * <p>
- * Default policy: Users cannot reuse their last 5 passwords.
- * </p>
- *
- * @see com.securehealth.backend.repository.PasswordHistoryRepository
- * @author Manas
  */
 @Data
 @NoArgsConstructor
