@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Save, AlertTriangle, ArrowLeft } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -7,7 +7,7 @@ import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import IconButton from '../../components/common/IconButton';
 import Input from '../../components/common/Input';
-import { mockNursePatients } from '../../mocks/nursePatients';
+import api from '../../services/api';
 
 const VITAL_LIMITS = {
     bp: { systolic: [90, 140], diastolic: [60, 90] },
@@ -17,17 +17,59 @@ const VITAL_LIMITS = {
     rr: [12, 20]
 };
 
-const mockVitalsHistory = [
-    { time: '08:00', systolic: 120, diastolic: 80, pulse: 72, temp: 98.6, spo2: 98, rr: 16 },
-    { time: '12:00', systolic: 124, diastolic: 82, pulse: 75, temp: 98.4, spo2: 97, rr: 18 },
-    { time: '16:00', systolic: 118, diastolic: 78, pulse: 70, temp: 98.7, spo2: 99, rr: 16 },
-    { time: '20:00', systolic: 122, diastolic: 84, pulse: 78, temp: 99.1, spo2: 96, rr: 20 },
-];
-
 const VitalsEntry = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const patient = mockNursePatients.find(p => p.id === id) || mockNursePatients[0];
+    const [patient, setPatient] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [submitError, setSubmitError] = useState(null);
+    const [vitalsHistory, setVitalsHistory] = useState([]);
+
+    useEffect(() => {
+        const loadPatient = async () => {
+            try {
+                const patients = await api.nurse.getAssignedPatients();
+                const found = Array.isArray(patients)
+                    ? patients.find(p => String(p.profileId) === id)
+                    : null;
+                setPatient(found || null);
+            } catch (err) {
+                console.error('Failed to load patient:', err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        loadPatient();
+    }, [id]);
+
+    useEffect(() => {
+        const loadHistory = async () => {
+            try {
+                const data = await api.vitalSigns.getByPatient(id);
+                if (Array.isArray(data)) {
+                    setVitalsHistory(data.map(record => {
+                        const [systolic, diastolic] = (record.bloodPressure || '').split('/').map(Number);
+                        return {
+                            time: record.recordedAt
+                                ? new Date(record.recordedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                : '',
+                            systolic: systolic || 0,
+                            diastolic: diastolic || 0,
+                            pulse: record.heartRate || 0,
+                            temp: record.temperature || 0,
+                            spo2: record.oxygenSaturation || 0,
+                            rr: record.respiratoryRate || 0,
+                            nurseName: record.nurse?.username || '',
+                            recordedAt: record.recordedAt,
+                        };
+                    }));
+                }
+            } catch (err) {
+                console.error('Failed to load vitals history:', err);
+            }
+        };
+        loadHistory();
+    }, [id]);
 
     const [vitals, setVitals] = useState({
         systolic: '',
@@ -64,12 +106,39 @@ const VitalsEntry = () => {
         setErrors(prev => ({ ...prev, [name]: error }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Mock submission
-        alert('Vitals recorded successfully!');
-        navigate(`/dashboard/nurse/patient/${id}`);
+        setSubmitError(null);
+        try {
+            await api.vitalSigns.create({
+                patientId: Number(id),
+                bloodPressure: `${vitals.systolic}/${vitals.diastolic}`,
+                heartRate: vitals.pulse ? Number(vitals.pulse) : undefined,
+                temperature: vitals.temp ? Number(vitals.temp) : undefined,
+                respiratoryRate: vitals.rr ? Number(vitals.rr) : undefined,
+                oxygenSaturation: vitals.spo2 ? Number(vitals.spo2) : undefined,
+            });
+            navigate(`/dashboard/nurse/patient/${id}`);
+        } catch (err) {
+            console.error('Failed to save vitals:', err);
+            setSubmitError('Failed to save vitals. Please try again.');
+        }
     };
+
+    if (isLoading) {
+        return <div className="p-8 text-center text-gray-500">Loading patient...</div>;
+    }
+
+    if (!patient) {
+        return (
+            <div className="p-8 text-center">
+                <p className="text-gray-500">Patient not found or not assigned to you.</p>
+                <Button onClick={() => navigate('/dashboard/nurse/patients')} className="mt-4">Back to Patients</Button>
+            </div>
+        );
+    }
+
+    const patientName = `${patient.firstName || ''} ${patient.lastName || ''}`.trim() || 'Unknown';
 
     return (
         <div className="space-y-6 max-w-4xl mx-auto">
@@ -84,7 +153,7 @@ const VitalsEntry = () => {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Record Vitals</h1>
-                    <p className="text-gray-500">Patient: {patient.name} (Room {patient.room})</p>
+                    <p className="text-gray-500">Patient: {patientName}</p>
                 </div>
                 <div className="text-sm text-gray-400">
                     {new Date().toLocaleString()}
@@ -191,6 +260,11 @@ const VitalsEntry = () => {
                                 ></textarea>
                             </div>
 
+                            {submitError && (
+                                <p className="text-sm text-red-600 flex items-center gap-1">
+                                    <AlertTriangle className="w-4 h-4" /> {submitError}
+                                </p>
+                            )}
                             <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-slate-700">
                                 <Button variant="ghost" onClick={() => navigate(-1)}>
                                     Cancel
@@ -211,7 +285,7 @@ const VitalsEntry = () => {
                         <h3 className="font-semibold text-gray-700 dark:text-slate-200 mb-4">Vitals Trends (24h)</h3>
                         <div className="h-48 w-full">
                             <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={mockVitalsHistory}>
+                                <LineChart data={vitalsHistory}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                                     <XAxis dataKey="time" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
                                     <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} domain={['auto', 'auto']} />
@@ -231,11 +305,11 @@ const VitalsEntry = () => {
                     <Card className="p-4">
                         <h3 className="font-semibold text-gray-700 dark:text-slate-200 mb-4">Recent History</h3>
                         <div className="space-y-3">
-                            {mockVitalsHistory.slice().reverse().map((record, idx) => (
+                            {vitalsHistory.slice().reverse().map((record, idx) => (
                                 <div key={idx} className="text-sm border-b border-gray-100 dark:border-slate-700 pb-2 last:border-0 last:pb-0">
                                     <div className="flex justify-between mb-1">
                                         <span className="font-medium text-gray-900 dark:text-white">{record.time}</span>
-                                        <span className="text-gray-500">Nurse Joy</span>
+                                        <span className="text-gray-500">{record.nurseName}</span>
                                     </div>
                                     <div className="grid grid-cols-2 gap-x-2 text-xs text-gray-600 dark:text-slate-400">
                                         <span>BP: {record.systolic}/{record.diastolic}</span>

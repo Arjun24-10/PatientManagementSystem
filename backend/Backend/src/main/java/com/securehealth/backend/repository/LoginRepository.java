@@ -45,10 +45,10 @@ public interface LoginRepository extends JpaRepository<Login, Long> {
      * <p>
      * Used for administrative metrics and dashboard reporting.
      * </p>
-     * @param role The string representation of the user role (e.g., "PATIENT", "DOCTOR").
+     * @param role The Role enum value (e.g., Role.DOCTOR).
      * @return The total count of users with the specified role.
      */
-    long countByRole(String role);
+    long countByRole(Role role);
 
     /**
      * Retrieves a list of users who do not have the specified role.

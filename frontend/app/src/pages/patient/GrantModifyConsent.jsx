@@ -13,10 +13,9 @@ import {
    privacyNotices,
    requiredAcknowledgments,
    expirationOptions,
-   consentHistory,
-   generateConsentId,
-   patientInfo
 } from '../../mocks/consentForm';
+import { useAuth } from '../../contexts/AuthContext';
+import { consentAPI } from '../../services/api';
 
 // Step indicator component
 const StepIndicator = ({ currentStep, totalSteps }) => (
@@ -419,8 +418,13 @@ const GrantModifyConsent = ({
    category,
    mode = 'grant', // 'grant' or 'modify'
    existingSelections = [],
-   onSubmit
+   onSubmit,
+   consentId,        // real consent DB id for revoke (required when mode='modify')
+   grantedToId,      // provider userId to grant consent to
+   backendConsentType, // backend consentType (VIEW_RECORDS, LAB_RESULTS, etc.)
+   patientHistory = [], // real consent history from parent
 }) => {
+   const { user } = useAuth();
    // Get form data based on category
    const formData = useMemo(() => getConsentFormByCategory(category), [category]);
 
@@ -599,32 +603,50 @@ const GrantModifyConsent = ({
    // Handle final submit
    const handleSubmit = async () => {
       setIsSubmitting(true);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const newConsentId = generateConsentId();
-      setGeneratedConsentId(newConsentId);
-      
-      setIsSubmitting(false);
-      setShowConfirmModal(false);
-      setShowSuccessScreen(true);
-      
-      // Call onSubmit callback if provided
-      if (onSubmit) {
-         onSubmit({
-            consentId: newConsentId,
-            category,
-            selectedOptions,
-            effectiveDate: effectiveDate === 'immediate' ? new Date().toISOString() : customEffectiveDate,
-            expiration: expiration === 'none' ? null : expiration === 'custom' ? customExpirationDate : expiration,
-            signature: {
-               method: signatureMethod,
-               value: signatureValue,
-               timestamp: new Date().toISOString(),
-               ipAddress: '192.168.1.100'
-            }
+      try {
+         let expiresAt = null;
+         if (expiration === '6-months') {
+            expiresAt = new Date(Date.now() + 6 * 30 * 24 * 60 * 60 * 1000).toISOString();
+         } else if (expiration === '1-year') {
+            expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+         } else if (expiration === '2-years') {
+            expiresAt = new Date(Date.now() + 2 * 365 * 24 * 60 * 60 * 1000).toISOString();
+         } else if (expiration === '5-years') {
+            expiresAt = new Date(Date.now() + 5 * 365 * 24 * 60 * 60 * 1000).toISOString();
+         } else if (expiration === 'custom') {
+            expiresAt = customExpirationDate ? new Date(customExpirationDate).toISOString() : null;
+         }
+
+         const result = await consentAPI.grantConsent({
+            grantedToId,
+            consentType: backendConsentType,
+            reason: signatureValue || '',
+            expiresAt,
          });
+
+         setGeneratedConsentId(String(result.id));
+         setIsSubmitting(false);
+         setShowConfirmModal(false);
+         setShowSuccessScreen(true);
+
+         if (onSubmit) {
+            onSubmit({
+               consentId: result.id,
+               category,
+               selectedOptions,
+               effectiveDate: effectiveDate === 'immediate' ? new Date().toISOString() : customEffectiveDate,
+               expiration: expiration === 'none' ? null : expiration === 'custom' ? customExpirationDate : expiration,
+               signature: {
+                  method: signatureMethod,
+                  value: signatureValue,
+                  timestamp: new Date().toISOString(),
+               }
+            });
+         }
+      } catch (err) {
+         console.error('Failed to submit consent:', err);
+         setIsSubmitting(false);
+         showToast('error', 'Failed to submit consent. Please try again.');
       }
    };
 
@@ -652,26 +674,26 @@ const GrantModifyConsent = ({
    // Handle withdrawal submission
    const handleWithdraw = async () => {
       setIsWithdrawing(true);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const newWithdrawId = `WD-${Date.now()}`;
-      setWithdrawConsentId(newWithdrawId);
-      
-      setIsWithdrawing(false);
-      setWithdrawStep(3); // Success
-      
-      // Call onSubmit callback if provided
-      if (onSubmit) {
-         onSubmit({
-            action: 'withdraw',
-            withdrawId: newWithdrawId,
-            category,
-            reason: withdrawReason === 'other' ? withdrawReasonOther : withdrawReason,
-            effectiveDate: withdrawEffective,
-            timestamp: new Date().toISOString()
-         });
+      try {
+         const result = await consentAPI.revokeConsent(consentId);
+         setWithdrawConsentId(String(result?.id || consentId));
+         setIsWithdrawing(false);
+         setWithdrawStep(3); // Success
+
+         if (onSubmit) {
+            onSubmit({
+               action: 'withdraw',
+               consentId: result?.id || consentId,
+               category,
+               reason: withdrawReason === 'other' ? withdrawReasonOther : withdrawReason,
+               effectiveDate: withdrawEffective,
+               timestamp: new Date().toISOString()
+            });
+         }
+      } catch (err) {
+         console.error('Failed to withdraw consent:', err);
+         setIsWithdrawing(false);
+         showToast('error', 'Failed to withdraw consent. Please try again.');
       }
    };
 
@@ -984,7 +1006,7 @@ const GrantModifyConsent = ({
                            <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-300">
                               <li className="flex items-start gap-2">
                                  <Check className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                                 <span>A confirmation email has been sent to {patientInfo.email}</span>
+                                 <span>A confirmation email has been sent to {user?.email}</span>
                               </li>
                               <li className="flex items-start gap-2">
                                  <Check className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
@@ -1115,7 +1137,7 @@ const GrantModifyConsent = ({
                   <h3 className="font-semibold text-blue-900 dark:text-blue-300 mb-2">What happens next:</h3>
                   <ul className="space-y-1 text-sm text-blue-700 dark:text-blue-300">
                      <li>• Your consent has been recorded</li>
-                     <li>• Confirmation email sent to {patientInfo.email}</li>
+                     <li>• Confirmation email sent to {user?.email}</li>
                      <li>• Changes will take effect within 24-48 hours</li>
                   </ul>
                </div>
@@ -1265,7 +1287,7 @@ const GrantModifyConsent = ({
                            {mode === 'grant' ? 'Grant' : 'Modify'} Consent: {formData.title}
                         </h2>
                         <p className="text-sm text-gray-500 dark:text-slate-400">
-                           Managing consents for: {patientInfo.name} (MRN: {patientInfo.mrn})
+                           Managing consents for: {user?.fullName || user?.email || 'Patient'}
                         </p>
                      </div>
                   </div>
@@ -1598,11 +1620,11 @@ const GrantModifyConsent = ({
                      {showHistory && (
                         <div className="mt-4 animate-fade-in">
                            <div className="relative pl-4">
-                              {consentHistory.map((item, idx) => (
+                              {patientHistory.map((item, idx) => (
                                  <HistoryTimelineItem 
                                     key={item.id} 
                                     item={item} 
-                                    isLast={idx === consentHistory.length - 1}
+                                    isLast={idx === patientHistory.length - 1}
                                  />
                               ))}
                            </div>

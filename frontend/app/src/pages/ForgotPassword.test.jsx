@@ -51,7 +51,7 @@ describe('ForgotPassword Page', () => {
         render(<ForgotPassword />);
 
         const emailInput = screen.getByPlaceholderText(/email/i);
-        await userEvent.type(emailInput, 'invalidemail');
+        fireEvent.change(emailInput, { target: { value: 'invalidemail' } });
         fireEvent.blur(emailInput);
 
         await waitFor(() => {
@@ -65,7 +65,7 @@ describe('ForgotPassword Page', () => {
         render(<ForgotPassword />);
 
         const emailInput = screen.getByPlaceholderText(/email/i);
-        await userEvent.type(emailInput, 'test@example.com');
+        fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
 
         const submitButton = screen.getByRole('button', { name: /send reset link/i });
         fireEvent.click(submitButton);
@@ -81,7 +81,7 @@ describe('ForgotPassword Page', () => {
         render(<ForgotPassword />);
 
         const emailInput = screen.getByPlaceholderText(/email/i);
-        await userEvent.type(emailInput, 'test@example.com');
+        fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
 
         const submitButton = screen.getByRole('button', { name: /send reset link/i });
         fireEvent.click(submitButton);
@@ -118,7 +118,7 @@ describe('ForgotPassword Page', () => {
         render(<ForgotPassword />);
 
         const emailInput = screen.getByPlaceholderText(/email/i);
-        await userEvent.type(emailInput, 'test@example.com');
+        fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
 
         const submitButton = screen.getByRole('button', { name: /send reset link/i });
         expect(submitButton).not.toBeDisabled();

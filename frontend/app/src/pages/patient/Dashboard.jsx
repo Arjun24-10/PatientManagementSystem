@@ -1,87 +1,86 @@
-import React, { useState } from 'react';
-import { Activity, Calendar, Pill, AlertCircle, Clock, Stethoscope, Scale, AlertTriangle, RefreshCw, CalendarClock, FileText } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Activity, Calendar, Pill, AlertCircle, Clock, Stethoscope, AlertTriangle, RefreshCw, CalendarClock, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
+import { getFullName } from '../../utils/formatters';
+
 const PatientDashboard = () => {
    const { user } = useAuth();
    const navigate = useNavigate();
-   const [patientId, setPatientId] = useState(null);
 
-   // State with Mock Fallbacks
+   // State with NO Mock Fallbacks
    const [patient, setPatient] = useState(null);
    const [appointments, setAppointments] = useState([]);
    const [prescriptions, setPrescriptions] = useState([]);
    const [labs, setLabs] = useState([]);
    const [diagnoses, setDiagnoses] = useState([]);
+   const [isLoading, setIsLoading] = useState(false);
+   const [error, setError] = useState(null);
 
-   // Fetch Patient Profile First
-   React.useEffect(() => {
-      const fetchProfile = async () => {
+   const mapAppointment = (appt) => ({
+      id: appt.appointmentId,
+      doctorName: appt.doctorName,
+      dateTime: appt.appointmentDate,
+      reason: appt.reasonForVisit,
+      status: (appt.status || '').toString().toUpperCase(),
+   });
+
+   // Fetch Patient Profile and related data
+   useEffect(() => {
+      const fetchData = async () => {
+         if (!user?.userId) return;
+
+         setIsLoading(true);
+         setError(null);
          try {
             const pData = await api.patients.getMe();
-            if (pData && pData.id) {
-               setPatient(pData);
-               setPatientId(pData.id);
+            const profileId = pData?.id;
+            if (!profileId) {
+               throw new Error('Patient profile not found');
             }
-         } catch (e) {
-            console.error('Failed to fetch real profile', e);
-            const fallbackId = user?.userId;
-            const fallbackName = user?.fullName || user?.full_name || user?.name || 'Patient';
-            if (!fallbackId) {
-               console.error('Patient ID not available');
-               return;
-            }
-            setPatient({ id: fallbackId, name: fallbackName });
-            setPatientId(fallbackId);
+
+            const [aData, rData, lData, mData] = await Promise.all([
+               api.appointments.getByPatient(profileId),
+               api.prescriptions.getByPatient(profileId),
+               api.labResults.getByPatient(profileId),
+               api.medicalRecords.getByPatient(profileId)
+            ]);
+
+            setPatient(pData);
+            setAppointments((aData || []).map(mapAppointment));
+            setPrescriptions(rData || []);
+            setLabs(lData || []);
+            setDiagnoses(mData || []);
+         } catch (err) {
+            console.error('Failed to fetch patient dashboard data:', err);
+            setError('Failed to load dashboard. Please refresh the page.');
+         } finally {
+            setIsLoading(false);
          }
-      };
-      fetchProfile();
-   }, [user]);
-
-   // Fetch API Data once we have patientId
-   React.useEffect(() => {
-      if (!patientId) return;
-
-      const fetchData = async () => {
-         try {
-            const aData = await api.appointments.getByPatient(patientId);
-            if (Array.isArray(aData)) setAppointments(aData);
-         } catch (e) { console.error('Failed to fetch appointments', e); }
-
-         try {
-            const rData = await api.prescriptions.getByPatient(patientId);
-            if (Array.isArray(rData)) setPrescriptions(rData);
-         } catch (e) { console.error('Failed to fetch prescriptions', e); }
-
-         try {
-            const lData = await api.labResults.getByPatient(patientId);
-            if (Array.isArray(lData)) setLabs(lData);
-         } catch (e) { console.error('Failed to fetch labs', e); }
-
-         try {
-            const mData = await api.medicalRecords.getByPatient(patientId);
-            if (Array.isArray(mData)) setDiagnoses(mData);
-         } catch (e) { console.error('Failed to fetch diagnoses', e); }
       };
 
       fetchData();
-   }, [patientId]);
+   }, [user?.userId]);
 
-   if (!patient) return <div className="p-8 text-center text-gray-500 dark:text-slate-400">Loading patient data...</div>;
+
+   if (isLoading) return <div className="p-8 text-center text-gray-500 dark:text-slate-400">Loading dashboard...</div>;
 
    // --- Data Preparation ---
    const upcomingAppointments = appointments
-      .filter(a => a.patientId === patientId && a.status !== 'Completed' && a.status !== 'Cancelled')
-      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .filter(a => !['COMPLETED', 'CANCELLED'].includes((a.status || '').toUpperCase()))
+      .sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime))
       .slice(0, 3);
 
-   const pendingLabs = labs.filter(l => l.status === 'Pending' || l.type === 'Pending');
-   const activeMedications = prescriptions.filter(p => p.active);
-   const recentDiagnoses = diagnoses.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+   const pendingLabs = labs.filter(l => l.status === 'PENDING' || l.status === 'Pending');
+   const activeMedications = prescriptions.filter(p => p.active || p.status === 'ACTIVE');
+   const recentDiagnoses = diagnoses
+      .slice()
+      .sort((a, b) => new Date(b.recordDate || b.createdAt) - new Date(a.recordDate || a.createdAt))
+      .slice(0, 5);
 
 
 
@@ -91,17 +90,23 @@ const PatientDashboard = () => {
          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
             <div>
                <h2 className="text-lg font-semibold text-gray-800 dark:text-slate-100">Patient Dashboard</h2>
-               <p className="text-sm text-gray-500 dark:text-slate-400">Welcome back, {user?.fullName || user?.full_name || patient.name}</p>
+               <p className="text-sm text-gray-500 dark:text-slate-400">Welcome back, {getFullName(patient) || getFullName(user)}</p>
             </div>
             <div className="flex gap-2">
                <Button variant="outline" size="sm" onClick={() => navigate('/dashboard/patient/appointments')}>
                   My Appointments
                </Button>
-               <Button size="sm" onClick={() => navigate('/dashboard/patient/records')}>
+               <Button size="sm" onClick={() => navigate('/dashboard/patient/history')}>
                   View Records
                </Button>
             </div>
          </div>
+
+         {error && (
+            <Card className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+               <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+            </Card>
+         )}
 
          {/* Pending Labs Alert - High Visibility */}
          {pendingLabs.length > 0 && (
@@ -146,16 +151,16 @@ const PatientDashboard = () => {
                            <div key={appt.id} className="p-3 hover:bg-gray-50 dark:hover:bg-slate-800/50 flex items-center justify-between gap-3">
                               <div className="flex items-center gap-3 flex-1 min-w-0">
                                  <div className="flex-shrink-0 w-10 text-center">
-                                    <div className="text-xs font-semibold text-gray-900 dark:text-slate-100">{new Date(appt.date).getDate()}</div>
-                                    <div className="text-xs text-gray-500 dark:text-slate-400 uppercase">{new Date(appt.date).toLocaleString('default', { month: 'short' })}</div>
+                                    <div className="text-xs font-semibold text-gray-900 dark:text-slate-100">{new Date(appt.dateTime).getDate()}</div>
+                                    <div className="text-xs text-gray-500 dark:text-slate-400 uppercase">{new Date(appt.dateTime).toLocaleString('default', { month: 'short' })}</div>
                                  </div>
                                  <div className="w-px h-8 bg-gray-200 dark:bg-slate-700"></div>
                                  <div className="flex-1 min-w-0">
                                     <div className="text-sm font-medium text-gray-900 dark:text-slate-100 truncate">{appt.doctorName}</div>
                                     <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-slate-400">
-                                       <span className="flex items-center gap-1"><Clock size={12} /> {appt.time}</span>
+                                       <span className="flex items-center gap-1"><Clock size={12} /> {new Date(appt.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                        <span>•</span>
-                                       <span>{appt.type}</span>
+                                       <span>{appt.reason || 'Consultation'}</span>
                                     </div>
                                  </div>
                               </div>
@@ -191,13 +196,13 @@ const PatientDashboard = () => {
                   </div>
                   <div className="divide-y divide-gray-100 dark:divide-slate-700/50">
                      {recentDiagnoses.map((dx) => (
-                        <div key={dx.id} className="px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-800/50 flex justify-between items-center">
+                        <div key={dx.recordId} className="px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-800/50 flex justify-between items-center">
                            <div className="flex-1 min-w-0">
-                              <div className="text-sm font-medium text-gray-900 dark:text-slate-100">{dx.name}</div>
-                              <div className="text-xs text-gray-500 dark:text-slate-400">{dx.date} • {dx.doctor}</div>
+                              <div className="text-sm font-medium text-gray-900 dark:text-slate-100">{dx.diagnosis}</div>
+                              <div className="text-xs text-gray-500 dark:text-slate-400">{new Date(dx.recordDate || dx.createdAt).toLocaleDateString()} • {dx.doctorName}</div>
                            </div>
-                           <Badge size="sm" type={dx.severity === 'High' ? 'red' : dx.severity === 'Moderate' ? 'yellow' : 'green'}>
-                              {dx.severity}
+                           <Badge size="sm" type="gray">
+                              Recorded
                            </Badge>
                         </div>
                      ))}
@@ -218,15 +223,15 @@ const PatientDashboard = () => {
                   </div>
                   <div className="divide-y divide-gray-100 dark:divide-slate-700/50">
                      {activeMedications.map(rx => (
-                        <div key={rx.id} className="group p-3 hover:bg-gray-50 dark:hover:bg-slate-800/50 flex items-center justify-between">
+                        <div key={rx.prescriptionId} className="group p-3 hover:bg-gray-50 dark:hover:bg-slate-800/50 flex items-center justify-between">
                            <div className="flex items-center gap-3 flex-1 min-w-0">
                               <div className="w-8 h-8 rounded bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0">
                                  <Pill className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                               </div>
                               <div className="flex-1 min-w-0">
                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm font-medium text-gray-900 dark:text-slate-100">{rx.name}</span>
-                                    {rx.refills <= 1 && <AlertCircle className="w-3.5 h-3.5 text-red-500" />}
+                                    <span className="text-sm font-medium text-gray-900 dark:text-slate-100">{rx.medicationName}</span>
+                                    {(rx.refillsRemaining ?? 0) <= 1 && <AlertCircle className="w-3.5 h-3.5 text-red-500" />}
                                  </div>
                                  <div className="text-xs text-gray-500 dark:text-slate-400">{rx.dosage} • {rx.frequency}</div>
                               </div>

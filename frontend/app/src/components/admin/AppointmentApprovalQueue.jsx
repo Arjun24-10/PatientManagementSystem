@@ -22,50 +22,20 @@ const AppointmentApprovalQueue = () => {
         setIsLoading(true);
         setError(null);
         try {
-            // Mock pending appointments for now
-            setMockPendingAppointments();
+            const data = await api.appointments.getPending();
+            setPendingAppointments(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error('Failed to fetch appointments:', err);
             setError('Failed to load pending appointments');
-            setMockPendingAppointments();
         } finally {
             setIsLoading(false);
         }
     };
 
-    const setMockPendingAppointments = () => {
-        setPendingAppointments([
-            {
-                appointmentId: 1,
-                patientName: 'John Smith',
-                patientId: 1,
-                doctorName: 'Dr. Sarah Johnson',
-                doctorId: 10,
-                appointmentDate: new Date(Date.now() + 3600000).toISOString(),
-                reasonForVisit: 'Regular check-up',
-                status: 'PENDING_APPROVAL',
-                requestedAt: new Date().toISOString()
-            },
-            {
-                appointmentId: 2,
-                patientName: 'Alice Brown',
-                patientId: 2,
-                doctorName: 'Dr. Michael Davis',
-                doctorId: 11,
-                appointmentDate: new Date(Date.now() + 7200000).toISOString(),
-                reasonForVisit: 'Follow-up consultation',
-                status: 'PENDING_APPROVAL',
-                requestedAt: new Date().toISOString()
-            }
-        ]);
-    };
-
     const handleApprove = async (appointmentId) => {
         try {
             await api.appointments.approve(appointmentId);
-            setPendingAppointments(prev => 
-                prev.filter(apt => apt.appointmentId !== appointmentId)
-            );
+            await fetchPendingAppointments();
             setConfirmModal({ isOpen: false, action: null });
             setSelectedAppt(null);
             alert('Appointment approved successfully!');
@@ -78,9 +48,7 @@ const AppointmentApprovalQueue = () => {
     const handleReject = async (appointmentId, reason) => {
         try {
             await api.appointments.reject(appointmentId, reason);
-            setPendingAppointments(prev => 
-                prev.filter(apt => apt.appointmentId !== appointmentId)
-            );
+            await fetchPendingAppointments();
             setConfirmModal({ isOpen: false, action: null });
             setSelectedAppt(null);
             setRejectionReason('');

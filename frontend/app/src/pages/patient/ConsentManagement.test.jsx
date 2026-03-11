@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '../../test-utils';
+import { render, screen, fireEvent, waitFor } from '../../test-utils';
 import ConsentManagement from './ConsentManagement';
 
 // Mock the GrantModifyConsent component
@@ -14,6 +14,20 @@ jest.mock('./GrantModifyConsent', () => {
 });
 
 describe('ConsentManagement', () => {
+   beforeEach(() => {
+      // Mock global.fetch so apiCall() inside api.js resolves cleanly,
+      // allowing isLoading to become false and tab content to render.
+      global.fetch = jest.fn().mockResolvedValue({
+         ok: true,
+         json: () => Promise.resolve([]),
+      });
+   });
+
+   afterEach(() => {
+      jest.restoreAllMocks();
+   });
+
+
    test('renders consent management page', () => {
       const { container } = render(<ConsentManagement />);
       expect(container).toBeInTheDocument();
@@ -24,9 +38,9 @@ describe('ConsentManagement', () => {
       expect(screen.getByText(/privacy & consent/i)).toBeInTheDocument();
    });
 
-   test('displays HIPAA information banner', () => {
+   test('displays HIPAA information banner', async () => {
       render(<ConsentManagement />);
-      expect(screen.getByText(/your healthcare privacy rights under hipaa/i)).toBeInTheDocument();
+      expect(await screen.findByText(/your healthcare privacy rights under hipaa/i)).toBeInTheDocument();
    });
 
    test('renders tab navigation with three tabs', () => {
@@ -36,86 +50,87 @@ describe('ConsentManagement', () => {
       expect(screen.getByText('Data Management')).toBeInTheDocument();
    });
 
-   test('displays summary cards on overview tab', () => {
+   test('displays summary cards on overview tab', async () => {
       render(<ConsentManagement />);
-      expect(screen.getAllByText(/active consents/i).length).toBeGreaterThan(0);
-      expect(screen.getAllByText(/pending review/i).length).toBeGreaterThan(0);
-      expect(screen.getAllByText(/withdrawn/i).length).toBeGreaterThan(0);
+      await waitFor(() => expect(screen.getAllByText(/active consents/i).length).toBeGreaterThan(0));
+      await waitFor(() => expect(screen.getAllByText(/pending review/i).length).toBeGreaterThan(0));
+      await waitFor(() => expect(screen.getAllByText(/withdrawn/i).length).toBeGreaterThan(0));
    });
 
-   test('switches to Modify Consent tab when clicked', () => {
+   test('switches to Modify Consent tab when clicked', async () => {
       render(<ConsentManagement />);
-      const modifyTab = screen.getByText('Modify Consent');
+      // Wait for loading to finish, then click the tab
+      const modifyTab = await screen.findByText('Modify Consent');
       fireEvent.click(modifyTab);
-      expect(screen.getByText(/grant or modify your consents/i)).toBeInTheDocument();
+      expect(await screen.findByText(/grant or modify your consents/i)).toBeInTheDocument();
    });
 
-   test('switches to Data Management tab when clicked', () => {
+   test('switches to Data Management tab when clicked', async () => {
       render(<ConsentManagement />);
-      const dataTab = screen.getByText('Data Management');
+      const dataTab = await screen.findByText('Data Management');
       fireEvent.click(dataTab);
-      expect(screen.getByText(/health data management/i)).toBeInTheDocument();
+      expect(await screen.findByText(/health data management/i)).toBeInTheDocument();
    });
 
-   test('displays consent history section on overview tab', () => {
+   test('displays consent history section on overview tab', async () => {
       render(<ConsentManagement />);
-      expect(screen.getByText(/consent history/i)).toBeInTheDocument();
+      expect(await screen.findByText(/consent history/i)).toBeInTheDocument();
    });
 
-   test('displays help section that can be expanded', () => {
+   test('displays help section that can be expanded', async () => {
       render(<ConsentManagement />);
-      const helpSection = screen.getByText(/understanding your privacy rights/i);
+      const helpSection = await screen.findByText(/understanding your privacy rights/i);
       expect(helpSection).toBeInTheDocument();
       fireEvent.click(helpSection);
-      expect(screen.getByText(/what is hipaa/i)).toBeInTheDocument();
+      expect(await screen.findByText(/what is hipaa/i)).toBeInTheDocument();
    });
 
-   test('displays legal notices footer', () => {
+   test('displays legal notices footer', async () => {
       render(<ConsentManagement />);
-      expect(screen.getByText(/notice of privacy practices/i)).toBeInTheDocument();
-      expect(screen.getAllByText(/your privacy rights/i).length).toBeGreaterThan(0);
+      expect(await screen.findByText(/notice of privacy practices/i)).toBeInTheDocument();
+      await waitFor(() => expect(screen.getAllByText(/your privacy rights/i).length).toBeGreaterThan(0));
    });
 
-   test('displays consent categories section', () => {
+   test('displays consent categories section', async () => {
       render(<ConsentManagement />);
-      expect(screen.getByText(/consent categories/i)).toBeInTheDocument();
+      expect(await screen.findByText(/consent categories/i)).toBeInTheDocument();
    });
 
-   test('history filter dropdown changes filter value', () => {
+   test('history filter dropdown changes filter value', async () => {
       render(<ConsentManagement />);
-      const filterSelect = screen.getByRole('combobox');
+      const filterSelect = await screen.findByRole('combobox');
       expect(filterSelect).toBeInTheDocument();
       fireEvent.change(filterSelect, { target: { value: '30days' } });
       expect(filterSelect.value).toBe('30days');
    });
 
-   test('displays data overview stats on data management tab', () => {
+   test('displays data overview stats on data management tab', async () => {
       render(<ConsentManagement />);
-      const dataTab = screen.getByText('Data Management');
+      const dataTab = await screen.findByText('Data Management');
       fireEvent.click(dataTab);
-      expect(screen.getAllByText(/medical records/i).length).toBeGreaterThan(0);
-      expect(screen.getAllByText(/connected providers/i).length).toBeGreaterThan(0);
+      await waitFor(() => expect(screen.getAllByText(/medical records/i).length).toBeGreaterThan(0));
+      await waitFor(() => expect(screen.getAllByText(/connected providers/i).length).toBeGreaterThan(0));
    });
 
-   test('displays data access log on data management tab', () => {
+   test('displays data access log on data management tab', async () => {
       render(<ConsentManagement />);
-      const dataTab = screen.getByText('Data Management');
+      const dataTab = await screen.findByText('Data Management');
       fireEvent.click(dataTab);
-      expect(screen.getByText(/data access log/i)).toBeInTheDocument();
+      expect(await screen.findByText(/data access log/i)).toBeInTheDocument();
    });
 
-   test('displays export data section on data management tab', () => {
+   test('displays export data section on data management tab', async () => {
       render(<ConsentManagement />);
-      const dataTab = screen.getByText('Data Management');
+      const dataTab = await screen.findByText('Data Management');
       fireEvent.click(dataTab);
-      expect(screen.getByText(/export your data/i)).toBeInTheDocument();
+      expect(await screen.findByText(/export your data/i)).toBeInTheDocument();
    });
 
-   test('displays data deletion section on data management tab', () => {
+   test('displays data deletion section on data management tab', async () => {
       render(<ConsentManagement />);
-      const dataTab = screen.getByText('Data Management');
+      const dataTab = await screen.findByText('Data Management');
       fireEvent.click(dataTab);
-      expect(screen.getByText(/data deletion requests/i)).toBeInTheDocument();
+      expect(await screen.findByText(/data deletion requests/i)).toBeInTheDocument();
    });
 
    test('displays download consent history button', () => {
@@ -124,13 +139,13 @@ describe('ConsentManagement', () => {
       expect(downloadButton).toBeInTheDocument();
    });
 
-   test('displays quick actions on modify consent tab', () => {
+   test('displays quick actions on modify consent tab', async () => {
       render(<ConsentManagement />);
-      const modifyTab = screen.getByText('Modify Consent');
+      const modifyTab = await screen.findByText('Modify Consent');
       fireEvent.click(modifyTab);
-      expect(screen.getByText(/quick actions/i)).toBeInTheDocument();
-      expect(screen.getByText(/review pending/i)).toBeInTheDocument();
-      expect(screen.getByText(/review all/i)).toBeInTheDocument();
-      expect(screen.getByText(/download summary/i)).toBeInTheDocument();
+      expect(await screen.findByText(/quick actions/i)).toBeInTheDocument();
+      expect(await screen.findByText(/review pending/i)).toBeInTheDocument();
+      expect(await screen.findByText(/review all/i)).toBeInTheDocument();
+      expect(await screen.findByText(/download summary/i)).toBeInTheDocument();
    });
 });

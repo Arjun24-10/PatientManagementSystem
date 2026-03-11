@@ -1,14 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Upload, CheckCircle } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
-import { mockLabOrders } from '../../mocks/labOrders';
+import api from '../../services/api';
 
 const UploadResults = () => {
+    const [orders, setOrders] = useState([]);
     const [selectedOrder, setSelectedOrder] = useState('');
     const [file, setFile] = useState(null);
     const [testValues, setTestValues] = useState('');
+    const [remarks, setRemarks] = useState('');
     const [status, setStatus] = useState('idle'); // idle, uploading, success, error
+
+    useEffect(() => {
+        const fetchOrders = async () => {
+            try {
+                const data = await api.labTechnician.getOrders(null);
+                if (data && Array.isArray(data)) {
+                    setOrders(data);
+                } else {
+                    setOrders([]);
+                }
+            } catch (err) {
+                console.error('Failed to fetch pending orders:', err);
+                setOrders([]);
+            }
+        };
+        fetchOrders();
+    }, []);
 
     const handleFileChange = (e) => {
         if (e.target.files && e.target.files[0]) {
@@ -16,15 +35,42 @@ const UploadResults = () => {
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        setStatus('uploading');
-        // Mock upload delay
-        setTimeout(() => {
+        
+        // Require: order selection AND test values (test values are the main result)
+        if (!selectedOrder || !testValues.trim()) {
+            setStatus('error');
+            return;
+        }
+
+        try {
+            setStatus('uploading');
+            
+            // Send result to backend
+            // Backend requires: resultValue (test values), remarks (optional), fileUrl (optional)
+            // File upload not supported yet - fileUrl must be obtained from external file storage service
+            await api.labTechnician.uploadResults(
+                selectedOrder,
+                testValues.trim(),
+                remarks.trim() || null,
+                null  // fileUrl: Not supported yet - requires separate file upload endpoint on backend
+            );
+            
             setStatus('success');
-            // Reset after 3 seconds
-            setTimeout(() => setStatus('idle'), 3000);
-        }, 1500);
+            
+            // Reset form after success
+            setTimeout(() => {
+                setSelectedOrder('');
+                setTestValues('');
+                setRemarks('');
+                setFile(null);
+                setStatus('idle');
+            }, 2000);
+        } catch (err) {
+            console.error('Upload failed:', err);
+            setStatus('error');
+        }
     };
 
     return (
@@ -45,18 +91,27 @@ const UploadResults = () => {
                             required
                         >
                             <option value="">-- Select Order --</option>
-                            {mockLabOrders.filter(o => o.status !== 'Completed').map(order => (
-                                <option key={order.id} value={order.id}>
-                                    {order.id} - {order.patientName} ({order.testType})
-                                </option>
-                            ))}
+                            {orders.filter(o => o.status !== 'Completed').map(order => {
+                                const patientName = order.patientName || (order.patient ? `${order.patient.firstName} ${order.patient.lastName}` : 'Unknown');
+                                const orderId = order.testId || order.id;
+                                const testType = order.testName || order.testType || 'Test';
+                                return (
+                                    <option key={orderId} value={orderId}>
+                                        {orderId} - {patientName} ({testType})
+                                    </option>
+                                );
+                            })}
                         </select>
                     </div>
 
-                    <div className="border-t border-gray-100 dark:border-slate-700 pt-3"></div>
+                    <div className="border-t border-gray-100 dark:border-slate-700 pt-3 pb-3">
+                        <p className="text-xs text-gray-500 dark:text-slate-400 mb-3">
+                            💡 <span className="font-medium">Optional:</span> Attach a reference file (lab report scan). The system does not automatically parse files yet - you must enter the test results manually in the field below.
+                        </p>
+                    </div>
 
                     <div>
-                        <label className="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Upload Report File (PDF/Image)</label>
+                        <label className="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Reference Report File (Optional - PDF/Image)</label>
                         <div className="mt-1 flex justify-center px-4 pt-3 pb-4 border-2 border-gray-300 dark:border-slate-600 border-dashed rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer relative">
                             <div className="space-y-1 text-center">
                                 <Upload className="mx-auto h-8 w-8 text-gray-400 dark:text-slate-500" />
@@ -84,30 +139,51 @@ const UploadResults = () => {
                             <div className="w-full border-t border-gray-300 dark:border-slate-600"></div>
                         </div>
                         <div className="relative flex justify-center">
-                            <span className="px-2 bg-white dark:bg-slate-800 text-xs text-gray-500 dark:text-slate-400">OR</span>
+                            <span className="px-2 bg-white dark:bg-slate-800 text-xs text-gray-500 dark:text-slate-400">OR enter manually below</span>
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Manual Result Entry</label>
+                        <label className="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">
+                            Test Result Value <span className="text-red-500">*</span>
+                        </label>
                         <textarea
                             rows="3"
                             className="w-full p-2 text-sm border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-brand-medium focus:outline-none bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 dark:placeholder-slate-500"
-                            placeholder="Enter test values, reference ranges, and observations..."
+                            placeholder="Enter test results, values, and reference ranges. This field is required."
                             value={testValues}
                             onChange={(e) => setTestValues(e.target.value)}
+                            required
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">Additional Remarks (Optional)</label>
+                        <textarea
+                            rows="2"
+                            className="w-full p-2 text-sm border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-brand-medium focus:outline-none bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 dark:placeholder-slate-500"
+                            placeholder="Add clinical notes, observations, or interpretation..."
+                            value={remarks}
+                            onChange={(e) => setRemarks(e.target.value)}
                         />
                     </div>
 
                     <div className="pt-2">
                         <Button
                             type="submit"
-                            disabled={!selectedOrder || (!file && !testValues) || status === 'uploading'}
+                            disabled={!selectedOrder || !testValues.trim() || status === 'uploading'}
                             className="w-full justify-center text-sm"
                         >
-                            {status === 'uploading' ? 'Uploading...' : 'Submit Results'}
+                            {status === 'uploading' ? 'Uploading...' : 'Submit Lab Results'}
                         </Button>
                     </div>
+
+                    {status === 'error' && (
+                        <div className="p-2.5 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 flex items-center text-xs">
+                            <span className="mr-1.5">❌</span>
+                            Please select an order and enter the test result value.
+                        </div>
+                    )}
 
                     {status === 'success' && (
                         <div className="p-2.5 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 flex items-center text-xs animate-fade-in">

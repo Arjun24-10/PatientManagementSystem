@@ -1,32 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter } from 'lucide-react';
 import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
-import { mockLabOrders } from '../../mocks/labOrders';
+import api from '../../services/api';
 
 const LabOrders = () => {
     const navigate = useNavigate();
+    const [orders, setOrders] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
 
-    const filteredOrders = mockLabOrders.filter(order => {
-        const matchesSearch = order.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            order.id.toLowerCase().includes(searchTerm.toLowerCase());
+    useEffect(() => {
+        const fetchOrders = async () => {
+            try {
+                const status = statusFilter === 'All' ? null : statusFilter;
+                const data = await api.labTechnician.getOrders(status);
+                if (data && Array.isArray(data)) {
+                    setOrders(data);
+                } else {
+                    setOrders([]);
+                }
+            } catch (err) {
+                console.error('Failed to fetch orders:', err);
+                setOrders([]);
+            }
+        };
+        fetchOrders();
+    }, [statusFilter]);
+
+    const filteredOrders = orders.filter((order) => {
+        const patientName = order.patientName || (order.patient ? `${order.patient.firstName} ${order.patient.lastName}` : 'Unknown');
+        const orderId = order.testId || order.id;
+        const matchesSearch = patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            orderId.toString().toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilter === 'All' || order.status === statusFilter;
 
         let matchesDate = true;
         if (startDate && endDate) {
-            const orderDate = new Date(order.orderDate);
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            // Set end date to end of day for inclusive comparison
-            end.setHours(23, 59, 59, 999);
-            matchesDate = orderDate >= start && orderDate <= end;
+            const orderDate = order.orderedAt ? new Date(order.orderedAt) : null;
+            if (orderDate) {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                // Set end date to end of day for inclusive comparison
+                end.setHours(23, 59, 59, 999);
+                matchesDate = orderDate >= start && orderDate <= end;
+            }
         }
 
         return matchesSearch && matchesStatus && matchesDate;
@@ -145,21 +168,23 @@ const LabOrders = () => {
                             </tr>
                         </thead>
                         <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-100 dark:divide-slate-700">
-                            {filteredOrders.map((order) => (
-                                <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+                            {filteredOrders.map((order) => {
+                                const testId = order.testId || order.id;
+                                return (
+                                <tr key={testId} className="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
                                     <td className="px-3 py-2 whitespace-nowrap text-xs font-medium text-brand-medium">
-                                        {order.id}
+                                        {testId}
                                     </td>
                                     <td className="px-3 py-2 whitespace-nowrap">
                                         <div className="text-xs font-medium text-gray-900 dark:text-slate-100">{order.patientName}</div>
-                                        <div className="text-[10px] text-gray-500 dark:text-slate-400">{order.patientId}</div>
+                                        <div className="text-[10px] text-gray-500 dark:text-slate-400">{order.profileId}</div>
                                     </td>
                                     <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-700 dark:text-slate-300">
-                                        {order.testType}
+                                        {order.testName || order.testType}
                                     </td>
                                     <td className="px-3 py-2 whitespace-nowrap">
-                                        <Badge type={order.priority === 'Urgent' || order.priority === 'High' ? 'red' : 'gray'}>
-                                            {order.priority}
+                                        <Badge type={order.testCategory === 'Urgent' || order.testCategory === 'High' ? 'red' : 'gray'}>
+                                            {order.testCategory || 'Standard'}
                                         </Badge>
                                     </td>
                                     <td className="px-3 py-2 whitespace-nowrap">
@@ -168,20 +193,21 @@ const LabOrders = () => {
                                         </Badge>
                                     </td>
                                     <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-500 dark:text-slate-400">
-                                        {new Date(order.orderDate).toLocaleDateString()}
+                                        {order.orderedAt ? new Date(order.orderedAt).toLocaleDateString() : 'N/A'}
                                     </td>
                                     <td className="px-3 py-2 whitespace-nowrap text-right text-xs font-medium">
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() => navigate(`/dashboard/lab/orders/${order.id}`)}
+                                            onClick={() => navigate(`/dashboard/lab/orders/${testId}`)}
                                             className="text-brand-medium hover:text-brand-deep"
                                         >
                                             View
                                         </Button>
                                     </td>
                                 </tr>
-                            ))}
+                            );
+                            })}
                         </tbody>
                     </table>
                 </div>

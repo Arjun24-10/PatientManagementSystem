@@ -1,6 +1,6 @@
 // Authentication service for backend API
-const API_BASE_URL = 'http://localhost:8081/api';
-const AUTH_URL = `${API_BASE_URL}/auth`;
+const API_BASE_URL = process.env.REACT_APP_API_URL || '';
+const AUTH_URL = API_BASE_URL ? `${API_BASE_URL}/auth` : '/auth';
 const STORAGE_KEY = 'secure_health_user';
 const PROFILE_STORAGE_KEY = 'secure_health_profiles';
 
@@ -38,27 +38,7 @@ const clearSession = () => {
 
 const getSession = () => {
    const data = localStorage.getItem(STORAGE_KEY);
-   if (!data) return null;
-   const user = JSON.parse(data);
-   
-   // If userId is missing but we have a token, extract it from JWT
-   if (!user.userId && user.accessToken) {
-      try {
-         const parts = user.accessToken.split('.');
-         if (parts.length === 3) {
-            const payload = JSON.parse(atob(parts[1]));
-            if (payload.userId) {
-               user.userId = payload.userId;
-               // Update localStorage with extracted userId
-               saveSession(user);
-            }
-         }
-      } catch (e) {
-         console.warn('Failed to extract userId from JWT token');
-      }
-   }
-   
-   return user;
+   return data ? JSON.parse(data) : null;
 };
 
 const getProfiles = () => {
@@ -94,19 +74,9 @@ export const signup = async (email, password, userData = {}) => {
          body: JSON.stringify(body),
       });
 
-      let data = {};
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-         try {
-            data = await response.json();
-         } catch (e) {
-            console.warn('Failed to parse response as JSON:', e);
-            data = {};
-         }
-      }
-
       if (!response.ok) {
-         throw new Error(data.message || 'Registration failed');
+         const error = await response.json().catch(() => ({}));
+         throw new Error(error.message || 'Registration failed');
       }
 
       // Backend returns success message but no user object for register
@@ -145,74 +115,22 @@ export const login = async (email, password) => {
          body: JSON.stringify({ email, password }),
       });
 
-      let data = {};
-      const contentType = response.headers.get('content-type');
-      
-      if (contentType && contentType.includes('application/json')) {
-         try {
-            const responseText = await response.text();
-            data = JSON.parse(responseText);
-         } catch (e) {
-            console.warn('Failed to parse response as JSON:', e);
-            data = {};
-         }
-      }
-
       if (!response.ok) {
-         throw new Error(data.message || 'Login failed');
+         const error = await response.json().catch(() => ({}));
+         throw new Error(error.message || 'Login failed');
       }
 
+      let data = await response.json();
       const status = data.status || data.message || 'LOGIN_SUCCESS';
       const resolvedEmail = data.email || email;
       const storedName = getProfileName(resolvedEmail);
       const fullName = data.full_name || data.fullName || storedName;
 
       const accessToken = data.accessToken || null;
-      
-      // Extract role EARLY - needed for fallback logic below
-      const roleFromResponse = data.role || 'PATIENT';
-      
-      // CRITICAL: Get userId from response body (backend returns it in LoginResponse DTO)
-      let userId = data.userId || null;
-      
-      // Fallback: try to parse from JWT token if not in response body
-      if (!userId && accessToken) {
-         try {
-            const parts = accessToken.split('.');
-            if (parts.length === 3) {
-               const payload = JSON.parse(atob(parts[1]));
-               userId = payload.userId || payload.sub;
-            }
-         } catch (e) {
-            console.error('Failed to parse JWT token:', e);
-         }
-      }
+      // Use userId directly from the backend response
+      const userId = data.userId || null;
 
-      // Fallback: If still no userId, fetch from /patients/me or /doctors/{email} endpoint
-      if (!userId && accessToken && roleFromResponse) {
-         try {
-            const headers = {
-               'Content-Type': 'application/json',
-               'Authorization': `Bearer ${accessToken}`
-            };
-            
-            // Try to get profile based on role
-            let profileUrl = `${API_BASE_URL}/patients/me`;
-            if (roleFromResponse === 'DOCTOR' || roleFromResponse === 'NURSE' || roleFromResponse === 'ADMIN' || roleFromResponse === 'LAB_TECHNICIAN') {
-               profileUrl = `${API_BASE_URL}/doctors/${email}`;
-            }
-            
-            const profileResponse = await fetch(profileUrl, { headers, credentials: 'include' });
-            if (profileResponse.ok) {
-               const profileData = await profileResponse.json();
-               userId = profileData.userId || profileData.id || profileData.user_id;
-            }
-         } catch (e) {
-            console.error('Failed to fetch profile:', e);
-         }
-      }
-      
-      const user = { email: resolvedEmail, role: roleFromResponse, fullName, accessToken, userId };
+      const user = { email: resolvedEmail, role: data.role || 'PATIENT', fullName, accessToken, userId };
       if (status === 'OTP_REQUIRED') {
          return { status, user };
       }
@@ -220,7 +138,6 @@ export const login = async (email, password) => {
          saveProfileName(resolvedEmail, fullName);
       }
       saveSession(user);
-      console.log('✓ Login successful - User stored:', user);
       return { status, user, ...data };
    } catch (error) {
       throw error;
@@ -311,16 +228,7 @@ export const forgotPassword = async (email) => {
          body: JSON.stringify({ email }),
       });
 
-      let data = {};
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-         try {
-            data = await response.json();
-         } catch (e) {
-            console.warn('Failed to parse response as JSON:', e);
-            data = {};
-         }
-      }
+      const data = await response.json();
 
       if (response.ok) {
          return { success: true, message: data.message || 'Password reset email sent successfully' };
@@ -343,16 +251,7 @@ export const validateResetToken = async (token) => {
          },
       });
 
-      let data = {};
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-         try {
-            data = await response.json();
-         } catch (e) {
-            console.warn('Failed to parse response as JSON:', e);
-            data = {};
-         }
-      }
+      const data = await response.json();
 
       if (response.ok) {
          return { valid: true, message: data.message };
@@ -376,16 +275,7 @@ export const resetPassword = async (token, newPassword, confirmPassword) => {
          body: JSON.stringify({ token, newPassword, confirmPassword }),
       });
 
-      let data = {};
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-         try {
-            data = await response.json();
-         } catch (e) {
-            console.warn('Failed to parse response as JSON:', e);
-            data = {};
-         }
-      }
+      const data = await response.json();
 
       if (response.ok) {
          return { success: true, message: data.message || 'Password reset successfully' };
@@ -406,60 +296,25 @@ export const verifyOtp = async (email, otp) => {
          headers: { 'Content-Type': 'application/json' },
          body: JSON.stringify({ email, otp }),
       });
-
-      // Check if response has content before parsing JSON
-      let data = {};
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-         try {
-            data = await response.json();
-         } catch (e) {
-            console.warn('Failed to parse response as JSON:', e);
-            data = {};
-         }
-      }
-
+      const data = await response.json();
       if (response.ok) {
          const resolvedEmail = email;
          const storedName = getProfileName(resolvedEmail);
          const fullName = data.full_name || data.fullName || storedName;
-         
-         // Extract userId from response (CRITICAL FIX for OTP flow)
-         let userId = data.userId || null;
-         console.log('✓ userId from OTP response.userId:', userId);
-         
-         // Fallback: try to parse from JWT token if not in response body
-         const accessToken = data.accessToken;
-         if (!userId && accessToken) {
-            try {
-               const parts = accessToken.split('.');
-               if (parts.length === 3) {
-                  const payload = JSON.parse(atob(parts[1]));
-                  console.log('✓ OTP Verify - JWT Payload:', payload);
-                  userId = payload.userId || payload.sub;
-                  console.log('✓ OTP userId from JWT:', userId);
-               }
-            } catch (e) {
-               console.error('✗ OTP Verify - Failed to parse JWT token:', e);
-            }
-         }
-         
-         console.log('✓ OTP Verify Final - userId:', userId);
-         const user = { email: resolvedEmail, role: data.role || 'PATIENT', fullName, accessToken, userId };
+         const user = {
+            email: resolvedEmail,
+            role: data.role || 'PATIENT',
+            fullName,
+            accessToken: data.accessToken,
+            userId: data.userId
+         };
          if (fullName) {
             saveProfileName(resolvedEmail, fullName);
          }
          saveSession(user);
          return { success: true, user, ...data };
       } else {
-         // Better error messages for different status codes
-         if (response.status === 401) {
-            return { success: false, error: 'Invalid or expired OTP. Please try again.' };
-         } else if (response.status === 400) {
-            return { success: false, error: data.message || 'Invalid OTP format. Please check and try again.' };
-         } else {
-            return { success: false, error: data.message || 'OTP verification failed. Please try again.' };
-         }
+         return { success: false, error: data.message || 'Invalid or expired OTP' };
       }
    } catch (error) {
       console.error('Verify OTP error:', error);

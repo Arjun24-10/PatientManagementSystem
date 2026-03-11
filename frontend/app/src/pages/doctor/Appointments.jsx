@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon, Clock, User, AlertCircle, LayoutGrid, List, Columns } from 'lucide-react';
 import AppointmentCalendar from '../../components/AppointmentCalendar';
 import SchedulerView from '../../components/SchedulerView';
@@ -16,6 +16,8 @@ const Appointments = () => {
     const [viewMode, setViewMode] = useState('calendar'); // 'list', 'calendar' (month), 'day' (scheduler)
     const [appointments, setAppointments] = useState([]);
     const [selectedDate, setSelectedDate] = useState(new Date()); // Shared date state
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     // Side Panel State
     const [selectedAppointment, setSelectedAppointment] = useState(null);
@@ -26,61 +28,41 @@ const Appointments = () => {
     const [apptToCancel, setApptToCancel] = useState(null);
 
     // Fetch Appointments
-    React.useEffect(() => {
+    useEffect(() => {
         const fetchAppointments = async () => {
+            const doctorId = user?.userId;
+            if (!doctorId) return;
+
+            setIsLoading(true);
+            setError(null);
             try {
-                const doctorId = user?.userId;
-                if (!doctorId) {
-                    console.error('Doctor ID not available from user session');
-                    return;
-                }
                 const data = await api.appointments.getByDoctor(doctorId);
-                if (Array.isArray(data)) {
-                    setAppointments(data);
-                }
-            } catch (error) {
-                if (!error?.message?.includes('not yet available')) {
-                    console.error('Failed to fetch appointments', error);
-                }
-                // Use mock appointments data for doctor
-                const mockAppointments = [
-                    {
-                        id: 'A001',
-                        patientName: 'John Smith',
-                        date: new Date().toISOString().split('T')[0],
-                        time: '09:00',
-                        type: 'Follow-up',
-                        status: 'Confirmed',
-                        doctorName: 'Dr. Wilson'
-                    },
-                    {
-                        id: 'A002',
-                        patientName: 'Sarah Johnson',
-                        date: new Date().toISOString().split('T')[0],
-                        time: '10:30',
-                        type: 'Check-up',
-                        status: 'Pending',
-                        doctorName: 'Dr. Wilson'
-                    },
-                    {
-                        id: 'A003',
-                        patientName: 'Michael Brown',
-                        date: new Date(Date.now() + 86400000).toISOString().split('T')[0], // tomorrow
-                        time: '14:00',
-                        type: 'Consultation',
-                        status: 'Confirmed',
-                        doctorName: 'Dr. Wilson'
-                    }
-                ];
-                setAppointments(mockAppointments);
+                const transformed = (data || []).map(a => ({
+                    id: a.appointmentId,
+                    date: a.appointmentDate ? a.appointmentDate.split('T')[0] : '',
+                    time: a.appointmentDate
+                        ? new Date(a.appointmentDate).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                        : '',
+                    patientName: a.patientName || 'Unknown',
+                    type: a.reasonForVisit || 'Consultation',
+                    status: a.status || 'PENDING_APPROVAL',
+                    duration: 30,
+                }));
+                setAppointments(transformed);
+            } catch (err) {
+                console.error('Failed to fetch appointments:', err);
+                setError('Failed to load appointments. Please refresh the page.');
+            } finally {
+                setIsLoading(false);
             }
         };
         fetchAppointments();
-    }, [user]);
+    }, [user?.userId]);
 
     const filteredAppointments = appointments.filter(appt => {
-        if (activeTab === 'upcoming') return appt.status !== 'Cancelled' && appt.status !== 'Completed';
-        if (activeTab === 'history') return appt.status === 'Completed' || appt.status === 'Cancelled';
+        const status = (appt.status || 'PENDING').toUpperCase();
+        if (activeTab === 'upcoming') return !['CANCELLED', 'COMPLETED'].includes(status);
+        if (activeTab === 'history') return ['COMPLETED', 'CANCELLED'].includes(status);
         return true;
     });
 
@@ -104,53 +86,37 @@ const Appointments = () => {
         setCancelModalOpen(true);
     };
 
-    const confirmCancel = async () => {
+    const confirmCancel = () => {
         if (!apptToCancel) return; // Safety check
 
-        try {
-            await api.appointments.cancel(apptToCancel.id);
-            setAppointments(appointments.map(a =>
-                a.id === apptToCancel.id ? { ...a, status: 'Cancelled' } : a
-            ));
-        } catch (error) {
-            if (!error?.message?.includes('not yet available')) {
-                console.error('Failed to cancel appointment', error);
-                alert('Failed to cancel appointment. Please try again.');
-            } else {
-                // Feature not available backend, just update UI state for now
-                setAppointments(appointments.map(a =>
-                    a.id === apptToCancel.id ? { ...a, status: 'Cancelled' } : a
-                ));
-            }
-        } finally {
-            setCancelModalOpen(false);
-            setApptToCancel(null);
-            setSelectedAppointment(null);
-        }
+        setAppointments(appointments.map(a =>
+            a.id === apptToCancel.id ? { ...a, status: 'CANCELLED' } : a
+        ));
+        setCancelModalOpen(false);
+        setApptToCancel(null);
+        setSelectedAppointment(null);
     };
 
-    const handleComplete = async (id) => {
-        try {
-            const appt = appointments.find(a => a.id === id);
-            await api.appointments.update(id, { ...appt, status: 'Completed' });
-            setAppointments(appointments.map(a =>
-                a.id === id ? { ...a, status: 'Completed' } : a
-            ));
-        } catch (error) {
-            if (!error?.message?.includes('not yet available')) {
-                console.error('Failed to complete appointment', error);
-                alert('Failed to complete appointment. Please try again.');
-            } else {
-                // Feature not available backend, just update UI state for now
-                setAppointments(appointments.map(a =>
-                    a.id === id ? { ...a, status: 'Completed' } : a
-                ));
-            }
-        }
+    const handleComplete = (id) => {
+        setAppointments(appointments.map(a =>
+            a.id === id ? { ...a, status: 'COMPLETED' } : a
+        ));
     };
 
     return (
         <div className="space-y-3 relative">
+            {error && (
+                <Card className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+                    <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+                </Card>
+            )}
+            
+            {isLoading && (
+                <Card className="p-6 text-center">
+                    <p className="text-gray-500 dark:text-slate-400">Loading appointments...</p>
+                </Card>
+            )}
+            
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
                 <h2 className="text-lg font-bold text-gray-800 dark:text-slate-100">Appointments</h2>
                 <div className="flex items-center space-x-3">
@@ -177,7 +143,6 @@ const Appointments = () => {
                             <Columns size={20} className="rotate-90" />
                         </button>
                     </div>
-                    <Button onClick={() => alert('New Appointment creation for doctors is not yet available. Please contact support.')}>+ New Appointment</Button>
                 </div>
             </div>
 
@@ -228,16 +193,16 @@ const Appointments = () => {
                                             </div>
                                             <div className="flex items-center text-xs text-gray-500 dark:text-slate-400 mt-0.5">
                                                 <User size={12} className="mr-1" />
-                                                Patient ID: {appt.patientId}
+                                                {appt.type}
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="mt-2 md:mt-0 flex items-center space-x-2">
                                         <Badge type={
-                                            appt.status === 'Confirmed' ? 'green' :
-                                                appt.status === 'Pending' ? 'yellow' :
-                                                    appt.status === 'Cancelled' ? 'red' : 'gray'
+                                            appt.status === 'SCHEDULED' ? 'green' :
+                                                appt.status === 'PENDING_APPROVAL' ? 'yellow' :
+                                                    appt.status === 'CANCELLED' ? 'red' : 'gray'
                                         }>
                                             {appt.status}
                                         </Badge>

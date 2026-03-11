@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Clock,
     MessageSquare,
-    Check
+    Check,
+    Plus,
+    X
 } from 'lucide-react';
 
 import Card from '../../components/common/Card';
@@ -11,33 +13,79 @@ import Badge from '../../components/common/Badge';
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '../../components/common/Table';
 import Input from '../../components/common/Input';
 import Select from '../../components/common/Select';
-import { mockNursePatients } from '../../mocks/nursePatients';
+import api from '../../services/api';
 
 const Tasks = () => {
-    const [tasks, setTasks] = useState([
-        { id: 1, text: 'Administer insulin', patientId: 'P001', priority: 'high', status: 'pending', dueTime: '08:00', type: 'medication' },
-        { id: 2, text: 'Wound dressing change', patientId: 'P002', priority: 'medium', status: 'pending', dueTime: '10:00', type: 'procedure' },
-        { id: 3, text: 'Check vitals', patientId: 'P003', priority: 'routine', status: 'pending', dueTime: '12:00', type: 'vitals' },
-        { id: 4, text: 'Update care plan', patientId: 'P001', priority: 'low', status: 'completed', dueTime: '14:00', type: 'documentation' },
-        { id: 5, text: 'Assist with feeding', patientId: 'P004', priority: 'medium', status: 'pending', dueTime: '11:30', type: 'care' },
-    ]);
-
+    const [tasks, setTasks] = useState([]);
     const [filterPriority, setFilterPriority] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
+    const [showModal, setShowModal] = useState(false);
+    const [form, setForm] = useState({ title: '', description: '', category: 'general', priority: 'medium', dueTime: '' });
+    const [formError, setFormError] = useState('');
+    const [submitting, setSubmitting] = useState(false);
 
-    const handleToggleTask = (id) => {
-        setTasks(prev => prev.map(t =>
-            t.id === id ? { ...t, status: t.status === 'completed' ? 'pending' : 'completed' } : t
-        ));
+    useEffect(() => {
+        const fetchTasks = async () => {
+            try {
+                const data = await api.nurse.getTasks();
+                if (data && Array.isArray(data)) {
+                    setTasks(data);
+                } else {
+                    setTasks([]);
+                }
+            } catch (err) {
+                console.error('Failed to fetch tasks:', err);
+                setTasks([]);
+            }
+        };
+        fetchTasks();
+    }, []);
+
+    const handleToggleTask = async (id) => {
+        try {
+            await api.nurse.toggleTaskStatus(id);
+            // Refresh tasks after toggling
+            const data = await api.nurse.getTasks();
+            if (data && Array.isArray(data)) {
+                setTasks(data);
+            }
+        } catch (err) {
+            console.error('Failed to toggle task:', err);
+        }
     };
 
-    const getPatientName = (id) => {
-        const patient = mockNursePatients.find(p => p.id === id);
-        return patient ? `${patient.name} (${patient.room})` : 'Unknown Patient';
+    const handleCreateTask = async (e) => {
+        e.preventDefault();
+        setFormError('');
+        if (!form.title.trim()) { setFormError('Title is required.'); return; }
+        if (!form.dueTime) { setFormError('Due time is required.'); return; }
+        setSubmitting(true);
+        try {
+            // Convert datetime-local value to ISO string without seconds offset
+            const dueTimeISO = new Date(form.dueTime).toISOString().slice(0, 19);
+            await api.nurse.createTask({ ...form, dueTime: dueTimeISO });
+            const data = await api.nurse.getTasks();
+            setTasks(Array.isArray(data) ? data : []);
+            setShowModal(false);
+            setForm({ title: '', description: '', category: 'general', priority: 'medium', dueTime: '' });
+        } catch (err) {
+            setFormError('Failed to create task. Please try again.');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const getPatientName = (task) => {
+        // Build patient name from task data if available
+        if (task.patient && task.patient.firstName && task.patient.lastName) {
+            return `${task.patient.firstName} ${task.patient.lastName}${task.room ? ' (Room ' + task.room + ')' : ''}`;
+        }
+        return 'Unknown Patient';
     };
 
     const getPriorityBadge = (priority) => {
         switch (priority) {
+            case 'critical': return <Badge type="red">Critical</Badge>;
             case 'high': return <Badge type="red">High</Badge>;
             case 'medium': return <Badge type="yellow">Medium</Badge>;
             case 'low': return <Badge type="green">Low</Badge>;
@@ -46,7 +94,7 @@ const Tasks = () => {
     };
 
     const filteredTasks = tasks.filter(task => {
-        const matchesSearch = task.text.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch = (task.title || '').toLowerCase().includes(searchTerm.toLowerCase());
         const matchesPriority = filterPriority === 'all' || task.priority === filterPriority;
         return matchesSearch && matchesPriority;
     });
@@ -70,13 +118,19 @@ const Tasks = () => {
                     <Select
                         value={filterPriority}
                         onChange={(e) => setFilterPriority(e.target.value)}
-                        className="w-32"
-                    >
-                        <option value="all">Priority</option>
-                        <option value="high">High</option>
-                        <option value="medium">Medium</option>
-                        <option value="low">Low</option>
-                    </Select>
+                        className="w-36"
+                        placeholder="All Priorities"
+                        options={[
+                            { value: 'all',      label: 'All Priorities' },
+                            { value: 'critical', label: 'Critical' },
+                            { value: 'high',     label: 'High' },
+                            { value: 'medium',   label: 'Medium' },
+                            { value: 'low',      label: 'Low' },
+                        ]}
+                    />
+                    <Button onClick={() => setShowModal(true)} className="flex items-center gap-1.5 whitespace-nowrap">
+                        <Plus className="w-4 h-4" /> Add Task
+                    </Button>
                 </div>
             </div>
 
@@ -107,15 +161,15 @@ const Tasks = () => {
                                     </TableCell>
                                     <TableCell>
                                         <div className={`font-medium ${task.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-900 dark:text-white'}`}>
-                                            {task.text}
+                                            {task.title}
                                         </div>
                                     </TableCell>
-                                    <TableCell>{getPatientName(task.patientId)}</TableCell>
+                                    <TableCell>{getPatientName(task)}</TableCell>
                                     <TableCell>{getPriorityBadge(task.priority)}</TableCell>
                                     <TableCell>
                                         <div className="flex items-center text-gray-500">
                                             <Clock className="w-3 h-3 mr-1" />
-                                            {task.dueTime}
+                                            {task.dueTime ? new Date(task.dueTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
                                         </div>
                                     </TableCell>
                                     <TableCell align="right">
@@ -135,6 +189,92 @@ const Tasks = () => {
                     </TableBody>
                 </Table>
             </Card>
+
+            {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-md">
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-slate-700">
+                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Add New Task</h2>
+                            <button onClick={() => { setShowModal(false); setFormError(''); }} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <form onSubmit={handleCreateTask} className="px-6 py-5 space-y-4">
+                            {formError && (
+                                <p className="text-sm text-red-500">{formError}</p>
+                            )}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title *</label>
+                                <Input
+                                    placeholder="e.g. Administer medication"
+                                    value={form.title}
+                                    onChange={(e) => setForm(f => ({ ...f, title: e.target.value }))}
+                                    className="w-full"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                                <textarea
+                                    placeholder="Optional details..."
+                                    value={form.description}
+                                    onChange={(e) => setForm(f => ({ ...f, description: e.target.value }))}
+                                    rows={2}
+                                    className="w-full rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category</label>
+                                    <Select
+                                        value={form.category}
+                                        onChange={(e) => setForm(f => ({ ...f, category: e.target.value }))}
+                                        className="w-full"
+                                        options={[
+                                            { value: 'general',       label: 'General' },
+                                            { value: 'medication',    label: 'Medication' },
+                                            { value: 'assessment',    label: 'Assessment' },
+                                            { value: 'care',          label: 'Care' },
+                                            { value: 'documentation', label: 'Documentation' },
+                                            { value: 'vitals',        label: 'Vitals' },
+                                        ]}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Priority</label>
+                                    <Select
+                                        value={form.priority}
+                                        onChange={(e) => setForm(f => ({ ...f, priority: e.target.value }))}
+                                        className="w-full"
+                                        options={[
+                                            { value: 'low',      label: 'Low' },
+                                            { value: 'medium',   label: 'Medium' },
+                                            { value: 'high',     label: 'High' },
+                                            { value: 'critical', label: 'Critical' },
+                                        ]}
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Due Time *</label>
+                                <input
+                                    type="datetime-local"
+                                    value={form.dueTime}
+                                    onChange={(e) => setForm(f => ({ ...f, dueTime: e.target.value }))}
+                                    className="w-full rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div className="flex justify-end gap-2 pt-2">
+                                <Button type="button" variant="outline" onClick={() => { setShowModal(false); setFormError(''); }}>
+                                    Cancel
+                                </Button>
+                                <Button type="submit" disabled={submitting}>
+                                    {submitting ? 'Saving…' : 'Add Task'}
+                                </Button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

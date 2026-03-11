@@ -91,20 +91,29 @@ export default function ForgotPassword() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
 
             {/* Left Panel - Branding */}
-            <div className="hidden lg:block space-y-4 animate-fade-in">
+            <div className="hidden lg:block space-y-6 animate-fade-in">
+              {/* CALYX Logo Section */}
+              <div className="flex items-center gap-3 px-4 py-4 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl border border-blue-200/50 dark:border-blue-800/30">
+                <img src="/calyx-logo.png" alt="CALYX" className="h-16 w-16 object-contain" />
+                <div>
+                  <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">CALYX</h1>
+                  <p className="text-xs text-gray-600 dark:text-slate-400">Healthcare Management</p>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm rounded-full border border-white/20 dark:border-slate-700/50">
                   <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   <span className="text-xs font-semibold text-gray-700 dark:text-slate-200">Secure Account Recovery</span>
                 </div>
 
-                <h1 className="text-3xl font-bold leading-tight">
+                <h2 className="text-3xl font-bold leading-tight">
                   <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                     Forgot Password?
                   </span>
                   <br />
                   <span className="text-gray-800 dark:text-slate-100">We've got you covered.</span>
-                </h1>
+                </h2>
 
                 <p className="text-sm text-gray-600 dark:text-slate-400 max-w-md">
                   Enter your email address to receive a secure link to reset your password. The link will expire in 30 minutes for your security.

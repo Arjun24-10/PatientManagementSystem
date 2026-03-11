@@ -8,9 +8,6 @@ const LabTestModal = ({ isOpen, onClose, patientId, onAdd }) => {
     const [labTest, setLabTest] = useState({
         testName: '',
         testCategory: '',
-        resultValue: '',
-        unit: '',
-        referenceRange: '',
         remarks: ''
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,12 +35,7 @@ const LabTestModal = ({ isOpen, onClose, patientId, onAdd }) => {
                 patientId: patientId,
                 testName: labTest.testName,
                 testCategory: labTest.testCategory,
-                resultValue: labTest.resultValue,
-                unit: labTest.unit,
-                referenceRange: labTest.referenceRange,
-                remarks: labTest.remarks,
-                orderedAt: new Date().toISOString(),
-                status: 'COMPLETED'
+                remarks: labTest.remarks
             };
 
             await api.labResults.create(payload);
@@ -62,9 +54,6 @@ const LabTestModal = ({ isOpen, onClose, patientId, onAdd }) => {
         setLabTest({
             testName: '',
             testCategory: '',
-            resultValue: '',
-            unit: '',
-            referenceRange: '',
             remarks: ''
         });
     };
@@ -77,7 +66,7 @@ const LabTestModal = ({ isOpen, onClose, patientId, onAdd }) => {
                 resetForm();
                 setError(null);
             }}
-            title="Add Lab Test Result"
+            title="Order Lab Test"
         >
             <form onSubmit={handleSubmit} className="space-y-4">
                 {error && (
@@ -115,52 +104,15 @@ const LabTestModal = ({ isOpen, onClose, patientId, onAdd }) => {
                     </select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-                            Result Value
-                        </label>
-                        <Input
-                            value={labTest.resultValue}
-                            onChange={e => setLabTest({ ...labTest, resultValue: e.target.value })}
-                            placeholder="e.g. 7.5"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-                            Unit
-                        </label>
-                        <Input
-                            value={labTest.unit}
-                            onChange={e => setLabTest({ ...labTest, unit: e.target.value })}
-                            placeholder="e.g. K/µL"
-                            required
-                        />
-                    </div>
-                </div>
-
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-                        Reference Range
-                    </label>
-                    <Input
-                        value={labTest.referenceRange}
-                        onChange={e => setLabTest({ ...labTest, referenceRange: e.target.value })}
-                        placeholder="e.g. 4.5-11.0"
-                        required
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
-                        Remarks
+                        Remarks / Clinical Notes
                     </label>
                     <textarea
                         className="w-full px-4 py-2 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none h-20 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500"
                         value={labTest.remarks}
                         onChange={e => setLabTest({ ...labTest, remarks: e.target.value })}
-                        placeholder="Any clinical observations or notes..."
+                        placeholder="Any clinical notes for the lab technician..."
                     />
                 </div>
 
@@ -173,7 +125,7 @@ const LabTestModal = ({ isOpen, onClose, patientId, onAdd }) => {
                         Cancel
                     </Button>
                     <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? 'Saving...' : 'Add Lab Test'}
+                        {isSubmitting ? 'Ordering...' : 'Order Lab Test'}
                     </Button>
                 </div>
             </form>
