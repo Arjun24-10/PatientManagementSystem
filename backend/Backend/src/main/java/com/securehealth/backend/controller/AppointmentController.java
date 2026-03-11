@@ -80,8 +80,7 @@ public class AppointmentController {
         }
 
         try {
-            Appointment approved = appointmentService.approveAppointment(id);
-            return ResponseEntity.ok(approved);
+            return ResponseEntity.ok(appointmentService.approveAppointment(id));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -98,8 +97,7 @@ public class AppointmentController {
         }
 
         try {
-            Appointment rejected = appointmentService.rejectAppointment(id, reason);
-            return ResponseEntity.ok(rejected);
+            return ResponseEntity.ok(appointmentService.rejectAppointment(id, reason));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -109,6 +107,12 @@ public class AppointmentController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'DOCTOR')")
     public ResponseEntity<?> getAllAppointments() {
         return ResponseEntity.ok(appointmentService.getAllAppointments());
+    }
+
+    @GetMapping("/pending")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<?> getPendingAppointments() {
+        return ResponseEntity.ok(appointmentService.getPendingAppointments());
     }
 
     @GetMapping("/{id}")
